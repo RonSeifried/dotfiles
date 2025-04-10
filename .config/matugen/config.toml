@@ -1,0 +1,24 @@
+[config.wallpaper]
+command = "swww"
+arguments = ["img", "--transition-type", "center"]
+set = true
+
+
+# Hyprland
+[templates.hyprland]
+input_path = '~/.config/matugen/templates/matugen-hyprland.conf'
+output_path = '~/.config/hypr/matugen/matugen-hyprland.conf'
+post_hook = 'hyprctl reload'
+
+
+# Hyprlock
+[templates.hyprlock]
+input_path = '~/.config/matugen/templates/matugen-hyprlock.conf'
+output_path = '~/.config/hypr/hyprlock/matugen/matugen-hyprlock.conf'
+
+
+# Waybar
+[templates.waybar]
+input_path = '~/.config/matugen/templates/matugen-waybar.css'
+output_path = '~/.config/waybar/matugen/matugen-waybar.css'
+post_hook = 'pkill -SIGUSR2 waybar'
