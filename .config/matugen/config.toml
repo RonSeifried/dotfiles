@@ -3,22 +3,25 @@ command = "swww"
 arguments = ["img", "--transition-type", "center"]
 set = true
 
-
 # Hyprland
 [templates.hyprland]
 input_path = '~/.config/matugen/templates/matugen-hyprland.conf'
 output_path = '~/.config/hypr/matugen/matugen-hyprland.conf'
 post_hook = 'hyprctl reload'
 
-
 # Hyprlock
 [templates.hyprlock]
 input_path = '~/.config/matugen/templates/matugen-hyprlock.conf'
-output_path = '~/.config/hypr/hyprlock/matugen/matugen-hyprlock.conf'
+output_path = '~/.config/hypr/matugen/matugen-hyprlock.conf'
 
+[templates.kitty]
+input_path = '~/.config/matugen/templates/matugen-kitty.conf'
+output_path = '~/.config/kitty/matugen/matugen-kitty.conf'
 
-# Waybar
-[templates.waybar]
-input_path = '~/.config/matugen/templates/matugen-waybar.css'
-output_path = '~/.config/waybar/matugen/matugen-waybar.css'
-post_hook = 'pkill -SIGUSR2 waybar'
+[templates.starship]
+input_path = '~/.config/matugen/templates/matugen-starship.toml'
+output_path = '~/.config/starship.toml'
+
+[templates.yazi]
+input_path = '~/.config/matugen/templates/matugen-yazi.toml'
+output_path = '~/.config/yazi/theme.toml'
