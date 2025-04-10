@@ -57,7 +57,7 @@
   "theme.bar.menus.menu.dashboard.profile.radius": "10em",
   "theme.bar.menus.opacity": 100,
   "theme.bar.transparent": true,
-  "wallpaper.pywal": false,
+  "wallpaper.pywal": true,
   "theme.bar.buttons.style": "default",
   "theme.osd.scaling": 75,
   "theme.notification.scaling": 70,
@@ -158,9 +158,9 @@
   "theme.font.style": "normal",
   "theme.font.label": "Symbols Nerd Font",
   "theme.matugen": true,
-  "wallpaper.image": "/home/ron/Pictures/Wallpapers/astronaut-anime-girl.png",
+  "wallpaper.image": "/home/ron/Pictures/Wallpapers/space.png",
   "theme.matugen_settings.mode": "dark",
-  "theme.matugen_settings.scheme_type": "fruit-salad",
+  "theme.matugen_settings.scheme_type": "tonal-spot",
   "theme.bar.opacity": 30,
   "tear": true,
   "bar.launcher.autoDetectIcon": true,
@@ -175,8 +175,9 @@
   "bar.customModules.updates.icon.updated": "",
   "bar.customModules.updates.icon.pending": "",
   "bar.network.label": false,
-  "wallpaper.enable": false,
+  "wallpaper.enable": true,
   "menus.dashboard.directories.enabled": false,
   "menus.clock.weather.enabled": false,
-  "theme.matugen_settings.variation": "standard_1"
+  "theme.matugen_settings.variation": "standard_1",
+  "menus.transitionTime": 125
 }
