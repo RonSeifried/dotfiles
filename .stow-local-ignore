@@ -4,3 +4,5 @@
 \.gitmodules
 
 \.tmp$
+
+^\.config/hypr/modules/monitors\.conf$

@@ -30,4 +30,4 @@ tmp/**
 
 # do NOT track OS-generated stuff
 .DS_Store
-Thumbs.db
+Thumbs.db.config/hypr/modules/monitors.conf
