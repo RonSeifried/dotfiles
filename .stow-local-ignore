@@ -1,7 +1,6 @@
 \.git
 \.gitignore
+\.gitattributes
 \.gitmodules
 
-^/README.*
-^/LICENSE.*
-^/COPYING
+\.tmp$

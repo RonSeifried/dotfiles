@@ -1,0 +1,86 @@
+# ─────────────────────────────────────────────
+# Starship Prompt – angelehnt an starship-primer
+# Farben kommen aus dem Terminal (pywal)
+# ─────────────────────────────────────────────
+
+format = """
+$username$directory$git_branch$git_status$fill$python$nodejs$rust$time
+$character
+"""
+
+add_newline = true
+
+# ─────────────────────────────────────────────
+# Left side
+# ─────────────────────────────────────────────
+
+[username]
+show_always = true
+style_user = "fg:black bg:bright-yellow"
+style_root = "fg:black bg:red"
+format = "[](fg:bright-yellow)[$user]($style)[](fg:bright-yellow) "
+
+[directory]
+truncation_length = 3
+truncate_to_repo = false
+style = "fg:bright-white bg:bright-blue"
+format = "[](fg:bright-blue)[󰉋 ](bg:bright-blue fg:black)[$path]($style)[](fg:bright-blue) "
+
+[directory.substitutions]
+"Documents" = "󰈙 "
+"Downloads" = " "
+"Music" = " "
+"Pictures" = " "
+
+[git_branch]
+symbol = ""
+style = "fg:black bg:bright-cyan"
+format = "[](fg:bright-cyan)[$symbol $branch]($style)[](fg:bright-cyan) "
+
+[git_status]
+style = "fg:black bg:bright-green"
+format = "[](fg:bright-green)[$all_status$ahead_behind]($style)[](fg:bright-green) "
+stashed = " "
+modified = " "
+deleted = " "
+staged = " "
+untracked = " "
+
+# ─────────────────────────────────────────────
+# Right side (langs / tools / time)
+# ─────────────────────────────────────────────
+
+[python]
+symbol = "󰌠"
+style = "fg:black bg:bright-magenta"
+format = "[](fg:bright-magenta)[$symbol $version]($style)[](fg:bright-magenta) "
+pyenv_prefix = "venv"
+disabled = false
+
+[nodejs]
+symbol = "󰎙"
+style = "fg:black bg:bright-green"
+format = "[](fg:bright-green)[$symbol $version]($style)[](fg:bright-green) "
+disabled = true  # auf true lassen, wenn du es selten brauchst
+
+[rust]
+symbol = ""
+style = "fg:black bg:bright-red"
+format = "[](fg:bright-red)[$symbol $version]($style)[](fg:bright-red) "
+disabled = true
+
+[time]
+disabled = false
+time_format = "%H:%M"
+style = "fg:black bg:bright-black"
+format = "[](fg:bright-black)[ $time]($style)[](fg:bright-black) "
+
+# ─────────────────────────────────────────────
+# Prompt-Symbol
+# ─────────────────────────────────────────────
+
+[character]
+success_symbol = "[❯](bold bright-green)"
+error_symbol   = "[❯](bold bright-red)"
+vicmd_symbol   = "[❮](bold bright-yellow)"
+format = "$symbol "

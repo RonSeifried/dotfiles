@@ -1,1 +1,33 @@
-.tmp
+# never track secrets
+*.key
+*.pem
+*.gpg
+*.secret
+*.age
+
+# avoid caches
+.cache/
+.local/share/
+.mozilla/
+.pki/
+.rdesktop/
+.vscode-oss/
+Code - OSS/
+VSCodium/
+Obsidian/
+
+# avoid app data
+.config/discord/
+.config/spotify/
+.config/gtk-3.0/bookmarks
+.config/gtk-4.0/*
+
+# avoid logs + noise
+*.log
+*.tmp
+tmp/
+tmp/**
+
+# do NOT track OS-generated stuff
+.DS_Store
+Thumbs.db

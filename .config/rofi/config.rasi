@@ -1,2 +1,153 @@
 
-@theme "/home/ron/.local/share/rofi/themes/rounded-nord-dark.rasi"
+/*****----- Colors von pywal -----*****/
+@import "~/.cache/wal/colors-rofi-dark.rasi"
+
+/*****----- Configuration -----*****/
+configuration {
+  modi:                 "drun,run,WALLPAPER:~/.config/scripts/rofi/wallpaper-select.sh";
+  show-icons:           true;
+  display-drun:         "APPS";
+  display-run:          "RUN";
+  display-wall:         "WALLPAPER";
+  drun-display-format:  "{name}";
+  window-format:        "{w} · {c} · {t}";
+}
+
+* {
+  radius:                 14px;
+  gap:                    12px;
+
+  /* pick “alt” surfaces from wal; tweak if you prefer other slots */
+  bg-alt:                 @background;
+  accent:                 @urgent-background;
+  muted:                  @foreground;
+  font:                   "JetBrainsMono Nerd Font 11";
+}
+
+/* ---------- Window ---------- */
+window {
+  transparency:           "real";
+  location:               center;
+  anchor:                 center;
+  width:                  1100px;
+  border-radius:          @radius;
+  background-color:       @background;
+}
+
+/* ---------- Main layout ---------- */
+mainbox {
+  spacing:                0px;
+  orientation:            horizontal;
+  children:               [ "imagebox", "listbox" ];
+}
+
+/* Left: image panel
+   NOTE: no padding here -> background fills the box exactly (prevents clipping) */
+imagebox {
+  background-color:       @bg-alt;
+  background-image:       url("~/.cache/rofi/current_wallpaper_preview.png", height);
+  background-repeat:      false;           /* prevent tiling */
+  width:                  520px;           /* keep your chosen panel width */
+  orientation:            vertical;
+  children:               [ "inputbar", "spacer", "mode-switcher" ];
+}
+
+/* Fake spacer so input and mode buttons don’t overlap the picture */
+spacer {
+  expand:                 true;
+  background-color:       transparent;
+}
+
+/* Right column */
+listbox {
+  padding:                18px;
+  spacing:                @gap;
+  orientation:            vertical;
+  background-color:       transparent;
+  children:               [ "message", "listview" ];
+}
+
+/* ---------- Input bar (sits on top of image) ---------- */
+inputbar {
+  margin:                 16px;
+  spacing:                10px;
+  padding:                12px 14px;
+  border-radius:          10px;
+  background-color:       @bg-alt;
+  text-color:             @foreground;
+  children:               [ "textbox-prompt-colon", "entry" ];
+}
+textbox-prompt-colon {
+  str:                    "";
+  background-color:       inherit;
+  text-color:             @muted;
+}
+entry {
+  background-color:       inherit;
+  text-color:             @foreground;
+  placeholder:            "Search";
+  placeholder-color:      @muted;
+}
+
+/* ---------- Mode switcher ---------- */
+mode-switcher {
+  margin:                 0 16px 16px 16px;
+  spacing:                12px;
+}
+button {
+  padding:                10px 14px;
+  border-radius:          10px;
+  background-color:       @bg-alt;
+  text-color:             @foreground;
+  cursor:                 pointer;
+}
+button selected {
+  background-color:       @accent;
+  text-color:             @background;
+}
+
+/* ---------- List ---------- */
+listview {
+  columns:                1;
+  lines:                  10;
+  spacing:                8px;
+  scrollbar:              false;
+  background-color:       transparent;
+}
+
+element {
+  spacing:                12px;
+  padding:                8px 10px;
+  border-radius:          10px;
+  background-color:       transparent;
+  text-color:             @foreground;
+}
+element selected.normal {
+  background-color:       @accent;
+  text-color:             @background;
+}
+element normal.active {
+  text-color:             @background;
+}
+element normal.urgent,
+element selected.urgent {
+  text-color:             @background;
+}
+element-icon {
+  size:                   26px;
+  text-color:             inherit;
+  background-color:       transparent;
+}
+element-text {
+  text-color:             inherit;
+  background-color:       transparent;
+  vertical-align:         0.5;
+}
+
+/* ---------- Messages (eg. FILES path) ---------- */
+message, textbox, error-message {
+  padding:                10px 12px;
+  border-radius:          10px;
+  background-color:       @bg-alt;
+  text-color:             @foreground;
+}

@@ -1,0 +1,107 @@
+@import url("/home/ron/.cache/wal/colors-waybar.css");
+
+@define-color bg alpha(@background, 0.96);
+@define-color card alpha(@background, 0.90);
+@define-color surface alpha(@foreground, 0.12);
+@define-color accent @color4;
+@define-color accent2 @color2;
+@define-color fg @foreground;
+
+:root {
+    --mpris-album-art-icon-size: 68px;
+}
+
+* {
+  font-family: "JetBrainsMono Nerd Font", "Inter", sans-serif;
+  font-size: 14px;
+  color: @fg;
+  text-shadow: none;
+}
+
+/* --- Main Control Center --- */
+.control-center {
+  background: @bg;
+  border-radius: 15px;
+  padding: 12px;
+  box-shadow: 0 8px 28px alpha(@color0, 0.50);
+}
+
+/* --- TITLE --- */
+.widget-title {
+  padding: 4px 6px 10px;
+  font-weight: 700;
+}
+.widget-title > label {
+  font-size: 16px;
+}
+.widget-title > button {
+  background: @accent;
+  border-radius: 8px;
+  padding: 3px 8px;
+  color: @bg;
+}
+.widget-title > button:hover {
+  background: alpha(@accent, 0.8);
+}
+
+/* --- DND SWITCH --- */
+.widget-dnd {
+  margin: 8px 0 12px;
+  padding: 10px;
+  border-radius: 12px;
+  background: @surface;
+}
+.widget-dnd switch {
+  background: @surface;
+}
+.widget-dnd switch:checked {
+  background: @accent;
+}
+
+/* --- NOTIFICATIONS LIST --- */
+.notification-row .notification {
+  background: @card;
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 2px 12px alpha(@color0, 0.45);
+}
+.notification.critical {
+  background: alpha(@color1, 0.25);
+}
+
+/* --- MPRIS PLAYER --- */
+.widget-mpris .widget-mpris-player {
+  background: @card;
+  border-radius: 15px;
+  padding: 12px;
+  margin: 14px 2px;
+  box-shadow: 0 2px 14px alpha(@color0, 0.40);
+}
+.widget-mpris-image {
+  border-radius: 12px;
+}
+.widget-mpris-player > box > button:hover {
+  background: alpha(@accent, 0.20);
+  border-radius: 6px;
+}
+
+/* --- BUTTON GRID --- */
+.widget-buttons-grid {
+  margin-top: 14px;
+  padding: 8px;
+  background: @surface;
+  border-radius: 12px;
+}
+.widget-buttons-grid button {
+  background: @card;
+  border-radius: 12px;
+  margin: 6px;
+  min-width: 56px;
+  min-height: 40px;
+  font-size: 18px;
+  color: @fg;
+  box-shadow: 0 2px 8px alpha(@color0, 0.30);
+}
+.widget-buttons-grid button:hover {
+  background: alpha(@accent, 0.25);
+}

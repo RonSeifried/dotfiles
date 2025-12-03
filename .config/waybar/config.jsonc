@@ -1,0 +1,192 @@
+{
+    // --- GENERAL ---
+    "layer": "top",
+    "position": "top",
+    "output": [
+        "*"
+    ],
+    "reload_style_on_change": true,
+    "modules-left": [
+        "custom/power",
+        "clock"
+    ],
+    "modules-center": [
+        "hyprland/workspaces"
+    ],
+    "modules-right": [
+        "group/expand",
+        "custom/vpn",
+        "pulseaudio",
+        "network",
+        "bluetooth",
+        "battery",
+        "custom/notification-center"
+    ],
+    // --- LEFT ---
+    // +++ POWER +++
+    "custom/power": {
+        "format": "",
+        "interval": 86400,
+        "on-click": "wlogout",
+        "rotate": 0,
+        "tooltip": false
+    },
+    // +++ CLOCK +++
+    "clock": {
+        "actions": {
+            "on-click": "shift_up",
+            "on-click-right": "shift_down"
+        },
+        "calendar": {
+            "format": {
+                "today": "<span color='#fAfBfC'><b>{}</b></span>"
+            }
+        },
+        "format": "{:%d.%m.%Y | %H:%M}",
+        "interval": 1,
+        "tooltip-format": "<tt>{calendar}</tt>"
+    },
+    // --- CENTER ---
+    // +++ HYPRLAND-WORKSPACES +++
+    "hyprland/workspaces": {
+        "format": "{icon}",
+        "format-icons": {
+            "default": "●", // belegter Workspace
+            "active": "◎", // aktiver Workspace (Punkt im Punkt)
+            "empty": "○" // leerer Workspace
+        },
+        "on-click": "activate",
+        "on-scroll-up": "hyprctl dispatch workspace e+1",
+        "on-scroll-down": "hyprctl dispatch workspace e-1",
+        "persistent-workspaces": {
+            "*": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ]
+        }
+    },
+    // --- RIGHT ---
+    // +++ GROUP +++
+    "group/expand": {
+        "drawer": {
+            "click-to-reveal": true,
+            "transition-duration": 450,
+            "transition-left-to-right": false
+        },
+        "modules": [
+            "custom/expand-shrink",
+            "tray",
+            "custom/screenshot",
+            "custom/colorpick"
+        ],
+        "orientation": "horizontal"
+    },
+    "custom/expand-shrink": {
+        "format": "󰡎",
+        "tooltip": false
+    },
+    // +++ TRAY +++
+    "tray": {
+        "icon-size": 16,
+        "spacing": 10
+    },
+    // +++ SCREENSHOT +++
+    "custom/screenshot": {
+        "format": "",
+        "on-click": "bash -c $HOME/.config/scripts/snapshot.sh",
+        "tooltip": false
+    },
+    // +++ COLOR-PICK +++
+    "custom/colorpick": {
+        "format": "",
+        "on-click": "sleep 0.5 && hyprpicker | wl-copy",
+        "tooltip": false
+    },
+    // +++ VPN +++
+    "custom/vpn": {
+        "format": "{icon} {text}",
+        "tooltip": true,
+        "return-type": "json",
+        "interval": 5,
+        "exec": "$HOME/.config/scripts/vpn.sh"
+    },
+    // +++ AUDIO +++
+    "pulseaudio": {
+        "format": "{volume}% {icon}{format_source}",
+        "format-bluetooth": "{volume}% {icon}  {format_source}",
+        "format-bluetooth-muted": "<span foreground='#ea6961'>󰗾 {format_source}</span>",
+        "format-muted": "<span foreground='#ea6961'></span> {format_source}",
+        "format-source": " ",
+        "format-source-muted": " <span foreground='#ea6961'> </span>",
+        "format-icons": {
+            "default": [
+                "",
+                "",
+                " "
+            ],
+            "headphone": "",
+            "headset": ""
+        },
+        "ignored-sinks": [
+            "Easy Effects Sink",
+            "Monitor of Easy Effects Sink"
+        ],
+        "on-click": "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle",
+        "on-click-right": "kitty --class=floating_waybar -e pulsemixer",
+        "scroll-step": 0,
+        "tooltip": true
+    },
+    // +++ NETWORK +++
+    "network": {
+        "format-disconnected": "󰖪 ",
+        "format-disabled": "inet-disabled",
+        "format-ethernet": "󰈀 ",
+        "format-linked": "󰈀 {ifname} (No IP)",
+        "format-wifi": " ",
+        "interval": 2,
+        "on-click": "$HOME/.config/scripts/rofi/wifi.sh",
+        "rotate": 0,
+        "tooltip": true,
+        "tooltip-format": "Network: <big><b>{essid}</b></big>\nSignal strength: <b>{signaldBm}dBm ({signalStrength}%)</b>\nFrequency: <b>{frequency}MHz</b>\nInterface: <b>{ifname}</b>\nIP: <b>{ipaddr}/{cidr}</b>\nGateway: <b>{gwaddr}</b>\nNetmask: <b>{netmask}</b>",
+        "tooltip-format-disconnected": "Disconnected"
+    },
+    // +++ BLUETOOTH +++
+    "bluetooth": {
+        "format-connected-battery": "{device_battery_percentage}% 󰂯",
+        "format-disabled": "bt-disabled",
+        "format-off": "󰂲",
+        "format-on": "󰂯",
+        "on-click": "$HOME/.config/scripts/rofi/bluetooth.sh",
+        "on-click-right": "blueman-manager",
+        "tooltip-format": "{controller_alias}\n{controller_address}\n\n{num_connections} connected",
+        "tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}",
+        "tooltip-format-enumerate-connected": "{device_alias}\n{device_address}",
+        "tooltip-format-enumerate-connected-battery": "{device_alias}\n{device_address}\n{device_battery_percentage}%"
+    },
+    // +++ NOTIFICATIONS +++
+    "custom/notification-center": {
+        "escape": true,
+        "exec": "swaync-client -swb",
+        "exec-if": "which swaync-client",
+        "format": "{icon}",
+        "format-icons": {
+            "dnd-inhibited-none": "<span foreground='#ea6962'></span>",
+            "dnd-inhibited-notification": "<span foreground='#ea6962'></span>",
+            "dnd-none": "<span foreground='#ea6962'></span>",
+            "dnd-notification": "<span foreground='#ea6962'></span>",
+            "inhibited-none": "",
+            "inhibited-notification": "",
+            "none": "",
+            "notification": ""
+        },
+        "on-click": "swaync-client -t -sw",
+        "on-click-right": "swaync-client -d -sw",
+        "return-type": "json",
+        "tooltip": false
+    }
+}

@@ -1,0 +1,39 @@
+[general]
+# wohin die generierte Monitor-Config geschrieben wird
+destination = "$HOME/.config/hypr/modules/monitors.conf"
+
+# (optional) Notifications etc. lassen wir weg für's Erste
+
+# ---------- Profile 1: Docked (Deckel zu, nur externe Monitore) ----------
+[profiles.docked_closed]
+config_file = "hyprconfigs/docked_closed.conf"
+config_file_type = "static"
+
+[profiles.docked_closed.conditions]
+# nur aktiv, wenn der Deckel zu ist
+lid_state = "Closed"            # "Closed" oder "Opened" möglich
+
+# externe Monitore müssen vorhanden sein (Dock angeschlossen)
+[[profiles.docked_closed.conditions.required_monitors]]
+name = "DP-7"
+
+[[profiles.docked_closed.conditions.required_monitors]]
+name = "DP-10"
+
+# ---------- Profile 2: Laptop Only (Dock weg, Deckel offen) ----------
+[profiles.laptop_open]
+config_file = "hyprconfigs/laptop_open.conf"
+config_file_type = "static"
+
+[profiles.laptop_open.conditions]
+lid_state = "Opened"
+
+# nur das Laptop-Panel muss vorhanden sein
+[[profiles.laptop_open.conditions.required_monitors]]
+name = "eDP-1"
+
+# ---------- Fallback (falls nichts matcht) ----------
+[fallback_profile]
+config_file = "hyprconfigs/fallback.conf"
+config_file_type = "static"
+
