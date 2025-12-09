@@ -14,7 +14,7 @@ SELECTED=$(find $WALLDIR\
 # Exit if nothing is selected
 [ -z "$SELECTED" ] && exit 0
 
-# notify-send "new wallpaper: $(basename "$SELECTED")"
+notify-send "new wallpaper: $(basename "$SELECTED")"
 
 # Set wallpaper with swww
 swww img -t grow --transition-duration 2 "$SELECTED"
