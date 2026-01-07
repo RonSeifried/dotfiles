@@ -1,0 +1,6 @@
+# AI API Keys for askai.sh
+# Copy this file to ~/.askai-env and fill in your API key
+#
+# Get your Gemini API key from: https://aistudio.google.com/apikey
+
+export GEMINI_API_KEY="your-gemini-api-key-here"

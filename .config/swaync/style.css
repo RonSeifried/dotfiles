@@ -1,107 +1,466 @@
+/* SwayNC Theme - Pywal Integration */
 @import url("/home/ron/.cache/wal/colors-waybar.css");
 
+/* Color definitions using pywal */
 @define-color bg alpha(@background, 0.96);
-@define-color card alpha(@background, 0.90);
-@define-color surface alpha(@foreground, 0.12);
+@define-color bg-dark alpha(@background, 0.98);
+@define-color card alpha(@background, 0.85);
+@define-color surface alpha(@foreground, 0.08);
+@define-color surface-hover alpha(@foreground, 0.12);
 @define-color accent @color4;
-@define-color accent2 @color2;
+@define-color accent-dim alpha(@color4, 0.6);
+@define-color accent-bg alpha(@color4, 0.15);
 @define-color fg @foreground;
+@define-color fg-dim alpha(@foreground, 0.7);
+@define-color success @color2;
+@define-color warning @color3;
+@define-color error @color1;
 
-:root {
-    --mpris-album-art-icon-size: 68px;
-}
-
+/* Global styles */
 * {
-  font-family: "JetBrainsMono Nerd Font", "Inter", sans-serif;
-  font-size: 14px;
-  color: @fg;
-  text-shadow: none;
+    font-family: "JetBrainsMono Nerd Font", "Inter", sans-serif;
+    font-size: 14px;
+    color: @fg;
+    text-shadow: none;
 }
 
 /* --- Main Control Center --- */
 .control-center {
-  background: @bg;
-  border-radius: 15px;
-  padding: 12px;
-  box-shadow: 0 8px 28px alpha(@color0, 0.50);
+    background: @bg-dark;
+    border-radius: 16px;
+    border: 1px solid alpha(@foreground, 0.1);
+    padding: 14px;
+    box-shadow: 0 8px 32px alpha(@color0, 0.55);
+}
+
+.control-center-list {
+    background: transparent;
+    padding: 0;
+}
+
+.control-center-list-placeholder {
+    opacity: 0.5;
+}
+
+/* --- Floating Notifications (outside panel) --- */
+.floating-notifications {
+    background: transparent;
 }
 
 /* --- TITLE --- */
 .widget-title {
-  padding: 4px 6px 10px;
-  font-weight: 700;
+    padding: 6px 8px 12px;
+    font-weight: 700;
 }
+
 .widget-title > label {
-  font-size: 16px;
+    font-size: 17px;
+    color: @fg;
 }
+
 .widget-title > button {
-  background: @accent;
-  border-radius: 8px;
-  padding: 3px 8px;
-  color: @bg;
+    background: @accent;
+    border-radius: 10px;
+    padding: 6px 14px;
+    color: @background;
+    font-weight: 600;
+    font-size: 13px;
+    border: none;
+    box-shadow: 0 2px 8px alpha(@accent, 0.3);
 }
+
 .widget-title > button:hover {
-  background: alpha(@accent, 0.8);
+    background: alpha(@accent, 0.85);
+    box-shadow: 0 2px 12px alpha(@accent, 0.4);
 }
 
 /* --- DND SWITCH --- */
 .widget-dnd {
-  margin: 8px 0 12px;
-  padding: 10px;
-  border-radius: 12px;
-  background: @surface;
+    margin: 6px 0 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: @surface;
 }
+
+.widget-dnd > label {
+    font-weight: 500;
+    color: @fg-dim;
+}
+
 .widget-dnd switch {
-  background: @surface;
+    background: @surface;
+    border-radius: 14px;
+    border: none;
+    min-width: 48px;
+    min-height: 24px;
 }
+
+.widget-dnd switch slider {
+    background: @fg-dim;
+    border-radius: 50%;
+    min-width: 20px;
+    min-height: 20px;
+    margin: 2px;
+}
+
 .widget-dnd switch:checked {
-  background: @accent;
+    background: @accent;
+}
+
+.widget-dnd switch:checked slider {
+    background: @background;
 }
 
 /* --- NOTIFICATIONS LIST --- */
-.notification-row .notification {
-  background: @card;
-  border-radius: 12px;
-  padding: 8px;
-  box-shadow: 0 2px 12px alpha(@color0, 0.45);
+.notification-row {
+    margin: 4px 0;
+    padding: 0;
 }
+
+.notification-row .notification {
+    background: @card;
+    border-radius: 14px;
+    padding: 0;
+    border: 1px solid alpha(@foreground, 0.06);
+    box-shadow: 0 2px 12px alpha(@color0, 0.35);
+}
+
+.notification-row .notification:hover {
+    background: alpha(@foreground, 0.08);
+}
+
+.notification-row .notification-content {
+    padding: 12px;
+}
+
+.notification-row .notification-default-action {
+    border-radius: 14px;
+}
+
+.notification-row .notification-default-action:hover {
+    background: @surface-hover;
+}
+
 .notification.critical {
-  background: alpha(@color1, 0.25);
+    background: alpha(@error, 0.15);
+    border: 1px solid alpha(@error, 0.4);
+}
+
+.notification.low {
+    opacity: 0.85;
+}
+
+/* Notification elements */
+.notification-row .summary {
+    font-weight: 600;
+    font-size: 14px;
+    color: @fg;
+}
+
+.notification-row .time {
+    font-size: 11px;
+    color: @fg-dim;
+}
+
+.notification-row .body {
+    font-size: 13px;
+    color: @fg-dim;
+}
+
+.notification-row .body-image {
+    border-radius: 10px;
+    margin-top: 8px;
+}
+
+.notification-row .image {
+    border-radius: 10px;
+    margin-right: 10px;
+}
+
+/* Notification action buttons */
+.notification-row .notification-action {
+    background: @surface;
+    border-radius: 8px;
+    padding: 6px 12px;
+    margin: 4px;
+    border: none;
+    color: @fg;
+    font-size: 12px;
+}
+
+.notification-row .notification-action:hover {
+    background: @accent-bg;
+    color: @accent;
+}
+
+/* Close button */
+.notification-row .close-button {
+    background: alpha(@error, 0.15);
+    border-radius: 50%;
+    min-width: 24px;
+    min-height: 24px;
+    margin: 8px;
+    border: none;
+    color: @error;
+}
+
+.notification-row .close-button:hover {
+    background: @error;
+    color: @background;
 }
 
 /* --- MPRIS PLAYER --- */
+.widget-mpris {
+    margin: 8px 0;
+}
+
 .widget-mpris .widget-mpris-player {
-  background: @card;
-  border-radius: 15px;
-  padding: 12px;
-  margin: 14px 2px;
-  box-shadow: 0 2px 14px alpha(@color0, 0.40);
+    background: @card;
+    border-radius: 14px;
+    padding: 14px;
+    border: 1px solid alpha(@foreground, 0.06);
+    box-shadow: 0 2px 14px alpha(@color0, 0.35);
 }
-.widget-mpris-image {
-  border-radius: 12px;
+
+.widget-mpris .widget-mpris-title {
+    font-weight: 600;
+    font-size: 15px;
+    color: @fg;
 }
+
+.widget-mpris .widget-mpris-subtitle {
+    font-size: 12px;
+    color: @fg-dim;
+}
+
+.widget-mpris-album-art {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px alpha(@color0, 0.4);
+}
+
+.widget-mpris-player > box > button {
+    background: @surface;
+    border-radius: 50%;
+    min-width: 36px;
+    min-height: 36px;
+    margin: 4px;
+    border: none;
+    color: @fg;
+}
+
 .widget-mpris-player > box > button:hover {
-  background: alpha(@accent, 0.20);
-  border-radius: 6px;
+    background: @accent-bg;
+    color: @accent;
+}
+
+.widget-mpris-player > box > button:disabled {
+    opacity: 0.3;
+}
+
+/* --- VOLUME WIDGET --- */
+.widget-volume {
+    margin: 8px 0;
+    padding: 12px 14px;
+    background: @surface;
+    border-radius: 12px;
+}
+
+.widget-volume > box > label {
+    font-size: 18px;
+    color: @accent;
+    margin-right: 10px;
+}
+
+.widget-volume scale {
+    min-height: 6px;
+}
+
+.widget-volume scale trough {
+    background: alpha(@foreground, 0.15);
+    border-radius: 4px;
+    min-height: 6px;
+}
+
+.widget-volume scale highlight {
+    background: @accent;
+    border-radius: 4px;
+}
+
+.widget-volume scale slider {
+    background: @fg;
+    border-radius: 50%;
+    min-width: 16px;
+    min-height: 16px;
+    margin: -5px 0;
+    box-shadow: 0 2px 4px alpha(@color0, 0.3);
+}
+
+/* Per-app volume */
+.widget-volume .per-app-volume {
+    padding: 8px 0;
+}
+
+.widget-volume .per-app-volume > box {
+    padding: 4px 0;
+}
+
+.widget-volume .per-app-volume image {
+    margin-right: 8px;
+}
+
+/* Expand/collapse buttons */
+.widget-volume .expand-button,
+.widget-volume .collapse-button {
+    background: @surface;
+    border-radius: 8px;
+    padding: 4px 10px;
+    margin-top: 8px;
+    border: none;
+    color: @fg-dim;
+}
+
+.widget-volume .expand-button:hover,
+.widget-volume .collapse-button:hover {
+    background: @accent-bg;
+    color: @accent;
 }
 
 /* --- BUTTON GRID --- */
 .widget-buttons-grid {
-  margin-top: 14px;
-  padding: 8px;
-  background: @surface;
-  border-radius: 12px;
+    margin: 10px 0;
+    padding: 10px;
+    background: @surface;
+    border-radius: 14px;
 }
-.widget-buttons-grid button {
-  background: @card;
-  border-radius: 12px;
-  margin: 6px;
-  min-width: 56px;
-  min-height: 40px;
-  font-size: 18px;
-  color: @fg;
-  box-shadow: 0 2px 8px alpha(@color0, 0.30);
+
+.widget-buttons-grid > flowbox {
+    padding: 0;
 }
-.widget-buttons-grid button:hover {
-  background: alpha(@accent, 0.25);
+
+.widget-buttons-grid > flowbox > flowboxchild {
+    padding: 4px;
+}
+
+.widget-buttons-grid > flowbox > flowboxchild > button {
+    background: @card;
+    border-radius: 12px;
+    min-width: 56px;
+    min-height: 44px;
+    padding: 8px;
+    font-size: 20px;
+    color: @fg;
+    border: 1px solid alpha(@foreground, 0.06);
+    box-shadow: 0 2px 8px alpha(@color0, 0.25);
+}
+
+.widget-buttons-grid > flowbox > flowboxchild > button:hover {
+    background: @accent-bg;
+    border-color: alpha(@accent, 0.3);
+}
+
+/* Toggle button states */
+.widget-buttons-grid > flowbox > flowboxchild > button.toggle:checked {
+    background: @accent;
+    color: @background;
+    border-color: @accent;
+    box-shadow: 0 2px 12px alpha(@accent, 0.4);
+}
+
+.widget-buttons-grid > flowbox > flowboxchild > button.toggle:not(:checked) {
+    background: @surface;
+    color: @fg-dim;
+}
+
+.widget-buttons-grid
+    > flowbox
+    > flowboxchild
+    > button.toggle:not(:checked):hover {
+    background: alpha(@foreground, 0.12);
+    color: @fg;
+}
+
+/* --- INHIBITORS WIDGET --- */
+.widget-inhibitors {
+    margin: 8px 0;
+    padding: 10px;
+    background: alpha(@warning, 0.1);
+    border-radius: 10px;
+    border: 1px solid alpha(@warning, 0.3);
+}
+
+.widget-inhibitors > label {
+    color: @warning;
+    font-weight: 500;
+}
+
+/* --- NOTIFICATION GROUPING --- */
+.notification-group {
+    margin: 6px 0;
+}
+
+.notification-group-headers {
+    background: @surface;
+    border-radius: 10px 10px 0 0;
+    padding: 10px 12px;
+    font-weight: 600;
+}
+
+.notification-group-headers label {
+    color: @fg;
+}
+
+.notification-group-icon {
+    margin-right: 8px;
+}
+
+.notification-group-collapse-button {
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 8px;
+    color: @fg-dim;
+}
+
+.notification-group-collapse-button:hover {
+    background: @surface-hover;
+    color: @fg;
+}
+
+/* --- EMPTY STATE / BLANK WINDOW --- */
+.blank-window {
+    background: transparent;
+}
+
+.blank-window label {
+    color: @fg-dim;
+    font-size: 15px;
+}
+
+/* --- SCROLLBAR --- */
+scrollbar {
+    background: transparent;
+    border: none;
+}
+
+scrollbar slider {
+    background: alpha(@foreground, 0.2);
+    border-radius: 4px;
+    min-width: 6px;
+    min-height: 40px;
+}
+
+scrollbar slider:hover {
+    background: alpha(@foreground, 0.3);
+}
+
+/* --- TOOLTIP --- */
+tooltip {
+    background: @bg;
+    border-radius: 8px;
+    border: 1px solid alpha(@foreground, 0.1);
+    padding: 6px 10px;
+}
+
+tooltip label {
+    color: @fg;
 }

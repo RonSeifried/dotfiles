@@ -1,24 +1,54 @@
-#!/bin/sh
-set -eu
+#!/usr/bin/env bash
+# Project Opener - Opens projects in Zed + Kitty with tmux
+set -euo pipefail
 
-# Set your terminal:
-terminal="st"
+# Configuration
+DEV_DIR="$HOME/dev"
+ROFI_THEME="$HOME/.config/rofi/config.rasi"
 
-# Search for projects in ~/dev/*/*
-configs="$(find "$HOME/dev" -mindepth 2 -maxdepth 2 -type d -printf '%P\n' 2>/dev/null)"
-[ -n "$configs" ] || exit 0
+# Find projects (2 levels deep in ~/dev)
+find_projects() {
+    find "$DEV_DIR" -mindepth 2 -maxdepth 2 -type d -printf '%P\n' 2>/dev/null | sort
+}
 
-# Pick project
-chosen="$(printf '%s\n' "$configs" | rofi -dmenu -theme "$HOME/.config/rofi/ai.rasi" -p 'Projects:')"
-[ -n "$chosen" ] || exit 0
-dir="$HOME/dev/$chosen"
+# Get list of projects
+projects=$(find_projects)
 
-# Kill existing terminal (if you only want one instance)
-# pkill -x "$terminal" 2>/dev/null || true
-# sleep 0.1
+if [[ -z "$projects" ]]; then
+    notify-send "Project Opener" "No projects found in $DEV_DIR" -u normal
+    exit 0
+fi
 
-zeditor "$dir"
-sleep 0.1
+# Show rofi menu
+chosen=$(printf '%s\n' "$projects" | rofi -dmenu -i -p "Projects" -theme "$ROFI_THEME")
 
-# Launch terminal with tmux session (attach if exists, else create new)
-exec kitty tmux new-session -As "$(basename "$chosen")" -c "$dir"
+# Exit if nothing chosen
+[[ -z "$chosen" ]] && exit 0
+
+# Full path to project
+project_dir="$DEV_DIR/$chosen"
+project_name=$(basename "$chosen")
+
+if [[ ! -d "$project_dir" ]]; then
+    notify-send "Project Opener" "Directory not found: $project_dir" -u critical
+    exit 1
+fi
+
+# Open in Zed editor
+if command -v zeditor &>/dev/null; then
+    zeditor "$project_dir" &
+elif command -v zed &>/dev/null; then
+    zed "$project_dir" &
+fi
+
+# Small delay to let editor start
+sleep 0.2
+
+# Open kitty with tmux session (attach if exists, create if not)
+if command -v kitty &>/dev/null; then
+    kitty --detach --directory "$project_dir" \
+        tmux new-session -As "$project_name" -c "$project_dir"
+else
+    notify-send "Project Opener" "Kitty not found" -u critical
+    exit 1
+fi

@@ -40,3 +40,9 @@ Thumbs.db
 
 # hyprland monitor config (machine-specific)
 .config/hypr/modules/monitors.conf
+
+# backup directory (temporary, can be deleted after confirming changes)
+.config/backup/
+
+# askai environment file (contains API keys)
+.askai-env

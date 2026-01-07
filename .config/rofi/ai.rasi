@@ -1,1 +1,72 @@
-@theme "theme.rasi"
+/*****----- AI Rofi Theme -----*****/
+/* Import pywal colors */
+@import "~/.cache/wal/colors-rofi-dark.rasi"
+
+/*****----- Global Properties -----*****/
+* {
+    font:                        "JetBrainsMono Nerd Font 12";
+    border-radius:               10px;
+}
+
+/*****----- Main Window -----*****/
+window {
+    transparency:                "real";
+    location:                    center;
+    anchor:                      center;
+    width:                       600px;
+    border:                      2px solid;
+    border-color:                @active-background;
+    border-radius:               12px;
+    background-color:            @background;
+}
+
+/*****----- Main Box -----*****/
+mainbox {
+    spacing:                     10px;
+    padding:                     20px;
+    background-color:            transparent;
+    children:                    [ "inputbar", "message", "listview" ];
+}
+
+/*****----- Inputbar -----*****/
+inputbar {
+    spacing:                     10px;
+    padding:                     12px 16px;
+    border-radius:               8px;
+    background-color:            @alternate-normal-background;
+    text-color:                  @foreground;
+    children:                    [ "prompt", "entry" ];
+}
+
+prompt {
+    background-color:            inherit;
+    text-color:                  @active-background;
+}
+
+entry {
+    background-color:            inherit;
+    text-color:                  @foreground;
+    placeholder:                 "Ask AI...";
+    placeholder-color:           @foreground;
+}
+
+/*****----- Listview -----*****/
+listview {
+    enabled:                     false;
+    columns:                     1;
+    lines:                       0;
+    background-color:            transparent;
+}
+
+/*****----- Message -----*****/
+message {
+    padding:                     10px;
+    border-radius:               8px;
+    background-color:            @alternate-normal-background;
+    text-color:                  @foreground;
+}
+
+textbox {
+    background-color:            inherit;
+    text-color:                  inherit;
+}

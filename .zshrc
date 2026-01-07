@@ -38,7 +38,7 @@ export EDITOR="nvim"
 export VISUAL="nvim"
 
 # AUR Helper (change to yay if preferred)
-export aurhelper="paru"
+export aurhelper="yay"
 
 ########## HISTORY ##########
 
@@ -129,10 +129,10 @@ autoload -U compinit && compinit
 ########## Startup ##########
 
 # Neofetch on terminal open (only for interactive shells, use fastfetch if available)
-if command -v fastfetch &> /dev/null; then
-  fastfetch
-else
+if command -v neofetch &> /dev/null; then
   neofetch
+else
+  fastfetch
 fi
 
 ########## END ##########

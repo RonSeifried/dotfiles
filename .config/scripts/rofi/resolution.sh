@@ -1,43 +1,137 @@
 #!/usr/bin/env bash
+# Resolution/Display Mode Switcher
+# Dynamically detects monitors and offers resolution options
 
-MONITOR1="eDP-1"
-MONITOR2="HDMI-A-1"
+# Get list of connected monitors
+get_monitors() {
+    hyprctl monitors -j | jq -r '.[].name'
+}
 
-MODE_1080="1920x1080"
+# Get primary (first) monitor
+get_primary_monitor() {
+    hyprctl monitors -j | jq -r '.[0].name'
+}
 
-MENU=$(printf "1080p\nPreferred\n----\nMirror\nExtend")
+# Get secondary monitor (if exists)
+get_secondary_monitor() {
+    hyprctl monitors -j | jq -r '.[1].name // empty'
+}
 
-CHOICE=$(echo -e "$MENU" | rofi -dmenu -p "Choose action")
+# Get available resolutions for a monitor
+get_resolutions() {
+    local monitor="$1"
+    hyprctl monitors -j | jq -r --arg mon "$monitor" '.[] | select(.name == $mon) | .availableModes[]' 2>/dev/null | \
+        sed 's/@.*//' | sort -t'x' -k1 -nr | uniq | head -10
+}
 
-case "$CHOICE" in
-  "1080p")
-    hyprctl keyword monitor "$MONITOR1,$MODE_1080,auto,1"
-    notify-send "Resolution" "Set $MONITOR1 to $MODE_1080"
-    ;;
+# Build menu options
+build_menu() {
+    local primary secondary
 
-  "Preferred")
-    # Use hyprland default preferred mode by just not specifying a mode
-    # (or specify your preferred res explicitly if you want)
-    hyprctl keyword monitor "$MONITOR1,preferred,auto,1"
-    notify-send "Resolution" "Set $MONITOR1 to Preferred mode"
-    ;;
+    primary=$(get_primary_monitor)
+    secondary=$(get_secondary_monitor)
 
-  "Mirror")
-    # Mirror HDMI to eDP with same resolution as eDP
-    hyprctl keyword monitor "$MONITOR1,1920x1080,0x0,1"
-    hyprctl keyword monitor "$MONITOR2,1920x1080,0x0,1,mirror,$MONITOR1"
-    notify-send "Display Mode" "Switched to Mirror"
-    ;;
+    echo "━━━ Resolution ━━━"
 
-  "Extend")
-    # Extend HDMI to right of eDP with its preferred resolution
-    hyprctl keyword monitor "$MONITOR1,1920x1080,0x0,1"
-    hyprctl keyword monitor "$MONITOR2,preferred,1920x0,1"
-    swww img ~/Pictures/wallpaper/gruvbox/anime/chainsaw-man.jpg -o "$MONITOR2" 
-    notify-send "Display Mode" "Switched to Extend"
-    ;;
+    # Show available resolutions for primary monitor
+    while IFS= read -r res; do
+        echo "  $res"
+    done < <(get_resolutions "$primary")
 
-  *)
-    echo "No selection or cancelled."
-    ;;
-esac
+    echo ""
+    echo "󰍹  Preferred (Auto)"
+
+    # If secondary monitor exists, show display modes
+    if [[ -n "$secondary" ]]; then
+        echo ""
+        echo "━━━ Display Mode ━━━"
+        echo "  Mirror ($secondary → $primary)"
+        echo "  Extend Right"
+        echo "  Extend Left"
+        echo "󰶐  $secondary Only"
+        echo "󰍹  $primary Only"
+    fi
+}
+
+# Apply resolution
+apply_resolution() {
+    local choice="$1"
+    local primary secondary
+
+    primary=$(get_primary_monitor)
+    secondary=$(get_secondary_monitor)
+
+    case "$choice" in
+        "󰍹  Preferred (Auto)")
+            hyprctl keyword monitor "$primary,preferred,auto,1"
+            notify-send "Resolution" "Set $primary to preferred mode" -t 2000
+            ;;
+
+        "  Mirror"*)
+            if [[ -n "$secondary" ]]; then
+                hyprctl keyword monitor "$primary,preferred,0x0,1"
+                hyprctl keyword monitor "$secondary,preferred,0x0,1,mirror,$primary"
+                notify-send "Display Mode" "Mirroring $secondary to $primary" -t 2000
+            fi
+            ;;
+
+        "  Extend Right")
+            if [[ -n "$secondary" ]]; then
+                local primary_width
+                primary_width=$(hyprctl monitors -j | jq -r --arg mon "$primary" '.[] | select(.name == $mon) | .width')
+                hyprctl keyword monitor "$primary,preferred,0x0,1"
+                hyprctl keyword monitor "$secondary,preferred,${primary_width}x0,1"
+                notify-send "Display Mode" "$secondary extended to right" -t 2000
+            fi
+            ;;
+
+        "  Extend Left")
+            if [[ -n "$secondary" ]]; then
+                local secondary_width
+                secondary_width=$(hyprctl monitors -j | jq -r --arg mon "$secondary" '.[] | select(.name == $mon) | .width')
+                hyprctl keyword monitor "$secondary,preferred,0x0,1"
+                hyprctl keyword monitor "$primary,preferred,${secondary_width}x0,1"
+                notify-send "Display Mode" "$secondary extended to left" -t 2000
+            fi
+            ;;
+
+        "󰶐  $secondary Only")
+            hyprctl keyword monitor "$primary,disable"
+            hyprctl keyword monitor "$secondary,preferred,0x0,1"
+            notify-send "Display Mode" "Using $secondary only" -t 2000
+            ;;
+
+        "󰍹  $primary Only")
+            if [[ -n "$secondary" ]]; then
+                hyprctl keyword monitor "$secondary,disable"
+            fi
+            hyprctl keyword monitor "$primary,preferred,0x0,1"
+            notify-send "Display Mode" "Using $primary only" -t 2000
+            ;;
+
+        "  "*)
+            # Resolution selected (e.g., "  1920x1080")
+            local res="${choice#*  }"
+            res="${res// /}"
+            hyprctl keyword monitor "$primary,$res,auto,1"
+            notify-send "Resolution" "Set $primary to $res" -t 2000
+            ;;
+
+        "━━━"* | "")
+            # Separator or empty - ignore
+            exit 0
+            ;;
+
+        *)
+            notify-send "Resolution" "Unknown option: $choice" -u critical
+            ;;
+    esac
+}
+
+# Main
+MENU=$(build_menu)
+CHOICE=$(echo -e "$MENU" | rofi -dmenu -i -p "󰍹 Display" -theme "$HOME/.config/rofi/config.rasi")
+
+[[ -z "$CHOICE" ]] && exit 0
+
+apply_resolution "$CHOICE"

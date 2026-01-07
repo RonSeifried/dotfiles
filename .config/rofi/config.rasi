@@ -4,11 +4,13 @@
 
 /*****----- Configuration -----*****/
 configuration {
-  modi:                 "drun,WALLPAPERS:~/.config/scripts/rofi/wallpaper-select.sh,INSTALL:~/.config/scripts/rofi/list-installer.sh";
+  modi:                 "drun,INSTALL:~/.config/scripts/rofi/list-installer.sh,WIFI:~/.config/scripts/rofi/wifi.sh,BLUETOOTH:~/.config/scripts/rofi/bluetooth.sh";
   show-icons:           true;
   display-drun:         "APPS";
   display-run:          "RUN";
-  display-wall:         "WALLPAPER";
+  display-INSTALL:      "INSTALL";
+  display-WIFI:         "WIFI";
+  display-BLUETOOTH:    "BT";
   drun-display-format:  "{name}";
   window-format:        "{w} · {c} · {t}";
 }

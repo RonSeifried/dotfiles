@@ -1,101 +1,147 @@
+/*****----- Wallpaper Selector Theme -----*****/
+/* Large image grid with beautiful styling */
+
+/* Import pywal colors */
+@import "~/.cache/wal/colors-rofi-dark.rasi"
+
 /*****----- Configuration -----*****/
 configuration {
     show-icons:                 true;
-    drun-display-format:        "{name}";
-
-
-  kb-mode-previous: "";
-  kb-mode-next: "";
+    kb-mode-previous:           "";
+    kb-mode-next:               "";
+    click-to-exit:              true;
 }
 
 /*****----- Global Properties -----*****/
 * {
-    font:                        "JetBrains Mono Nerd Font 9";
-    background:                  #1d2021;  /* Gruvbox dark bg */
-    background-alt:              #3c3836;  /* Gruvbox dark alt bg */
-    foreground:                  #ebdbb2;  /* Gruvbox fg */
-    selected:                    #fB4934;  /* Gruvbox bright pink */
+    font:                        "JetBrains Mono Nerd Font 11";
+    border-radius:               12px;
+    spacing:                     0;
 }
 
 /*****----- Main Window -----*****/
 window {
     fullscreen:                  false;
     location:                    center;
-    width:                       80%;
-    border-radius:               6px;
-    padding:                     10px;
-    background-color:            transparent;
+    anchor:                      center;
+    width:                       1100px;
+    height:                      750px;
+    border-radius:               16px;
+    border:                      2px solid;
+    border-color:                @active-background;
+    background-color:            @background;
+    cursor:                      default;
 }
 
 /*****----- Main Layout -----*****/
 mainbox {
-    border-radius:               6px;
-    spacing:                     0px;
+    spacing:                     15px;
+    padding:                     20px;
     orientation:                 vertical;
-    children:                    [ "inputbar", "listbox" ];
-}
-
-listbox {
-    spacing:                     0px;
-    orientation:                 vertical;
-    children:                    [ "listview" ];
+    background-color:            transparent;
+    children:                    [ "inputbar", "message", "listview" ];
 }
 
 /*****----- Input Bar (Search) -----*****/
 inputbar {
-    children: [prompt, entry];
-    background-color:            #3c3836;  /* Gruvbox dark bg */
+    children:                    [ prompt, entry ];
+    background-color:            @alternate-normal-background;
+    border-radius:               10px;
+    padding:                     0;
 }
 
-
 prompt {
-    padding:                     10px;
-    text-color:                  #ebdbb2;  
-    background-color:            #3c3836;  /* Gruvbox dark bg */
+    padding:                     14px 16px;
+    text-color:                  @active-background;
+    background-color:            transparent;
+    font:                        "JetBrains Mono Nerd Font 14";
 }
 
 entry {
-    padding:                     10px 0;
-    text-color:                  #ebdbb2;
-    background-color:            #3c3836;  /* slightly darker for input */
-    border-radius:               4px;
+    padding:                     14px 0;
+    text-color:                  @foreground;
+    background-color:            transparent;
+    placeholder:                 "Search wallpapers...";
+    placeholder-color:           @normal-foreground;
+    cursor:                      text;
 }
 
-/*****----- Listview: Icon Grid -----*****/
+/*****----- Message -----*****/
+message {
+    background-color:            transparent;
+    padding:                     0;
+}
+
+textbox {
+    padding:                     10px 14px;
+    border-radius:               8px;
+    background-color:            @alternate-normal-background;
+    text-color:                  @foreground;
+}
+
+/*****----- Listview: Image Grid -----*****/
 listview {
-    columns:                     5;
-    lines:                       3;
+    columns:                     4;
+    lines:                       2;
     layout:                      vertical;
     fixed-columns:               true;
     fixed-height:                true;
     dynamic:                     false;
-    spacing:                     10px;
-    padding:                     8px;
-    border-radius:               0px 0px 6px 6px;
-    background-color:            #282828;  /* Gruvbox slightly lighter bg for grid */
+    spacing:                     15px;
+    padding:                     5px;
+    background-color:            transparent;
+    scrollbar:                   false;
+    cycle:                       true;
+    cursor:                      default;
 }
 
 /*****----- Element Styling -----*****/
 element {
-    padding:                     0px 10px 0px 10px;
-    border-radius:               6px;
-    background-color:            transparent;
-    horizontal-align:            0.5;
-}
-element selected.normal {
-    background-color:            @selected;
-}
-element-icon {
-    size:                        159px;
-    border-radius:               6px;
-    background-color:            transparent;
-    vertical-align:              0.5;
-    padding:                     2px;
-}
-element-text {
-    text-color:                  transparent;
-    background-color:            transparent;
-    padding:                     0px;
-    font:                        "JetBrains Mono Nerd Font 0";
+    padding:                     10px;
+    border-radius:               12px;
+    background-color:            @alternate-normal-background;
+    orientation:                 vertical;
+    cursor:                      pointer;
 }
 
+element normal.normal {
+    background-color:            @alternate-normal-background;
+}
+
+element alternate.normal {
+    background-color:            @alternate-normal-background;
+}
+
+element selected.normal {
+    background-color:            @selected-normal-background;
+    border:                      3px solid;
+    border-color:                @active-background;
+}
+
+element-icon {
+    size:                        200px;
+    border-radius:               8px;
+    background-color:            transparent;
+    cursor:                      pointer;
+    horizontal-align:            0.5;
+    vertical-align:              0.5;
+}
+
+/* Hide the text completely - we only want images */
+element-text {
+    expand:                      false;
+    width:                       0;
+    height:                      0;
+    padding:                     0;
+    margin:                      0;
+    text-color:                  transparent;
+    background-color:            transparent;
+}
+
+/*****----- Error Message -----*****/
+error-message {
+    padding:                     20px;
+    border-radius:               12px;
+    background-color:            @background;
+    text-color:                  @urgent-foreground;
+}
