@@ -37,6 +37,9 @@ export PATH="$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH"
 export EDITOR="nvim"
 export VISUAL="nvim"
 
+# AUR Helper (change to yay if preferred)
+export aurhelper="paru"
+
 ########## HISTORY ##########
 
 HISTFILE=~/.zsh_history
@@ -49,9 +52,11 @@ setopt hist_ignore_all_dups
 setopt hist_reduce_blanks
 setopt hist_ignore_space
 
-# Ignore trivial commands
-HISTIGNORE="ls:cd:cd -:pwd:exit:date:* --help"
-
+# Ignore trivial commands from history (ZSH-compatible)
+zshaddhistory() {
+  local line="${1%%$'\n'}"
+  [[ "$line" != "ls"* && "$line" != "cd"* && "$line" != "pwd" && "$line" != "exit" && "$line" != "date" && "$line" != *"--help" ]]
+}
 
 ########## QUALITY OF LIFE ##########
 
@@ -60,16 +65,14 @@ alias ..="cd .."
 alias ...="cd ../.."
 alias ....="cd ../../.."
 alias .....="cd ../../../.."
-alias .4='cd ../../../..'
-alias .5='cd ../../../../..'
 
-# Quick sudo !! 
+# Quick sudo !!
 alias please='sudo $(fc -ln -1)'
 
 # mkdir always recursive
 alias mkdir='mkdir -p'
 
-# Extract anything 
+# Extract anything
 extract () {
   if [ -f "$1" ] ; then
     case $1 in
@@ -112,7 +115,7 @@ alias up='$aurhelper -Syu'                                             # update 
 alias pl='$aurhelper -Qs'                                              # list installed package
 alias pa='$aurhelper -Ss'                                              # list available package
 alias pc='$aurhelper -Sc'                                              # remove unused cache
-alias po='$aurhelper -Qtdq | $aurhelper -Rns -'                        # remove unused packages, also try > $aurhelper -Qqd | $aurhelper -Rsu --print -
+alias po='$aurhelper -Qtdq | $aurhelper -Rns -'                        # remove unused packages
 alias vc='code'                                                        # gui code editor
 alias fastfetch='fastfetch --logo-type kitty'
 
@@ -125,7 +128,15 @@ autoload -U compinit && compinit
 
 ########## Startup ##########
 
-# Neofetch on terminal open
-neofetch
+# Neofetch on terminal open (only for interactive shells, use fastfetch if available)
+if command -v fastfetch &> /dev/null; then
+  fastfetch
+else
+  neofetch
+fi
 
 ########## END ##########
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/home/ron/.lmstudio/bin"
+# End of LM Studio CLI section

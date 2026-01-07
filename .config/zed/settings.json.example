@@ -1,0 +1,62 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+//
+// SETUP: Copy this file to settings.json and fill in your API keys
+{
+  "features": {
+    "edit_prediction_provider": "codestral"
+  },
+  "language_models": {
+    "openai_compatible": {
+      "LiteLLM": {
+        "api_url": "https://your-llm-endpoint.example.com/v1",
+        "available_models": [
+          {
+            "name": "gemini-2.5-flash",
+            "max_tokens": 200000,
+            "max_output_tokens": 32000,
+            "max_completion_tokens": 200000,
+            "capabilities": {
+              "tools": true,
+              "images": false,
+              "parallel_tool_calls": false,
+              "prompt_cache_key": false
+            }
+          }
+        ]
+      }
+    }
+  },
+  "agent": {
+    "always_allow_tool_actions": true,
+    "default_profile": "write",
+    "default_model": {
+      "provider": "copilot_chat",
+      "model": "claude-opus-4.5"
+    },
+    "model_parameters": []
+  },
+  "context_servers": {
+    "mcp-server-context7": {
+      "enabled": true,
+      "settings": {
+        "context7_api_key": "YOUR_CONTEXT7_API_KEY_HERE"
+      }
+    },
+    "mcp-server-github": {
+      "enabled": true,
+      "settings": {
+        "github_personal_access_token": "YOUR_GITHUB_PAT_HERE"
+      }
+    }
+  },
+  "ui_font_size": 16,
+  "buffer_font_size": 15,
+  "theme": "One Dark"
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "label": "Lazygit",
+    "command": "lazygit",
+    "use_new_terminal": true,
+    "allow_concurrent_runs": true,
+    "hide": "always",
+    "reveal_target": "center"
+  },
+  {
+    "label": "File Finder",
+    "command": "zed \"$(tv files)\"",
+    "hide": "always",
+    "allow_concurrent_runs": true,
+    "use_new_terminal": true,
+    "reveal_target": "center"
+  },
+  {
+    "label": "Fulltext Search",
+    "command": "zed \"$(tv text)\"",
+    "hide": "always",
+    "allow_concurrent_runs": true,
+    "use_new_terminal": true,
+    "reveal_target": "center"
+  },
+  {
+    "label": "Tmux",
+    "command": "$HOME/.config/scripts/zed-tmux.sh",
+    "use_new_terminal": true,
+    "allow_concurrent_runs": false,
+    "hide": "always",
+    "reveal": "never"
+  },
+  {
+    "label": "Git Log",
+    "command": "kitty --class dropterm -e serie",
+    "use_new_terminal": true,
+    "allow_concurrent_runs": false,
+    "hide": "always",
+    "reveal": "never"
+  }
+]

@@ -22,12 +22,21 @@ Obsidian/
 .config/gtk-3.0/bookmarks
 .config/gtk-4.0/*
 
+# zed settings (contains API keys)
+.config/zed/settings.json
+
 # avoid logs + noise
 *.log
 *.tmp
 tmp/
 tmp/**
 
+# temporary backup files
+*-[0-9]*
+
 # do NOT track OS-generated stuff
 .DS_Store
-Thumbs.db.config/hypr/modules/monitors.conf
+Thumbs.db
+
+# hyprland monitor config (machine-specific)
+.config/hypr/modules/monitors.conf
