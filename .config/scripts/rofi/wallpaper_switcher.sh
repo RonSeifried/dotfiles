@@ -8,7 +8,7 @@ WALLDIR="${WALLPAPER_DIR:-$HOME/Pictures/wallpaper}"
 CACHE_DIR="$HOME/.cache"
 THUMB_DIR="$CACHE_DIR/wallpaper-thumbs"
 ROFI_THEME="$HOME/.config/rofi/wallselect.rasi"
-THUMB_SIZE="128"
+
 
 # Preview settings (for rofi launcher background)
 PREVIEW_OUT="$CACHE_DIR/rofi/current_wallpaper_preview.png"
@@ -18,29 +18,7 @@ PREVIEW_HEIGHT="${PREVIEW_HEIGHT:-520}"
 # Ensure cache directories exist
 mkdir -p "$CACHE_DIR/rofi" "$THUMB_DIR"
 
-# Generate thumbnail for an image
-generate_thumbnail() {
-    local img="$1"
-    local thumb_name
-    thumb_name=$(echo "$img" | md5sum | cut -d' ' -f1).png
-    local thumb_path="$THUMB_DIR/$thumb_name"
 
-    # Only generate if thumbnail doesn't exist or is older than source
-    if [[ ! -f "$thumb_path" ]] || [[ "$img" -nt "$thumb_path" ]]; then
-        if command -v magick &>/dev/null; then
-            # ImageMagick 7
-            magick "$img" -thumbnail "${THUMB_SIZE}x${THUMB_SIZE}^" -gravity center -extent "${THUMB_SIZE}x${THUMB_SIZE}" "$thumb_path" 2>/dev/null
-        elif command -v convert &>/dev/null; then
-            # ImageMagick 6
-            convert "$img" -thumbnail "${THUMB_SIZE}x${THUMB_SIZE}^" -gravity center -extent "${THUMB_SIZE}x${THUMB_SIZE}" "$thumb_path" 2>/dev/null
-        else
-            # No ImageMagick - just copy (rofi will try to load it)
-            cp "$img" "$thumb_path" 2>/dev/null
-        fi
-    fi
-
-    echo "$thumb_path"
-}
 
 # Generate preview image for rofi launcher background
 generate_preview() {
@@ -148,25 +126,23 @@ show_menu() {
         path_map["$bname"]="$img"
     done
 
-    # Generate thumbnails and build rofi input
+    # Build rofi input
     # Rofi 2.0 dmenu format: text\0icon\x1fpath
     local selected
     if [[ -f "$ROFI_THEME" ]]; then
         selected=$(
             for img in "${images[@]}"; do
-                local bname thumb
+                local bname
                 bname=$(basename "$img")
-                thumb=$(generate_thumbnail "$img")
-                printf '%s\0icon\x1f%s\n' "$bname" "$thumb"
+                printf '%s\0icon\x1f%s\n' "$bname" "$img"
             done | rofi -dmenu -i -show-icons -theme "$ROFI_THEME" -p ">" -format 's'
         )
     else
         selected=$(
             for img in "${images[@]}"; do
-                local bname thumb
+                local bname
                 bname=$(basename "$img")
-                thumb=$(generate_thumbnail "$img")
-                printf '%s\0icon\x1f%s\n' "$bname" "$thumb"
+                printf '%s\0icon\x1f%s\n' "$bname" "$img"
             done | rofi -dmenu -i -show-icons -p "Wallpaper" -format 's'
         )
     fi
