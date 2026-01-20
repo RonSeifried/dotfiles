@@ -213,5 +213,10 @@
     "bindings": {
       "escape": "workspace::CloseActiveDock"
     }
+  },
+  {
+    "bindings": {
+      "ctrl-shift-o": "workspace::Open"
+    }
   }
 ]
