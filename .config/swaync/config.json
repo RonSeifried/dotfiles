@@ -99,10 +99,6 @@
         {
           "label": "",
           "command": "kitty --class floating -e btop"
-        },
-        {
-          "label": "",
-          "command": "$HOME/.config/scripts/rofi/power.sh"
         }
       ]
     }

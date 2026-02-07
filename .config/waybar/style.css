@@ -19,8 +19,8 @@ window#waybar {
 /* BAR CONTAINER -------------------------------------------------- */
 
 window#waybar > box {
-  margin: 4px 10px;            /* weniger Abstand zum Bildschirm */
-  padding: 8px 12px;           /* macht die Bar größer */
+  margin: 4px 10px;
+  padding: 8px 12px;
   border-radius: 16px;
   background-color: alpha(@background, 0.82);
   box-shadow: 0 0 10px alpha(@color0, 0.55);
@@ -34,31 +34,12 @@ window#waybar > box {
   padding: 0 4px;
 }
 
-/* BASE STYLE FOR ALL "PILLS" ------------------------------------ */
-
-.pill {
-  margin: 0 4px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background-color: alpha(@background-alt, 0.92);
-  color: @foreground;
-
-  /* GTK-safe centering */
-  min-height: 26px;
-  min-width: 26px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-
-/* ASSIGN PILL CLASS ---------------------------------------------- */
+/* PILL BASE – every module gets this ----------------------------- */
 
 #custom-power,
 #clock,
-#group-expand,
-#custom-expand-shrink,
+#window,
 #tray,
-#custom-screenshot,
-#custom-colorpick,
 #custom-vpn,
 #pulseaudio,
 #network,
@@ -69,7 +50,6 @@ window#waybar > box {
   background-color: alpha(@background-alt, 0.92);
   padding: 6px 12px;
   margin: 0 4px;
-
   min-height: 26px;
   min-width: 26px;
   padding-top: 4px;
@@ -80,11 +60,8 @@ window#waybar > box {
 
 #custom-power:hover,
 #clock:hover,
-#group-expand:hover,
-#custom-expand-shrink:hover,
+#window:hover,
 #tray:hover,
-#custom-screenshot:hover,
-#custom-colorpick:hover,
 #custom-vpn:hover,
 #pulseaudio:hover,
 #network:hover,
@@ -94,7 +71,7 @@ window#waybar > box {
   background-color: alpha(@color1, 0.35);
 }
 
-/* POWER ---------------------------------------------------------- */
+/* POWER BUTTON --------------------------------------------------- */
 
 #custom-power {
   background-color: alpha(@color1, 0.95);
@@ -108,9 +85,23 @@ window#waybar > box {
   font-weight: 700;
 }
 
+/* FOCUSED WINDOW (task indicator) -------------------------------- */
+
+#window {
+  font-weight: 400;
+  font-size: 13px;
+  color: alpha(@foreground, 0.8);
+}
+
+#window.empty {
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
 /* WORKSPACES ----------------------------------------------------- */
 
-/* Workspaces-Container (kann bleiben wie v2) */
 #workspaces {
   margin: 0 6px;
   padding: 4px 10px;
@@ -129,7 +120,6 @@ window#waybar > box {
   box-shadow: none;
 }
 
-/* Farben wie vorher (leer / belegt / aktiv) */
 #workspaces button.empty {
   background-color: alpha(@foreground, 0.10);
 }
@@ -147,20 +137,17 @@ window#waybar > box {
   padding-right: 12px;
 }
 
-/* Hover */
 #workspaces button:hover {
   background-color: alpha(@color1, 0.6);
 }
 
-/* 👉 Label optisch vertikal zentrieren */
 #workspaces button label {
-  margin-top: -2px;      /* hier kannst du mit -1, -2, -3 spielen */
+  margin-top: -2px;
   padding: 0;
-  font-size: 14px;       /* leicht kleiner hilft auch */
+  font-size: 14px;
 }
 
-
-/* VPN ----------------------------------------------------------- */
+/* VPN ------------------------------------------------------------ */
 
 #custom-vpn.on {
   color: @color2;
@@ -168,6 +155,12 @@ window#waybar > box {
 
 #custom-vpn.off {
   color: alpha(@foreground, 0.6);
+}
+
+/* AUDIO – muted state uses pywal color, not hardcoded ------------ */
+
+#pulseaudio.muted {
+  color: @color1;
 }
 
 /* BATTERY -------------------------------------------------------- */
@@ -180,13 +173,14 @@ window#waybar > box {
   color: @color1;
 }
 
-/* ICON BOOSTS ---------------------------------------------------- */
+/* NOTIFICATION CENTER -------------------------------------------- */
 
-#custom-screenshot,
-#custom-colorpick,
 #custom-notification-center {
   font-size: 17px;
 }
+
+/* DND states – use pywal accent instead of hardcoded #ea6962 */
+/* (DND icons are handled via format-icons in config, no CSS override needed) */
 
 /* TRAY ----------------------------------------------------------- */
 

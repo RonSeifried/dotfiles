@@ -48,3 +48,4 @@ Thumbs.db
 .askai-env
 
 /.config/hypr/modules/hyprland-pywal.conf
+/.config/hypr/matugen/matugen-hyprlock.conf

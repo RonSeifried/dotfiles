@@ -88,7 +88,7 @@ apply_wallpaper() {
     # Generate preview for rofi launcher background
     generate_preview &
 
-    # Reload Hyprland colors
+    # Reload Hyprland colors (also generates hyprlock colors)
     local pywal_script="$HOME/.config/scripts/pywal-hyprland-colors.sh"
     [[ -x "$pywal_script" ]] && "$pywal_script"
 

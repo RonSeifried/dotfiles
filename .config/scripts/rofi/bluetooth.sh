@@ -275,7 +275,7 @@ if [[ -n "${ROFI_RETV:-}" ]]; then
 else
     # Standalone mode - launch rofi with this script
     rm -f "$STATE_FILE"
-    exec rofi -show BLUETOOTH -modi "BLUETOOTH:$0" -theme "$HOME/.config/rofi/config.rasi"
+    exec rofi -show BLUETOOTH -modi "BLUETOOTH:$0" -theme "$HOME/.config/rofi/utility.rasi"
 fi
 
 exit 0
