@@ -23,6 +23,7 @@ Personal dotfiles for Arch Linux with Hyprland, managed with GNU Stow.
 | **Lock Screen** | Hyprlock + Hypridle |
 | **Browser** | Zen Browser |
 | **Git UI** | [Lazygit](https://github.com/jesseduffield/lazygit) |
+| **MCP Management** | [Docker MCP Gateway](https://docs.docker.com/ai/mcp-catalog-and-toolkit/) via Rofi |
 
 ## 📦 Dependencies
 
@@ -137,6 +138,7 @@ wal -i /path/to/your/wallpaper.jpg
 | `Print` | Screenshot (Area) |
 | `Super + G` | Wallpaper Switcher |
 | `Super + A` | AI Assistant (Rofi) |
+| `Super + M` | MCP Management |
 | `Super + P` | Package Installer |
 
 ### Media Keys
@@ -159,6 +161,7 @@ dotfiles/
 │   ├── nvim/           # Neovim (LazyVim)
 │   ├── rofi/           # Launcher themes
 │   ├── scripts/        # General scripts
+│   │   └── rofi/       # Rofi menu scripts (wifi, vpn, mcp, …)
 │   ├── starship/       # Prompt config
 │   ├── swaync/         # Notification center
 │   ├── wal/            # Pywal colorschemes
@@ -214,6 +217,24 @@ Create `~/.config/hypr/modules/monitors.conf` (machine-specific, not tracked by 
 monitor=DP-1,2560x1440@144,0x0,1
 monitor=HDMI-A-1,1920x1080@60,2560x0,1
 ```
+
+## 🐳 MCP Management (Docker MCP Gateway)
+
+The MCP Management menu (`Super + M`) provides full control over the Docker MCP Gateway directly from Rofi:
+
+| Submenu | Actions |
+|---------|---------|
+| **Catalog** | List catalogs, show default catalog, init catalog |
+| **Servers** | List/enable/disable/inspect MCP servers |
+| **Gateway** | Start gateway, list tools, tool count |
+| **Auth & Secrets** | OAuth provider authorization, list secrets |
+
+### Requirements
+
+- **Docker Engine** (not Docker Desktop)
+- **Docker MCP plugin** (`docker mcp` CLI)
+
+The script checks for both dependencies on launch and shows a notification if either is missing.
 
 ## 📝 Notes
 

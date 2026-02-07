@@ -95,16 +95,16 @@
 
   // Audio
   "pulseaudio": {
-    "format": "{volume}% {icon}{format_source}",
-    "format-bluetooth": "{volume}% {icon}  {format_source}",
-    "format-bluetooth-muted": "󰗾 {format_source}",
-    "format-muted": " {format_source}",
-    "format-source": " ",
-    "format-source-muted": "  ",
+    "format": "{icon}{format_source}",
+    "format-bluetooth": "{icon}{format_source}",
+    "format-bluetooth-muted": "󰗾{format_source}",
+    "format-muted": "󰝟{format_source}",
+    "format-source": " 󰍬",
+    "format-source-muted": " 󰍭",
     "format-icons": {
-      "default": ["", "", " "],
-      "headphone": "",
-      "headset": "",
+      "default": ["󰕿", "󰕿", "󰖀", "󰕾"],
+      "headphone": "󰋋",
+      "headset": "󰋎",
     },
     "ignored-sinks": ["Easy Effects Sink", "Monitor of Easy Effects Sink"],
     "on-click": "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle",
@@ -115,11 +115,11 @@
 
   // Network
   "network": {
-    "format-disconnected": "󰖪 ",
-    "format-disabled": "inet-disabled",
-    "format-ethernet": "󰈀 ",
+    "format-disconnected": "󰖪",
+    "format-disabled": "󰖪",
+    "format-ethernet": "󰈀",
     "format-linked": "󰈀 {ifname} (No IP)",
-    "format-wifi": " ",
+    "format-wifi": "󰖩",
     "interval": 2,
     "on-click": "$HOME/.config/scripts/rofi/wifi.sh",
     "tooltip": true,

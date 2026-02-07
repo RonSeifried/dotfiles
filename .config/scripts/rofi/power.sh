@@ -24,13 +24,14 @@ execute_action() {
     esac
 }
 
+CONFIRM_THEME="$HOME/.config/rofi/confirm.rasi"
+
 confirm() {
     local action="$1" label="$2"
     local answer
-    answer=$(printf "%s\n%s" "$ICON_CANCEL  Cancel" "  Yes, $label" \
-        | rofi -dmenu -i -p "$label?" -theme "$THEME" \
-               -theme-str 'listview { lines: 2; }')
-    [[ "$answer" == *"Yes,"* ]] && execute_action "$action"
+    answer=$(printf "%s\n%s" "󰜺  Cancel" "󰄬  Yes" \
+        | rofi -dmenu -i -p "$label" -mesg "Are you sure?" -theme "$CONFIRM_THEME")
+    [[ "$answer" == *"Yes"* ]] && execute_action "$action"
 }
 
 # Build main menu
