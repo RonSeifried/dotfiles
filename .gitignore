@@ -46,3 +46,5 @@ Thumbs.db
 
 # askai environment file (contains API keys)
 .askai-env
+
+/.config/hypr/modules/hyprland-pywal.conf

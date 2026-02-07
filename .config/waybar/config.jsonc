@@ -56,6 +56,14 @@
     },
   },
   // --- RIGHT ---
+  // +++ VPN +++
+  "custom/vpn": {
+    "exec": "$HOME/.config/scripts/rofi/vpn.sh --status",
+    "return-type": "json",
+    "interval": 5,
+    "on-click": "$HOME/.config/scripts/rofi/vpn.sh",
+    "tooltip": true,
+  },
   // +++ AUDIO +++
   "pulseaudio": {
     "format": "{volume}% {icon}{format_source}",
