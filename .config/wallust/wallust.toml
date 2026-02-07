@@ -1,0 +1,30 @@
+# wallust v3.5
+# Config for pywal-compatible color generation
+
+# How the image is parsed to get colors
+backend = "fastresize"
+
+# What color space to use for prominent color selection
+color_space = "salience"
+
+# Scheme color palette
+palette = "saliencedark"
+
+# Alpha value for templating (default 100)
+#alpha = 100
+
+[templates]
+# SwayOSD style – regenerated on every wallpaper change
+swayosd = { template = 'swayosd.css', target = '~/.config/swayosd/style.css' }
+
+[hooks]
+# Reload hyprland colors after palette generation
+hyprland_colors = "$HOME/.config/scripts/pywal-hyprland-colors.sh"
+# Regenerate starship palette
+starship_colors = "$HOME/.config/scripts/starship-color-gen.sh"
+# Restart SwayOSD to pick up new CSS
+swayosd_restart = "pkill -x swayosd-server; sleep 0.3; swayosd-server &"
+# Reload swaync theme
+swaync_reload = "swaync-client -rs"
+# Reload waybar
+waybar_reload = "pkill -SIGUSR2 waybar"

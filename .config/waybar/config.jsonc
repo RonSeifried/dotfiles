@@ -1,13 +1,14 @@
 {
-  // --- GENERAL ---
+  // ── GENERAL ──────────────────────────────────────────────────────────
   "layer": "top",
   "position": "top",
   "output": ["*"],
   "reload_style_on_change": true,
-  "modules-left": ["custom/power", "clock"],
+
+  "modules-left": ["custom/power", "clock", "hyprland/window"],
   "modules-center": ["hyprland/workspaces"],
   "modules-right": [
-    "group/expand",
+    "tray",
     "custom/vpn",
     "pulseaudio",
     "network",
@@ -15,38 +16,58 @@
     "battery",
     "custom/notification-center",
   ],
-  // --- LEFT ---
-  // +++ POWER +++
+
+  // ── LEFT ─────────────────────────────────────────────────────────────
+  // Power button → opens consolidated rofi power menu (no wlogout)
   "custom/power": {
-    "format": "",
+    "format": "",
     "interval": 86400,
-    "on-click": "wlogout",
-    "rotate": 0,
+    "on-click": "$HOME/.config/scripts/rofi/power.sh",
     "tooltip": false,
   },
-  // +++ CLOCK +++
+
+  // Clock
   "clock": {
-    "actions": {
-      "on-click": "shift_up",
-      "on-click-right": "shift_down",
-    },
+    "format": "{:%d.%m.%Y | %H:%M}",
+    "interval": 1,
+    "tooltip-format": "<tt>{calendar}</tt>",
     "calendar": {
       "format": {
         "today": "<span color='#fAfBfC'><b>{}</b></span>",
       },
     },
-    "format": "{:%d.%m.%Y | %H:%M}",
-    "interval": 1,
-    "tooltip-format": "<tt>{calendar}</tt>",
+    "actions": {
+      "on-click": "shift_up",
+      "on-click-right": "shift_down",
+    },
   },
-  // --- CENTER ---
-  // +++ HYPRLAND-WORKSPACES +++
+
+  // Focused window – minimal task indicator (app name + title)
+  "hyprland/window": {
+    "format": "{class}",
+    "max-length": 30,
+    "rewrite": {
+      "kitty": " kitty",
+      "zen-browser": "󰈹 zen",
+      "dev\\.zed\\.Zed": " zed",
+      "webcord": "󰙯 discord",
+      "nautilus": "󰉋 files",
+      "obsidian": " notes",
+      "thunderbird": "󰇮 mail",
+      "libreoffice(.*)": "󰈙 office",
+      "org\\.gnome\\.(.*)": "󰀻 $1",
+      "": "",
+    },
+    "separate-outputs": true,
+  },
+
+  // ── CENTER ───────────────────────────────────────────────────────────
   "hyprland/workspaces": {
     "format": "{icon}",
     "format-icons": {
-      "default": "●", // belegter Workspace
-      "active": "◎", // aktiver Workspace (Punkt im Punkt)
-      "empty": "○", // leerer Workspace
+      "default": "●",
+      "active": "◎",
+      "empty": "○",
     },
     "on-click": "activate",
     "on-scroll-up": "hyprctl dispatch workspace e+1",
@@ -55,8 +76,15 @@
       "*": [1, 2, 3, 4, 5, 6, 7],
     },
   },
-  // --- RIGHT ---
-  // +++ VPN +++
+
+  // ── RIGHT ────────────────────────────────────────────────────────────
+  // System tray
+  "tray": {
+    "icon-size": 16,
+    "spacing": 8,
+  },
+
+  // VPN status
   "custom/vpn": {
     "exec": "$HOME/.config/scripts/rofi/vpn.sh --status",
     "return-type": "json",
@@ -64,18 +92,19 @@
     "on-click": "$HOME/.config/scripts/rofi/vpn.sh",
     "tooltip": true,
   },
-  // +++ AUDIO +++
+
+  // Audio
   "pulseaudio": {
-    "format": "{volume}% {icon}{format_source}",
-    "format-bluetooth": "{volume}% {icon}  {format_source}",
-    "format-bluetooth-muted": "<span foreground='#ea6961'>󰗾 {format_source}</span>",
-    "format-muted": "<span foreground='#ea6961'></span> {format_source}",
-    "format-source": " ",
-    "format-source-muted": " <span foreground='#ea6961'> </span>",
+    "format": "{icon}{format_source}",
+    "format-bluetooth": "{icon}{format_source}",
+    "format-bluetooth-muted": "󰗾{format_source}",
+    "format-muted": "󰝟{format_source}",
+    "format-source": " 󰍬",
+    "format-source-muted": " 󰍭",
     "format-icons": {
-      "default": ["", "", " "],
-      "headphone": "",
-      "headset": "",
+      "default": ["󰕿", "󰕿", "󰖀", "󰕾"],
+      "headphone": "󰋋",
+      "headset": "󰋎",
     },
     "ignored-sinks": ["Easy Effects Sink", "Monitor of Easy Effects Sink"],
     "on-click": "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle",
@@ -83,21 +112,22 @@
     "scroll-step": 0,
     "tooltip": true,
   },
-  // +++ NETWORK +++
+
+  // Network
   "network": {
-    "format-disconnected": "󰖪 ",
-    "format-disabled": "inet-disabled",
-    "format-ethernet": "󰈀 ",
+    "format-disconnected": "󰖪",
+    "format-disabled": "󰖪",
+    "format-ethernet": "󰈀",
     "format-linked": "󰈀 {ifname} (No IP)",
-    "format-wifi": " ",
+    "format-wifi": "󰖩",
     "interval": 2,
     "on-click": "$HOME/.config/scripts/rofi/wifi.sh",
-    "rotate": 0,
     "tooltip": true,
     "tooltip-format": "Network: <big><b>{essid}</b></big>\nSignal strength: <b>{signaldBm}dBm ({signalStrength}%)</b>\nFrequency: <b>{frequency}MHz</b>\nInterface: <b>{ifname}</b>\nIP: <b>{ipaddr}/{cidr}</b>\nGateway: <b>{gwaddr}</b>\nNetmask: <b>{netmask}</b>",
     "tooltip-format-disconnected": "Disconnected",
   },
-  // +++ BLUETOOTH +++
+
+  // Bluetooth
   "bluetooth": {
     "format-connected-battery": "{device_battery_percentage}% 󰂯",
     "format-disabled": "bt-disabled",
@@ -110,21 +140,22 @@
     "tooltip-format-enumerate-connected": "{device_alias}\n{device_address}",
     "tooltip-format-enumerate-connected-battery": "{device_alias}\n{device_address}\n{device_battery_percentage}%",
   },
-  // +++ NOTIFICATIONS +++
+
+  // Notification center
   "custom/notification-center": {
     "escape": true,
     "exec": "swaync-client -swb",
     "exec-if": "which swaync-client",
     "format": "{icon}",
     "format-icons": {
-      "dnd-inhibited-none": "<span foreground='#ea6962'></span>",
-      "dnd-inhibited-notification": "<span foreground='#ea6962'></span>",
-      "dnd-none": "<span foreground='#ea6962'></span>",
-      "dnd-notification": "<span foreground='#ea6962'></span>",
-      "inhibited-none": "",
-      "inhibited-notification": "",
-      "none": "",
-      "notification": "",
+      "dnd-inhibited-none": "󰂛",
+      "dnd-inhibited-notification": "󰂛",
+      "dnd-none": "󰂜",
+      "dnd-notification": "󰂜",
+      "inhibited-none": "󰂚",
+      "inhibited-notification": "󰂛",
+      "none": "󰂚",
+      "notification": "󰅸",
     },
     "on-click": "swaync-client -t -sw",
     "on-click-right": "swaync-client -d -sw",

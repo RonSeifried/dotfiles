@@ -27,10 +27,9 @@ window {
     width:                       1100px;
     height:                      750px;
     border-radius:               16px;
-    border:                      2px solid;
+    border:                      2px;
     border-color:                @active-background;
     background-color:            @background;
-    cursor:                      default;
 }
 
 /*****----- Main Layout -----*****/
@@ -63,7 +62,6 @@ entry {
     background-color:            transparent;
     placeholder:                 "Search wallpapers...";
     placeholder-color:           @normal-foreground;
-    cursor:                      text;
 }
 
 /*****----- Message -----*****/
@@ -86,13 +84,11 @@ listview {
     layout:                      vertical;
     fixed-columns:               true;
     fixed-height:                true;
-    dynamic:                     false;
     spacing:                     15px;
     padding:                     5px;
     background-color:            transparent;
     scrollbar:                   false;
     cycle:                       true;
-    cursor:                      default;
 }
 
 /*****----- Element Styling -----*****/
@@ -101,7 +97,6 @@ element {
     border-radius:               12px;
     background-color:            @alternate-normal-background;
     orientation:                 vertical;
-    cursor:                      pointer;
 }
 
 element normal.normal {
@@ -114,7 +109,7 @@ element alternate.normal {
 
 element selected.normal {
     background-color:            @selected-normal-background;
-    border:                      3px solid;
+    border:                      3px;
     border-color:                @active-background;
 }
 
@@ -122,7 +117,6 @@ element-icon {
     size:                        200px;
     border-radius:               8px;
     background-color:            transparent;
-    cursor:                      pointer;
     horizontal-align:            0.5;
     vertical-align:              0.5;
 }

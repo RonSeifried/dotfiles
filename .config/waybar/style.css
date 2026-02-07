@@ -3,27 +3,28 @@
 /* GLOBAL -------------------------------------------------------- */
 
 * {
-  border: none;
-  border-radius: 0;
-  font-family: "CodeNewRoman Nerd Font Propo", "JetBrainsMono Nerd Font", monospace;
-  font-size: 15px;
-  font-weight: 600;
-  min-height: 0;
+    border: none;
+    border-radius: 0;
+    font-family:
+        "JetBrainsMono Nerd Font Propo", "JetBrainsMono Nerd Font", monospace;
+    font-size: 15px;
+    font-weight: 600;
+    min-height: 0;
 }
 
 window#waybar {
-  background-color: transparent;
-  color: @foreground;
+    background-color: transparent;
+    color: @foreground;
 }
 
 /* BAR CONTAINER -------------------------------------------------- */
 
 window#waybar > box {
-  margin: 4px 10px;            /* weniger Abstand zum Bildschirm */
-  padding: 8px 12px;           /* macht die Bar größer */
-  border-radius: 16px;
-  background-color: alpha(@background, 0.82);
-  box-shadow: 0 0 10px alpha(@color0, 0.55);
+    margin: 4px 10px;
+    padding: 8px 12px;
+    border-radius: 16px;
+    background-color: alpha(@background, 0.82);
+    box-shadow: 0 0 10px alpha(@color0, 0.55);
 }
 
 /* MODULE CONTAINER GROUPS ---------------------------------------- */
@@ -31,179 +32,173 @@ window#waybar > box {
 .modules-left,
 .modules-center,
 .modules-right {
-  padding: 0 4px;
+    padding: 0 4px;
 }
 
-/* BASE STYLE FOR ALL "PILLS" ------------------------------------ */
-
-.pill {
-  margin: 0 4px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background-color: alpha(@background-alt, 0.92);
-  color: @foreground;
-
-  /* GTK-safe centering */
-  min-height: 26px;
-  min-width: 26px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-
-/* ASSIGN PILL CLASS ---------------------------------------------- */
+/* PILL BASE – every module gets this ----------------------------- */
 
 #custom-power,
 #clock,
-#group-expand,
-#custom-expand-shrink,
+#window,
 #tray,
-#custom-screenshot,
-#custom-colorpick,
 #custom-vpn,
 #pulseaudio,
 #network,
 #bluetooth,
 #battery,
 #custom-notification-center {
-  border-radius: 999px;
-  background-color: alpha(@background-alt, 0.92);
-  padding: 6px 12px;
-  margin: 0 4px;
-
-  min-height: 26px;
-  min-width: 26px;
-  padding-top: 4px;
-  padding-bottom: 4px;
+    border-radius: 999px;
+    background-color: alpha(@background-alt, 0.92);
+    padding: 6px 12px;
+    margin: 0 4px;
+    min-height: 26px;
+    min-width: 26px;
+    padding-top: 4px;
+    padding-bottom: 4px;
 }
 
 /* HOVER ---------------------------------------------------------- */
 
 #custom-power:hover,
 #clock:hover,
-#group-expand:hover,
-#custom-expand-shrink:hover,
+#window:hover,
 #tray:hover,
-#custom-screenshot:hover,
-#custom-colorpick:hover,
 #custom-vpn:hover,
 #pulseaudio:hover,
 #network:hover,
 #bluetooth:hover,
 #battery:hover,
 #custom-notification-center:hover {
-  background-color: alpha(@color1, 0.35);
+    background-color: alpha(@color1, 0.35);
 }
 
-/* POWER ---------------------------------------------------------- */
+/* POWER BUTTON --------------------------------------------------- */
 
 #custom-power {
-  background-color: alpha(@color1, 0.95);
-  color: @background;
-  font-weight: 700;
+    background-color: alpha(@color1, 0.95);
+    color: @background;
+    font-weight: 700;
 }
 
 /* CLOCK ---------------------------------------------------------- */
 
 #clock {
-  font-weight: 700;
+    font-weight: 700;
+}
+
+/* FOCUSED WINDOW (task indicator) -------------------------------- */
+
+#window {
+    font-weight: 400;
+    font-size: 13px;
+    color: alpha(@foreground, 0.8);
+}
+
+#window.empty {
+    background-color: transparent;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
 }
 
 /* WORKSPACES ----------------------------------------------------- */
 
-/* Workspaces-Container (kann bleiben wie v2) */
 #workspaces {
-  margin: 0 6px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background-color: alpha(@background-alt, 0.90);
+    margin: 0 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background-color: alpha(@background-alt, 0.9);
 }
 
 #workspaces button {
-  all: unset;
-  margin: 0 4px;
-  padding: 4px 8px;
-  min-width: 18px;
-  min-height: 18px;
-  border-radius: 999px;
-  background-color: alpha(@foreground, 0.15);
-  box-shadow: none;
+    all: unset;
+    margin: 0 4px;
+    padding: 4px 8px;
+    min-width: 18px;
+    min-height: 18px;
+    border-radius: 999px;
+    background-color: alpha(@foreground, 0.15);
+    box-shadow: none;
 }
 
-/* Farben wie vorher (leer / belegt / aktiv) */
 #workspaces button.empty {
-  background-color: alpha(@foreground, 0.10);
+    background-color: alpha(@foreground, 0.1);
 }
 
 #workspaces button:not(.empty):not(.active) {
-  background-color: alpha(@foreground, 0.25);
+    background-color: alpha(@foreground, 0.25);
 }
 
 #workspaces button.active {
-  background-color: @color1;
-  color: @background;
-  min-width: 26px;
-  min-height: 20px;
-  padding-left: 12px;
-  padding-right: 12px;
+    background-color: @color1;
+    color: @background;
+    min-width: 26px;
+    min-height: 20px;
+    padding-left: 12px;
+    padding-right: 12px;
 }
 
-/* Hover */
 #workspaces button:hover {
-  background-color: alpha(@color1, 0.6);
+    background-color: alpha(@color1, 0.6);
 }
 
-/* 👉 Label optisch vertikal zentrieren */
 #workspaces button label {
-  margin-top: -2px;      /* hier kannst du mit -1, -2, -3 spielen */
-  padding: 0;
-  font-size: 14px;       /* leicht kleiner hilft auch */
+    margin-top: -2px;
+    padding: 0;
+    font-size: 14px;
 }
 
-
-/* VPN ----------------------------------------------------------- */
+/* VPN ------------------------------------------------------------ */
 
 #custom-vpn.on {
-  color: @color2;
+    color: @color2;
 }
 
 #custom-vpn.off {
-  color: alpha(@foreground, 0.6);
+    color: alpha(@foreground, 0.6);
+}
+
+/* AUDIO – muted state uses pywal color, not hardcoded ------------ */
+
+#pulseaudio.muted {
+    color: @color1;
 }
 
 /* BATTERY -------------------------------------------------------- */
 
 #battery.warning {
-  color: @color3;
+    color: @color3;
 }
 
 #battery.critical {
-  color: @color1;
+    color: @color1;
 }
 
-/* ICON BOOSTS ---------------------------------------------------- */
+/* NOTIFICATION CENTER -------------------------------------------- */
 
-#custom-screenshot,
-#custom-colorpick,
 #custom-notification-center {
-  font-size: 17px;
+    font-size: 17px;
 }
+
+/* DND states – use pywal accent instead of hardcoded #ea6962 */
+/* (DND icons are handled via format-icons in config, no CSS override needed) */
 
 /* TRAY ----------------------------------------------------------- */
 
 #tray {
-  padding-left: 8px;
-  padding-right: 8px;
+    padding-left: 8px;
+    padding-right: 8px;
 }
 
 /* TOOLTIP -------------------------------------------------------- */
 
 tooltip {
-  background-color: alpha(@background, 0.95);
-  border-radius: 8px;
-  border: 1px solid alpha(@color0, 0.7);
+    background-color: alpha(@background, 0.95);
+    border-radius: 8px;
+    border: 1px solid alpha(@color0, 0.7);
 }
 
 tooltip label {
-  color: @foreground;
-  padding: 4px 8px;
+    color: @foreground;
+    padding: 4px 8px;
 }

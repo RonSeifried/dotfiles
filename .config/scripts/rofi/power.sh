@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Power Menu - Rofi script-mode compatible
-# Provides shutdown, reboot, logout, lock, and suspend options
+# Power Menu – THE single power menu for the entire system
+# Called from: Waybar power button, Super+Shift+L, swaync
+# Theme: compact power.rasi (no wallpaper image)
 
-# Icons
 ICON_LOCK="󰌾"
 ICON_LOGOUT="󰍃"
 ICON_SUSPEND="󰤄"
@@ -10,126 +10,47 @@ ICON_REBOOT="󰜉"
 ICON_SHUTDOWN="󰐥"
 ICON_CANCEL="󰜺"
 
-# Menu options
-OPTIONS="$ICON_LOCK  Lock
-$ICON_LOGOUT  Logout
-$ICON_SUSPEND  Suspend
-$ICON_REBOOT  Reboot
-$ICON_SHUTDOWN  Shutdown"
+THEME="$HOME/.config/rofi/power.rasi"
 
-# Confirmation menu
-confirm_action() {
-    local action="$1"
-    echo "$ICON_CANCEL  Cancel"
-    echo "  Yes, $action"
-}
-
-# Execute action
 execute_action() {
-    local action="$1"
-
-    case "$action" in
-        "lock")
-            # Try various lock commands
-            if command -v hyprlock &>/dev/null; then
-                hyprlock
-            elif command -v swaylock &>/dev/null; then
-                swaylock -f
-            elif command -v loginctl &>/dev/null; then
-                loginctl lock-session
-            fi
+    case "$1" in
+        lock)
+            hyprlock 2>/dev/null || swaylock -f 2>/dev/null || loginctl lock-session
             ;;
-        "logout")
-            if command -v hyprctl &>/dev/null; then
-                hyprctl dispatch exit
-            elif command -v swaymsg &>/dev/null; then
-                swaymsg exit
-            elif command -v loginctl &>/dev/null; then
-                loginctl terminate-user "$USER"
-            fi
-            ;;
-        "suspend")
-            systemctl suspend
-            ;;
-        "reboot")
-            systemctl reboot
-            ;;
-        "shutdown")
-            systemctl poweroff
-            ;;
+        logout)    hyprctl dispatch exit 2>/dev/null || loginctl terminate-user "$USER" ;;
+        suspend)   systemctl suspend ;;
+        reboot)    systemctl reboot ;;
+        shutdown)  systemctl poweroff ;;
     esac
 }
 
-# State file for confirmation
-STATE_FILE="/tmp/rofi_power_state"
+CONFIRM_THEME="$HOME/.config/rofi/confirm.rasi"
 
-# Main logic
-if [[ -n "${ROFI_RETV:-}" ]]; then
-    # Running inside rofi script-mode
-    SELECTED="$1"
+confirm() {
+    local action="$1" label="$2"
+    local answer
+    answer=$(printf "%s\n%s" "󰜺  Cancel" "󰄬  Yes" \
+        | rofi -dmenu -i -p "$label" -mesg "Are you sure?" -theme "$CONFIRM_THEME")
+    [[ "$answer" == *"Yes"* ]] && execute_action "$action"
+}
 
-    case "$ROFI_RETV" in
-        0)
-            # Initial call - show main menu
-            rm -f "$STATE_FILE"
-            echo -e "$OPTIONS"
-            ;;
-        1)
-            # User selected an entry
-            if [[ -f "$STATE_FILE" ]]; then
-                # We're in confirmation menu
-                action=$(cat "$STATE_FILE")
-                rm -f "$STATE_FILE"
+# Build main menu
+chosen=$(printf "%s\n%s\n%s\n%s\n%s" \
+    "$ICON_LOCK  Lock" \
+    "$ICON_LOGOUT  Logout" \
+    "$ICON_SUSPEND  Suspend" \
+    "$ICON_REBOOT  Reboot" \
+    "$ICON_SHUTDOWN  Shutdown" \
+    | rofi -dmenu -i -p "Power" -theme "$THEME")
 
-                if [[ "$SELECTED" == "  Yes, "* ]]; then
-                    execute_action "$action"
-                    exit 0
-                else
-                    # Cancelled - show main menu
-                    echo -e "$OPTIONS"
-                fi
-            else
-                # Main menu selection
-                case "$SELECTED" in
-                    "$ICON_LOCK  Lock")
-                        execute_action "lock"
-                        exit 0
-                        ;;
-                    "$ICON_LOGOUT  Logout")
-                        echo "logout" > "$STATE_FILE"
-                        echo -en "\x00prompt\x1fLogout?\n"
-                        confirm_action "logout"
-                        ;;
-                    "$ICON_SUSPEND  Suspend")
-                        execute_action "suspend"
-                        exit 0
-                        ;;
-                    "$ICON_REBOOT  Reboot")
-                        echo "reboot" > "$STATE_FILE"
-                        echo -en "\x00prompt\x1fReboot?\n"
-                        confirm_action "reboot"
-                        ;;
-                    "$ICON_SHUTDOWN  Shutdown")
-                        echo "shutdown" > "$STATE_FILE"
-                        echo -en "\x00prompt\x1fShutdown?\n"
-                        confirm_action "shutdown"
-                        ;;
-                    *)
-                        echo -e "$OPTIONS"
-                        ;;
-                esac
-            fi
-            ;;
-        *)
-            rm -f "$STATE_FILE"
-            echo -e "$OPTIONS"
-            ;;
-    esac
-else
-    # Standalone mode - launch rofi with this script
-    rm -f "$STATE_FILE"
-    exec rofi -show POWER -modi "POWER:$0" -theme "$HOME/.config/rofi/config.rasi" \
-        -theme-str 'window { width: 300px; } listview { lines: 5; }'
-fi
+[[ -z "$chosen" ]] && exit 0
+
+case "$chosen" in
+    *Lock)     execute_action lock ;;
+    *Suspend)  execute_action suspend ;;
+    *Logout)   confirm logout "Logout" ;;
+    *Reboot)   confirm reboot "Reboot" ;;
+    *Shutdown) confirm shutdown "Shutdown" ;;
+esac
 
 exit 0

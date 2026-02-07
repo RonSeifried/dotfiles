@@ -65,8 +65,8 @@
       "show-per-app": true,
       "show-per-app-icon": true,
       "show-per-app-label": false,
-      "expand-button-label": "",
-      "collapse-button-label": ""
+      "expand-button-label": "󰅀",
+      "collapse-button-label": "󰅃"
     },
 
     "buttons-grid": {
@@ -97,12 +97,8 @@
           "command": "hyprlock"
         },
         {
-          "label": "",
+          "label": "󰨇",
           "command": "kitty --class floating -e btop"
-        },
-        {
-          "label": "",
-          "command": "$HOME/.config/scripts/rofi/power.sh"
         }
       ]
     }

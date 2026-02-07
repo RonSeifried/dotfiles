@@ -14,7 +14,7 @@ window {
     location:                    center;
     anchor:                      center;
     width:                       600px;
-    border:                      2px solid;
+    border:                      2px;
     border-color:                @active-background;
     border-radius:               12px;
     background-color:            @background;

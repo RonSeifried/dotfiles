@@ -44,3 +44,6 @@ col.nogroup_border_active = \$accent2
 # col.active_border = \$accent \$accent2
 
 EOF
+
+# Also generate hyprlock colors (replaces matugen dependency)
+"$HOME/.config/scripts/pywal-hyprlock-colors.sh" 2>/dev/null || true

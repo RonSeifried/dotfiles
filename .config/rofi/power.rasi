@@ -1,0 +1,70 @@
+/*****----- Power Menu Theme -----*****/
+/* Compact centered grid for shutdown/reboot/lock etc. */
+
+@import "~/.cache/wal/colors-rofi-dark.rasi"
+
+* {
+    font:                   "JetBrainsMono Nerd Font 18";
+    bg-alt:                 @background;
+    accent:                 @urgent-background;
+}
+
+window {
+    transparency:           "real";
+    location:               center;
+    anchor:                 center;
+    width:                  320px;
+    border-radius:          16px;
+    border:                 2px;
+    border-color:           @active-background;
+    background-color:       @background;
+}
+
+mainbox {
+    spacing:                12px;
+    padding:                20px;
+    background-color:       transparent;
+    children:               [ "message", "listview" ];
+}
+
+message {
+    background-color:       transparent;
+    padding:                0;
+}
+
+textbox {
+    padding:                8px 12px;
+    border-radius:          10px;
+    background-color:       @alternate-normal-background;
+    text-color:             @foreground;
+    horizontal-align:       0.5;
+    font:                   "JetBrainsMono Nerd Font 11";
+}
+
+listview {
+    columns:                1;
+    lines:                  5;
+    spacing:                8px;
+    scrollbar:              false;
+    background-color:       transparent;
+}
+
+element {
+    padding:                14px 16px;
+    border-radius:          12px;
+    background-color:       @alternate-normal-background;
+    text-color:             @foreground;
+    cursor:                 pointer;
+}
+
+element selected.normal {
+    background-color:       @active-background;
+    text-color:             @background;
+}
+
+element-text {
+    text-color:             inherit;
+    background-color:       transparent;
+    horizontal-align:       0.0;
+    vertical-align:         0.5;
+}

@@ -80,24 +80,31 @@ apply_wallpaper() {
     # Update symlink
     ln -sf "$selected" "$CACHE_DIR/current_wallpaper"
 
-    # Generate pywal colors
+    # Step 1: Generate pywal cache files (~/.cache/wal/colors-waybar.css, colors-rofi-dark.rasi, etc.)
+    # wal writes ALL the cache files that waybar/rofi/swaync @import from
     if command -v wal &>/dev/null; then
         wal -i "$selected" -n -q -e
+    fi
+
+    # Step 2: Run wallust for templates (swayosd CSS) + hooks (hyprland colors, app reloads)
+    # wallust does NOT write ~/.cache/wal/ — it only handles its own templates + hooks
+    if command -v wallust &>/dev/null; then
+        wallust run -q "$selected"
+    else
+        # Fallback: manual reloads if wallust is not installed
+        local pywal_script="$HOME/.config/scripts/pywal-hyprland-colors.sh"
+        [[ -x "$pywal_script" ]] && "$pywal_script"
+        pgrep -x waybar &>/dev/null && pkill -SIGUSR2 waybar
+        command -v swaync-client &>/dev/null && swaync-client -rs
     fi
 
     # Generate preview for rofi launcher background
     generate_preview &
 
-    # Reload Hyprland colors
-    local pywal_script="$HOME/.config/scripts/pywal-hyprland-colors.sh"
-    [[ -x "$pywal_script" ]] && "$pywal_script"
-
-    # Reload apps in background
+    # Reload apps not covered by wallust hooks
     {
-        command -v swaync-client &>/dev/null && swaync-client -rs
         pgrep -x kitty &>/dev/null && pkill -USR1 kitty
         command -v pywalfox &>/dev/null && pywalfox update
-        pgrep -x waybar &>/dev/null && pkill -SIGUSR2 waybar
     } &>/dev/null &
 
     notify-send "Wallpaper" "Applied: $(basename "$selected")" -t 3000

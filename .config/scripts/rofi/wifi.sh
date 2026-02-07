@@ -1,137 +1,129 @@
 #!/usr/bin/env bash
-# WiFi Manager - Rofi script-mode compatible
-# Can be used standalone OR as rofi modi
+# WiFi Manager – clean rofi dmenu interface
+# Features: signal bars, deduplicated SSIDs, current-connection indicator, disconnect
+set -euo pipefail
 
-# State file for tracking connection flow
-STATE_FILE="/tmp/rofi_wifi_state"
+THEME="$HOME/.config/rofi/utility.rasi"
 
-# Check if we're running inside rofi script-mode
-if [[ -n "$ROFI_RETV" ]]; then
-    # Called from rofi as script-mode
-    SELECTED="$1"
-    INFO="$ROFI_INFO"
+# ── Helpers ──────────────────────────────────────────────────────────
+signal_icon() {
+    local s="$1"
+    if   (( s >= 75 )); then echo "󰤨"
+    elif (( s >= 50 )); then echo "󰤥"
+    elif (( s >= 25 )); then echo "󰤢"
+    else                     echo "󰤟"
+    fi
+}
 
-    case "$ROFI_RETV" in
-        0)
-            # Initial call - show menu
-            ;;
-        1)
-            # User selected an entry
-            if [[ "$SELECTED" == "󰖩  Enable Wi-Fi" ]]; then
-                nmcli radio wifi on
-                notify-send "Wi-Fi" "Wi-Fi enabled" -t 2000
-                exit 0
-            elif [[ "$SELECTED" == "󰖪  Disable Wi-Fi" ]]; then
-                nmcli radio wifi off
-                notify-send "Wi-Fi" "Wi-Fi disabled" -t 2000
-                exit 0
-            elif [[ "$SELECTED" == "󰑓  Refresh" ]]; then
-                # Just continue to show menu again
-                :
-            elif [[ "$SELECTED" == "  Back" ]]; then
-                rm -f "$STATE_FILE"
-                # Continue to show main menu
-                :
-            elif [[ -f "$STATE_FILE" ]] && grep -q "^PASSWORD:" "$STATE_FILE"; then
-                # Password was entered
-                SSID=$(grep "^SSID:" "$STATE_FILE" | cut -d: -f2-)
-                PASSWORD="$SELECTED"
-                rm -f "$STATE_FILE"
+# ── Gather data ──────────────────────────────────────────────────────
+wifi_enabled() { [[ "$(nmcli -t -f WIFI g 2>/dev/null)" == *enabled* ]]; }
 
-                # Try to connect with password
-                result=$(nmcli device wifi connect "$SSID" password "$PASSWORD" 2>&1)
-                if echo "$result" | grep -q "successfully"; then
-                    notify-send "Wi-Fi Connected" "Connected to \"$SSID\"" -t 3000
-                else
-                    notify-send "Wi-Fi Error" "Failed to connect: $result" -u critical
-                fi
-                exit 0
-            else
-                # Network selected
-                SSID="${SELECTED#*  }"  # Remove icon prefix
-                SSID="${SSID#* }"       # Remove security icon if present
-                SSID=$(echo "$SSID" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+current_ssid() { nmcli -t -f active,ssid dev wifi list 2>/dev/null \
+    | grep '^yes' | cut -d: -f2 | head -1; }
 
-                # Check if already saved
-                saved=$(nmcli -g NAME connection)
-                if echo "$saved" | grep -qxF "$SSID"; then
-                    # Saved network - just connect
-                    result=$(nmcli connection up id "$SSID" 2>&1)
-                    if echo "$result" | grep -q "successfully"; then
-                        notify-send "Wi-Fi Connected" "Connected to \"$SSID\"" -t 3000
-                    else
-                        notify-send "Wi-Fi Error" "Failed to connect: $result" -u critical
-                    fi
-                    exit 0
-                else
-                    # Check if network needs password (has lock icon)
-                    if [[ "$SELECTED" == *""* ]]; then
-                        # Need password - save state and prompt
-                        echo "SSID:$SSID" > "$STATE_FILE"
-                        echo "PASSWORD:1" >> "$STATE_FILE"
+# Deduplicate by SSID, keep strongest signal
+scan_networks() {
+    nmcli -t -f SSID,SIGNAL,SECURITY device wifi list --rescan no 2>/dev/null \
+        | awk -F: '
+            $1 != "" {
+                if (!seen[$1] || $2+0 > sig[$1]+0) {
+                    seen[$1] = 1; sig[$1] = $2; sec[$1] = $3
+                }
+            }
+            END {
+                for (s in seen) print sig[s] ":" sec[s] ":" s
+            }
+        ' | sort -t: -k1 -rn
+}
 
-                        # Show password prompt
-                        echo -en "\x00prompt\x1fPassword for $SSID\n"
-                        echo -en "\x00message\x1fEnter password for \"$SSID\"\n"
-                        echo "  Back"
-                        exit 0
-                    else
-                        # Open network - connect directly
-                        result=$(nmcli device wifi connect "$SSID" 2>&1)
-                        if echo "$result" | grep -q "successfully"; then
-                            notify-send "Wi-Fi Connected" "Connected to \"$SSID\"" -t 3000
-                        else
-                            notify-send "Wi-Fi Error" "Failed to connect: $result" -u critical
-                        fi
-                        exit 0
-                    fi
-                fi
-            fi
-            ;;
-    esac
+# ── Build menu ───────────────────────────────────────────────────────
+build_menu() {
+    local cur
+    cur=$(current_ssid)
 
-    # Show main menu
-    rm -f "$STATE_FILE"
-
-    # Get current WiFi state
-    wifi_status=$(nmcli -fields WIFI g 2>/dev/null | tail -1)
-
-    if [[ "$wifi_status" =~ "enabled" ]]; then
-        echo "󰖪  Disable Wi-Fi"
-        echo "󰑓  Refresh"
-        echo ""
-
-        # Get available networks
-        # Format: SECURITY, SIGNAL, SSID
-        nmcli -t -f SECURITY,SIGNAL,SSID device wifi list 2>/dev/null | while IFS=: read -r security signal ssid; do
-            [[ -z "$ssid" ]] && continue
-
-            # Signal strength icon
-            if [[ "$signal" -ge 75 ]]; then
-                sig_icon="󰤨"
-            elif [[ "$signal" -ge 50 ]]; then
-                sig_icon="󰤥"
-            elif [[ "$signal" -ge 25 ]]; then
-                sig_icon="󰤢"
-            else
-                sig_icon="󰤟"
-            fi
-
-            # Security icon
-            if [[ "$security" != "" && "$security" != "--" ]]; then
-                sec_icon=" "
-            else
-                sec_icon=""
-            fi
-
-            echo "$sig_icon$sec_icon $ssid"
-        done | sort -u
-    else
+    if ! wifi_enabled; then
         echo "󰖩  Enable Wi-Fi"
+        return
     fi
 
-    exit 0
-fi
+    # Show current connection first
+    if [[ -n "$cur" ]]; then
+        echo "󰖪  Disconnect ($cur)"
+        echo "──────────"
+    fi
 
-# Standalone mode - launch rofi with this script
-exec rofi -show WIFI -modi "WIFI:$0" -theme "$HOME/.config/rofi/config.rasi"
+    echo "󰑓  Rescan"
+    echo "󰖪  Disable Wi-Fi"
+    echo "──────────"
+
+    # List networks
+    while IFS=: read -r signal security ssid; do
+        [[ -z "$ssid" ]] && continue
+        local icon
+        icon=$(signal_icon "$signal")
+        local lock=""
+        [[ -n "$security" && "$security" != "--" ]] && lock=" "
+        # Mark current with a bullet
+        local marker=""
+        [[ "$ssid" == "$cur" ]] && marker=" ●"
+        printf "%s%s %s  %s%%%s\n" "$icon" "$lock" "$ssid" "$signal" "$marker"
+    done < <(scan_networks)
+}
+
+# ── Connect ──────────────────────────────────────────────────────────
+connect_to() {
+    local ssid="$1"
+    # Check if we have a saved connection
+    if nmcli -g NAME connection show 2>/dev/null | grep -qxF "$ssid"; then
+        nmcli connection up id "$ssid" 2>&1 && \
+            notify-send "Wi-Fi" "Connected to \"$ssid\"" -t 3000 || \
+            notify-send "Wi-Fi" "Failed to connect" -u critical
+        return
+    fi
+    # New network – ask for password via rofi
+    local pw
+    pw=$(rofi -dmenu -p "Password for $ssid" -theme "$THEME" \
+         -theme-str 'entry { placeholder: "Enter password..."; }' \
+         -password)
+    [[ -z "$pw" ]] && return
+    nmcli device wifi connect "$ssid" password "$pw" 2>&1 && \
+        notify-send "Wi-Fi" "Connected to \"$ssid\"" -t 3000 || \
+        notify-send "Wi-Fi" "Failed to connect" -u critical
+}
+
+# ── Main ─────────────────────────────────────────────────────────────
+chosen=$(build_menu | rofi -dmenu -i -p "  Wi-Fi" -theme "$THEME")
+[[ -z "$chosen" ]] && exit 0
+
+case "$chosen" in
+    "󰖩  Enable Wi-Fi")
+        nmcli radio wifi on
+        notify-send "Wi-Fi" "Enabled" -t 2000
+        ;;
+    "󰖪  Disable Wi-Fi")
+        nmcli radio wifi off
+        notify-send "Wi-Fi" "Disabled" -t 2000
+        ;;
+    "󰖪  Disconnect"*)
+        nmcli device disconnect wlan0 2>/dev/null || \
+        nmcli device disconnect wlp0s20f3 2>/dev/null || \
+        nmcli connection down "$(current_ssid)" 2>/dev/null
+        notify-send "Wi-Fi" "Disconnected" -t 2000
+        ;;
+    "󰑓  Rescan")
+        nmcli device wifi rescan 2>/dev/null
+        sleep 1
+        exec "$0"  # re-launch
+        ;;
+    "──────────") exit 0 ;;
+    *)
+        # Extract SSID: strip icon prefix, strip signal suffix
+        ssid=$(echo "$chosen" | sed 's/^[^ ]* *//; s/ *[0-9]*%.*$//; s/ *●$//')
+        # Remove lock icon if present
+        ssid="${ssid# }"
+        ssid=$(echo "$ssid" | xargs)  # trim
+        [[ -n "$ssid" ]] && connect_to "$ssid"
+        ;;
+esac
+
+exit 0
