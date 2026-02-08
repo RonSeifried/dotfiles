@@ -2,7 +2,8 @@
 # wohin die generierte Monitor-Config geschrieben wird
 destination = "$HOME/.config/hypr/modules/monitors.conf"
 
-# (optional) Notifications etc. lassen wir weg für's Erste
+# Waybar sauber neustarten bei jedem Profilwechsel (verhindert Duplikate)
+post_apply_exec = "bash -c 'pkill -x waybar; sleep 0.5; waybar &disown'"
 
 # ---------- Profile 1: Docked (Deckel zu, nur externe Monitore) ----------
 [profiles.docked_closed]
@@ -13,12 +14,12 @@ config_file_type = "static"
 # nur aktiv, wenn der Deckel zu ist
 lid_state = "Closed"            # "Closed" oder "Opened" möglich
 
-# externe Monitore müssen vorhanden sein (Dock angeschlossen)
+# externe Monitore per Description matchen (DP-XX Nummern können sich ändern!)
 [[profiles.docked_closed.conditions.required_monitors]]
-name = "DP-7"
+description = "Microstep Optix MAG24C REDACTED-SERIAL"
 
 [[profiles.docked_closed.conditions.required_monitors]]
-name = "DP-10"
+description = "Microstep G274QPF-QD REDACTED-SERIAL"
 
 # ---------- Profile 2: Laptop Only (Dock weg, Deckel offen) ----------
 [profiles.laptop_open]
@@ -28,7 +29,7 @@ config_file_type = "static"
 [profiles.laptop_open.conditions]
 lid_state = "Opened"
 
-# nur das Laptop-Panel muss vorhanden sein
+# eDP-1 ändert sich nie, name-match ist hier safe
 [[profiles.laptop_open.conditions.required_monitors]]
 name = "eDP-1"
 
@@ -36,4 +37,3 @@ name = "eDP-1"
 [fallback_profile]
 config_file = "hyprconfigs/fallback.conf"
 config_file_type = "static"
-
