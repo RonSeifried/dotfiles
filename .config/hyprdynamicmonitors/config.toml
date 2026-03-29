@@ -2,8 +2,8 @@
 # wohin die generierte Monitor-Config geschrieben wird
 destination = "$HOME/.config/hypr/modules/monitors.conf"
 
-# Waybar sauber neustarten bei jedem Profilwechsel (verhindert Duplikate)
-post_apply_exec = "bash -c 'pkill -x waybar; sleep 0.5; waybar &disown'"
+# Waybar restart logic: Reload if running, start if missing
+post_apply_exec = "pgrep -x waybar >/dev/null && killall -SIGUSR2 waybar || waybar &"
 
 # ---------- Profile 1: Docked (Deckel zu, nur externe Monitore) ----------
 [profiles.docked_closed]
