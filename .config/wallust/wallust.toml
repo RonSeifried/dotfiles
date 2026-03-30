@@ -5,10 +5,10 @@
 backend = "fastresize"
 
 # What color space to use for prominent color selection
-color_space = "salience"
+color_space = "lab"
 
 # Scheme color palette
-palette = "saliencedark"
+palette = "dark"
 
 # Alpha value for templating (default 100)
 #alpha = 100
