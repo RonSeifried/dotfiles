@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Screen Recording Script for Hyprland
-# Uses wf-recorder for recording, slurp for area selection
+# Uses gpu-screen-recorder for recording, slurp for area selection
 # Saves to file and copies to clipboard
 
 outputDir="$HOME/Videos/screenrecording"
@@ -64,7 +64,7 @@ notify-send "Screen Recording" "Recording started. Press Shift+Print to stop." \
     -u normal
 
 # Start recording
-wf-recorder -g "$geometry" -f "$outputPath" &
+gpu-screen-recorder -w screen -c "$geometry" -f mp4 -o "$outputPath" &
 recorderPid=$!
 echo "$recorderPid" > "$pidFile"
 

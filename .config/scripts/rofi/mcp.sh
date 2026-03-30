@@ -61,7 +61,7 @@ show_in_terminal() {
     kitty --detach --class "mcp-management" \
         -o "font_size=13" \
         -T "$title" \
-        -e bash -lc "$*; echo; echo '── Press Enter to close ──'; read"
+        -e bash -lc "$*"
 }
 
 pick_first_token() {

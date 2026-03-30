@@ -37,7 +37,7 @@ execute_selection() {
 
     if [[ -n "$script_name" && -f "$INSTALLER_DIR/$script_name" ]]; then
         # Execute the script in kitty terminal
-        coproc ( kitty --class installer -e bash -c "cd '$INSTALLER_DIR' && ./'$script_name'; echo; echo 'Press Enter to close...'; read" & )
+        coproc ( kitty --class installer -e bash -c "cd '$INSTALLER_DIR' && ./'$script_name'" & )
         exit 0
     elif [[ -n "$script_name" ]]; then
         notify-send "Error" "Script not found: $INSTALLER_DIR/$script_name" -u critical

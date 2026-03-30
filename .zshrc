@@ -19,12 +19,12 @@ ZSH_THEME=""
 plugins=(
     git
     zsh-autosuggestions
-    zsh-syntax-highlighting
     colored-man-pages
     sudo
     you-should-use
     zsh-bat
     aliases
+    zsh-syntax-highlighting
 )
 source $ZSH/oh-my-zsh.sh
 

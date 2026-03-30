@@ -14,6 +14,10 @@ palette = "saliencedark"
 #alpha = 100
 
 [templates]
+colors_waybar = { template = "colors-waybar.css", target = "~/.cache/wal/colors-waybar.css" }
+colors_rofi = { template = "colors-rofi-dark.rasi", target = "~/.cache/wal/colors-rofi-dark.rasi" }
+colors_kitty = { template = "colors-kitty.conf", target = "~/.cache/wal/colors-kitty.conf" }
+colors_json = { template = "colors.json", target = "~/.cache/wal/colors.json" }
 # SwayOSD style – regenerated on every wallpaper change
 swayosd = { template = 'swayosd.css', target = '~/.config/swayosd/style.css' }
 

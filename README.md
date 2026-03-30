@@ -18,7 +18,7 @@ Personal dotfiles for Arch Linux with Hyprland, managed with GNU Stow.
 | **Launcher** | [Rofi](https://github.com/davatorium/rofi) |
 | **Bar** | [Waybar](https://github.com/Alexays/Waybar) |
 | **Notifications** | [SwayNC](https://github.com/ErikReider/SwayNotificationCenter) |
-| **Color Scheme** | [Pywal](https://github.com/dylanaraps/pywal) |
+| **Color Scheme** | [Wallust](https://codeberg.org/explosion-mental/wallust) |
 | **Wallpaper** | [awww](https://codeberg.org/LGFae/awww) |
 | **Lock Screen** | Hyprlock + Hypridle |
 | **Browser** | Zen Browser |
@@ -30,8 +30,8 @@ Personal dotfiles for Arch Linux with Hyprland, managed with GNU Stow.
 ### Core Packages (pacman)
 
 ```bash
-sudo pacman -S hyprland kitty waybar rofi neovim yazi zsh starship \
-  awww swaync hypridle hyprlock python-pywal nautilus \
+sudo pacman -S hyprland kitty hyprpolkitagent hyprsunset waybar rofi neovim yazi zsh starship tmux jq \
+  awww swaync hypridle hyprlock wallust nautilus gum fzf plocate \
   brightnessctl playerctl wl-clipboard grim slurp grimblast \
   bluez bluez-utils networkmanager gnome-keyring
 ```
@@ -40,7 +40,7 @@ sudo pacman -S hyprland kitty waybar rofi neovim yazi zsh starship \
 
 ```bash
 yay -S oh-my-zsh-git zsh-autosuggestions zsh-syntax-highlighting \
-  zsh-you-should-use eza neofetch fastfetch hyprpicker \
+  zsh-you-should-use eza neofetch fastfetch hyprpicker gpu-screen-recorder serie tv \
   zen-browser-bin webcord-bin
 ```
 
@@ -91,10 +91,10 @@ This will symlink all dotfiles to your home directory.
 chsh -s $(which zsh)
 ```
 
-5. **Set up Pywal with your wallpaper:**
+5. **Set up Wallust with your wallpaper:**
 
 ```bash
-wal -i /path/to/your/wallpaper.jpg
+wallust run -q /path/to/your/wallpaper.jpg
 ```
 
 6. **Reboot or re-login to apply changes.**
@@ -164,7 +164,7 @@ dotfiles/
 │   │   └── rofi/       # Rofi menu scripts (wifi, vpn, mcp, …)
 │   ├── starship/       # Prompt config
 │   ├── swaync/         # Notification center
-│   ├── wal/            # Pywal colorschemes
+│   ├── wal/            # Wallust configs
 │   ├── waybar/         # Status bar
 │   ├── yazi/           # File manager
 │   └── zed/            # Zed editor
@@ -176,13 +176,13 @@ dotfiles/
 
 ## 🎨 Theming
 
-This setup uses **Pywal** for dynamic color schemes based on your wallpaper.
+This setup uses **Wallust** for dynamic color schemes based on your wallpaper.
 
 ### Change Wallpaper & Theme
 
 ```bash
 # Set new wallpaper and generate colors
-wal -i /path/to/wallpaper.jpg
+wallust run -q /path/to/wallpaper.jpg
 
 # Or use the built-in wallpaper switcher
 Super + G
@@ -245,3 +245,22 @@ The script checks for both dependencies on launch and shows a notification if ei
 ## 📜 License
 
 MIT License - feel free to use and modify as you like!
+## 🪟 Tmux (Terminal Multiplexer)
+
+This setup includes a beginner-friendly `tmux` configuration (`~/.config/tmux/tmux.conf`). Tmux allows you to have multiple terminal sessions, windows, and split panes inside a single terminal window, which stay alive even if you close the terminal.
+
+### Basic Usage
+
+The "prefix" key is your master key for all tmux commands. It has been changed from the default `Ctrl+B` to **`Ctrl+Space`** for better ergonomics.
+
+1.  **Start tmux:** `tmux` (or just open the terminal dropdown `Super + E / Super + Shift + T` which uses tmux under the hood)
+2.  **Split Panes:**
+    *   `Ctrl+Space` then `|` (split vertically / side-by-side)
+    *   `Ctrl+Space` then `-` (split horizontally / top-bottom)
+3.  **Navigate Panes:** You can just use your **Mouse** to click between panes, or resize them by dragging the borders!
+4.  **New Window (Tab):** `Ctrl+Space` then `c` (create)
+5.  **Switch Windows:** `Ctrl+Space` then `1`, `2`, `3`, etc.
+6.  **Detach (Leave running in background):** `Ctrl+Space` then `d`
+7.  **Reattach (Bring it back):** `tmux attach`
+
+You can reload the configuration anytime with `Ctrl+Space` then `r`.

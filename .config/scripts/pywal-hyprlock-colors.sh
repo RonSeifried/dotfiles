@@ -3,7 +3,7 @@
 # Produces the same variable names that the old matugen config used
 
 COLORS="$HOME/.cache/wal/colors.json"
-OUT="$HOME/.config/hypr/matugen/matugen-hyprlock.conf"
+OUT="$HOME/.config/hypr/colors/hyprlock-colors.conf"
 
 if [[ ! -f "$COLORS" ]]; then
     echo "wal colors.json not found" >&2

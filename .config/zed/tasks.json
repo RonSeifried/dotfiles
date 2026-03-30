@@ -25,7 +25,7 @@
   },
   {
     "label": "Tmux",
-    "command": "$HOME/.config/scripts/zed-tmux.sh",
+    "command": "$HOME/.config/scripts/zed-dropterm-task.sh",
     "use_new_terminal": true,
     "allow_concurrent_runs": false,
     "hide": "always",
