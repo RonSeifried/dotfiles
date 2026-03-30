@@ -117,7 +117,7 @@ alias pa='$aurhelper -Ss'                                              # list av
 alias pc='$aurhelper -Sc'                                              # remove unused cache
 alias po='$aurhelper -Qtdq | $aurhelper -Rns -'                        # remove unused packages
 alias vc='code'                                                        # gui code editor
-alias fastfetch='fastfetch --logo-type kitty'
+# alias fastfetch='fastfetch --logo-type kitty'
 
 # Confirm before overwriting files
 setopt interactivecomments
