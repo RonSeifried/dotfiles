@@ -1,640 +1,340 @@
 #!/usr/bin/env bash
-# MCP Management – Docker MCP Gateway control via rofi
-# Follows the same patterns as wifi.sh, vpn.sh, bluetooth.sh
 set -euo pipefail
 
-THEME="$HOME/.config/rofi/utility.rasi"
-SCRIPT="$0"
+THEME="${THEME:-$HOME/.config/rofi/utility.rasi}"
+MCPY_BIN="${MCPY_BIN:-$HOME/dev/personal/mcpy/.venv/bin/mcpy}"
 
-# ── Icons (Nerd Font) ────────────────────────────────────────────────
-IC_CATALOG="󰏗"
+
+IC_MAIN="󰡨"
 IC_SERVER="󱘖"
-IC_GATEWAY="󰒋"
 IC_CLIENT="󰙯"
 IC_TOOLS="󰒓"
 IC_FEATURE="󰘵"
-IC_SECRET="󰯄"
-IC_BACK="󰁍"
+IC_CATALOG="󰏗"
+IC_GATEWAY="󰒋"
+IC_SETTINGS="󰍡"
+IC_SEARCH="󰍉"
 IC_ENABLE="󰐊"
 IC_DISABLE="󰓛"
 IC_INSPECT="󰙎"
-IC_CONNECT="󱘖"
-IC_DISCONNECT="󱘗"
-IC_START="󱓞"
-IC_COUNT="󰆙"
-IC_SEARCH="󰍉"
+IC_BACK="󰁍"
 IC_OK="󰄬"
 IC_ERR="󰅝"
-IC_WARN="󰀦"
-IC_ON="󰔡"
-IC_OFF="󰨙"
 
-# ── Dependency check ─────────────────────────────────────────────────
 preflight() {
-    if ! command -v docker &>/dev/null; then
-        notify-send "MCP Management" "docker not found – please install Docker Engine" -u critical
+    if ! command -v rofi >/dev/null 2>&1; then
+        notify-send "MCP" "rofi not found" -u critical
         exit 1
     fi
-    if ! docker mcp version &>/dev/null 2>&1; then
-        notify-send "MCP Management" "docker mcp not available – install the Docker MCP plugin" -u critical
+
+    if ! command -v "$MCPY_BIN" >/dev/null 2>&1; then
+        notify-send "MCP" "mcpy not found on PATH" -u critical
         exit 1
     fi
 }
 
-# ── Helpers ──────────────────────────────────────────────────────────
 rofi_menu() {
-    local prompt="$1"; shift
-    rofi -dmenu -i -p "$prompt" -theme "$THEME" "$@"
+    local prompt="$1"
+    shift
+    if [[ $# -gt 0 ]]; then
+        printf '%s\n' "$@" | rofi -dmenu -i -p "$prompt" -theme "$THEME"
+    else
+        rofi -dmenu -i -p "$prompt" -theme "$THEME"
+    fi
+}
+
+notify_ok() {
+    notify-send "MCP" "$1" -t 2500
+}
+
+notify_err() {
+    notify-send "MCP" "$1" -u critical
+}
+
+run_mcpy() {
+    "$MCPY_BIN" "$@"
 }
 
 show_in_terminal() {
-    local title="$1"; shift
+    local title="$1"
+    shift
     kitty --detach --class "mcp-management" \
         -o "font_size=13" \
         -T "$title" \
-        -e bash -c "$*; echo; echo '── Press Enter to close ──'; read"
+        -e bash -lc "$*; echo; echo '── Press Enter to close ──'; read"
 }
 
-# ── Parse helpers ────────────────────────────────────────────────────
-
-# Parse catalog: extract "name  description" pairs
-# Catalog format:
-#   ServerName
-#     Description text that may span
-#     multiple lines.
-# Strip ANSI escape sequences (bold, color, reset etc.)
-strip_ansi() {
-    sed 's/\x1b\[[0-9;]*[a-zA-Z]//g'
+pick_first_token() {
+    awk '{print $1}'
 }
 
-parse_catalog_entries() {
-    docker mcp catalog show docker-mcp 2>/dev/null | strip_ansi | awk '
-        # Server name: exactly 2 leading spaces, then a non-space char
-        /^  [^ ]/ && !/^  (MCP Server|[0-9]+ servers|──)/ {
-            if (name != "") print name "\t" desc
-            gsub(/^  /, "")
-            name = $0
-            desc = ""
-            next
-        }
-        # Description: 4+ leading spaces
-        /^    / && name != "" {
-            gsub(/^    /, "")
-            if (desc == "") desc = $0
-            else desc = desc " " $0
-        }
-        END { if (name != "") print name "\t" desc }
-    '
+exec_back() {
+    local target="${1:-}"
+    if [[ -n "$target" ]]; then
+        exec "$0" "$target"
+    fi
+    exec "$0"
 }
 
-# Parse enabled servers from `docker mcp server ls`
-# Format:
-#   NAME            OAUTH      SECRETS    CONFIG     DESCRIPTION
-#   ---------------------------------------------------------------------
-#   fetch           -          -          -          Fetches a URL fro...
-parse_enabled_servers() {
-    docker mcp server ls 2>/dev/null \
-        | strip_ansi \
-        | grep -v '^Warning:' \
-        | grep -v '^$' \
-        | grep -v '^MCP Servers' \
-        | grep -v '^NAME' \
-        | grep -v '^---' \
-        | grep -v '^Tip:' \
-        | grep -v '^No server' \
-        | awk 'NF > 0 { print $1 }'
+choose_name() {
+    pick_first_token | xargs
 }
 
-# Parse tools from `docker mcp tools ls`
-# Format:
-#   6 tools:
-#    - tool-name - Description text
-parse_tools() {
-    docker mcp tools ls 2>/dev/null \
-        | strip_ansi \
-        | grep '^ - ' \
-        | sed 's/^ - //'
+choose_action() {
+    rofi_menu "$1" "$2" "$3" "$4"
 }
 
-# Parse features from `docker mcp feature ls`
-# Format:
-#   oauth-interceptor    disabled
-#                        Enable GitHub OAuth flow interception...
-#   (blank line)
-#   mcp-oauth-dcr        enabled
-#                        Enable Dynamic Client Registration...
-parse_features() {
-    docker mcp feature ls 2>/dev/null | strip_ansi | awk '
-        /^  [a-z]/ {
-            # Line contains both name and status, e.g. "  oauth-interceptor    disabled"
-            name = $1
-            status = $NF
-            # Next line is the description
-            getline
-            gsub(/^[[:space:]]+/, "")
-            desc = $0
-            if (status == "enabled") icon = "'"$IC_ON"'"
-            else icon = "'"$IC_OFF"'"
-            print icon "  " name "  –  " desc
-        }
-    '
-}
-
-# Parse supported clients from help text
-parse_supported_clients() {
-    docker mcp client connect --help 2>&1 \
-        | strip_ansi \
-        | grep 'Supported clients:' \
-        | sed 's/.*Supported clients: //' \
-        | tr ' ' '\n'
-}
-
-# Parse client status from `docker mcp client ls`
-parse_client_status() {
-    docker mcp client ls 2>&1 | strip_ansi | awk '
-        /^ ●/ {
-            gsub(/^ ● /, "")
-            split($0, parts, ": ")
-            name = parts[1]
-            status = parts[2]
-            print name "\t" status
-        }
-    '
-}
-
-# ── Main menu ────────────────────────────────────────────────────────
 menu_main() {
     local chosen
     chosen=$(printf '%s\n' \
-        "$IC_SEARCH  Browse Catalog" \
+        "$IC_CATALOG  Browse Catalog" \
         "$IC_SERVER  Enabled Servers" \
         "$IC_CLIENT  Clients" \
         "$IC_TOOLS  Tools" \
         "$IC_GATEWAY  Gateway" \
         "$IC_FEATURE  Features" \
-        "$IC_SECRET  Secrets" \
-        | rofi_menu "󰡨 MCP")
+        "$IC_SETTINGS  Settings" \
+        | rofi_menu "$IC_MAIN MCP")
 
     [[ -z "$chosen" ]] && exit 0
 
     case "$chosen" in
-        *"Browse Catalog"*)    exec "$SCRIPT" catalog ;;
-        *"Enabled Servers"*)   exec "$SCRIPT" servers ;;
-        *"Clients"*)           exec "$SCRIPT" clients ;;
-        *"Tools"*)             exec "$SCRIPT" tools ;;
-        *"Gateway"*)           exec "$SCRIPT" gateway ;;
-        *"Features"*)          exec "$SCRIPT" features ;;
-        *"Secrets"*)           exec "$SCRIPT" secrets ;;
+        *"Browse Catalog"*) exec_back catalog ;;
+        *"Enabled Servers"*) exec_back servers ;;
+        *"Clients"*) exec_back clients ;;
+        *"Tools"*) exec_back tools ;;
+        *"Gateway"*) exec_back gateway ;;
+        *"Features"*) exec_back features ;;
+        *"Settings"*) exec_back settings ;;
     esac
 }
 
-# ── Catalog: browse & enable ─────────────────────────────────────────
 menu_catalog() {
-    local entries chosen name
+    local chosen name action
+    chosen=$(run_mcpy catalog rofi | rofi_menu "$IC_CATALOG Catalog")
+    [[ -z "$chosen" ]] && exec_back
 
-    notify-send "$IC_CATALOG MCP" "Loading catalog…" -t 1500
+    name=$(printf '%s\n' "$chosen" | choose_name)
+    [[ -z "$name" ]] && exec_back catalog
 
-    # Build "name - description" lines for rofi
-    entries=$(parse_catalog_entries | while IFS=$'\t' read -r n d; do
-        # Truncate description for rofi display
-        d="${d:0:80}"
-        echo "$n  –  $d"
-    done)
-
-    if [[ -z "$entries" ]]; then
-        notify-send "$IC_WARN MCP" "Catalog is empty. Run 'docker mcp catalog init' first." -u normal
-        exec "$SCRIPT"
-    fi
-
-    chosen=$(echo "$entries" | rofi_menu "$IC_CATALOG Catalog (search)")
-    [[ -z "$chosen" ]] && exec "$SCRIPT"
-
-    # Extract server name (everything before "  –  ")
-    name="${chosen%%  –  *}"
-    name="$(echo "$name" | xargs)"
-
-    [[ -z "$name" ]] && exec "$SCRIPT"
-
-    # Show server action submenu
-    menu_catalog_action "$name"
-}
-
-menu_catalog_action() {
-    local name="$1"
-    local chosen
-
-    chosen=$(printf '%s\n' \
-        "$IC_ENABLE  Enable \"$name\"" \
-        "$IC_INSPECT  Inspect \"$name\"" \
-        "" \
-        "$IC_BACK  Back to Catalog" \
+    action=$(printf '%s\n' \
+        "$IC_ENABLE  Enable $name" \
+        "$IC_INSPECT  Inspect $name" \
+        "$IC_BACK  Back" \
         | rofi_menu "$IC_CATALOG $name")
 
-    [[ -z "$chosen" ]] && exec "$SCRIPT" catalog
-
-    case "$chosen" in
+    case "$action" in
         *"Enable"*)
-            local output
-            output=$(docker mcp server enable "$name" 2>&1) || true
-            if echo "$output" | grep -qi "enabled\|success\|✓"; then
-                notify-send "$IC_OK MCP" "Server '$name' enabled" -t 3000
+            if run_mcpy servers enable "$name" >/dev/null 2>&1; then
+                notify_ok "$name enabled"
             else
-                notify-send "$IC_ERR MCP" "Enable failed: $output" -u critical
+                notify_err "Failed to enable $name"
             fi
-            # Stay in catalog for enabling more
-            exec "$SCRIPT" catalog
+            exec_back catalog
             ;;
         *"Inspect"*)
-            show_in_terminal "MCP – $name" "docker mcp server inspect '$name' 2>&1 | less -R"
+            show_in_terminal "MCP – $name" "$MCPY_BIN servers inspect '$name' 2>&1 | less -R"
             ;;
-        *"Back"*)
-            exec "$SCRIPT" catalog
+        *)
+            exec_back catalog
             ;;
     esac
 }
 
-# ── Enabled servers: manage ──────────────────────────────────────────
 menu_servers() {
-    local servers chosen
+    local chosen name action
+    chosen=$(run_mcpy servers rofi | rofi_menu "$IC_SERVER Enabled Servers")
+    [[ -z "$chosen" ]] && exec_back
 
-    servers=$(parse_enabled_servers)
+    name=$(printf '%s\n' "$chosen" | choose_name)
+    [[ -z "$name" ]] && exec_back servers
 
-    if [[ -z "$servers" ]]; then
-        local action
-        action=$(printf '%s\n' \
-            "$IC_SEARCH  Browse Catalog to enable servers" \
-            "$IC_BACK  Back" \
-            | rofi_menu "$IC_SERVER No servers enabled")
-        case "$action" in
-            *"Browse"*) exec "$SCRIPT" catalog ;;
-            *)          exec "$SCRIPT" ;;
-        esac
-    fi
-
-    chosen=$(echo "$servers" | rofi_menu "$IC_SERVER Enabled Servers")
-    [[ -z "$chosen" ]] && exec "$SCRIPT"
-
-    menu_server_action "$chosen"
-}
-
-menu_server_action() {
-    local name="$1"
-    local chosen
-
-    chosen=$(printf '%s\n' \
-        "$IC_INSPECT  Inspect" \
-        "$IC_DISABLE  Disable" \
-        "$IC_TOOLS  Show Tools" \
-        "" \
-        "$IC_BACK  Back to Servers" \
+    action=$(printf '%s\n' \
+        "$IC_INSPECT  Inspect $name" \
+        "$IC_DISABLE  Disable $name" \
+        "$IC_BACK  Back" \
         | rofi_menu "$IC_SERVER $name")
 
-    [[ -z "$chosen" ]] && exec "$SCRIPT" servers
-
-    case "$chosen" in
+    case "$action" in
         *"Inspect"*)
-            show_in_terminal "MCP – $name" "docker mcp server inspect '$name' 2>&1 | less -R"
+            show_in_terminal "MCP – $name" "$MCPY_BIN servers inspect '$name' 2>&1 | less -R"
             ;;
         *"Disable"*)
-            local output
-            output=$(docker mcp server disable "$name" 2>&1) || true
-            if echo "$output" | grep -qi "disabled\|success\|✓"; then
-                notify-send "$IC_OK MCP" "Server '$name' disabled" -t 3000
+            if run_mcpy servers disable "$name" >/dev/null 2>&1; then
+                notify_ok "$name disabled"
             else
-                notify-send "$IC_ERR MCP" "Disable failed: $output" -u critical
+                notify_err "Failed to disable $name"
             fi
-            exec "$SCRIPT" servers
+            exec_back servers
             ;;
-        *"Show Tools"*)
-            show_in_terminal "MCP – Tools ($name)" "docker mcp tools ls 2>&1 | less -R"
-            ;;
-        *"Back"*)
-            exec "$SCRIPT" servers
+        *)
+            exec_back servers
             ;;
     esac
 }
 
-# ── Clients: connect/disconnect editors ──────────────────────────────
 menu_clients() {
-    local status_lines chosen
+    local chosen name action
+    chosen=$(run_mcpy clients rofi | rofi_menu "$IC_CLIENT Clients")
+    [[ -z "$chosen" ]] && exec_back
 
-    # Build client list with status
-    status_lines=$(parse_client_status | while IFS=$'\t' read -r cname cstatus; do
-        if echo "$cstatus" | grep -qi "connected\b" && ! echo "$cstatus" | grep -qi "disconnected"; then
-            echo "$IC_ON  $cname  ($cstatus)"
-        else
-            echo "$IC_OFF  $cname  ($cstatus)"
-        fi
-    done)
+    name=$(printf '%s\n' "$chosen" | choose_name)
+    [[ -z "$name" ]] && exec_back clients
 
-    if [[ -z "$status_lines" ]]; then
-        # Fallback: show supported clients
-        status_lines=$(parse_supported_clients | while read -r c; do
-            echo "$IC_OFF  $c"
-        done)
-    fi
-
-    chosen=$(printf '%s\n%s\n%s' \
-        "$status_lines" \
-        "" \
+    action=$(printf '%s\n' \
+        "$IC_ENABLE  Connect $name" \
+        "$IC_DISABLE  Disconnect $name" \
         "$IC_BACK  Back" \
-        | rofi_menu "$IC_CLIENT Clients")
+        | rofi_menu "$IC_CLIENT $name")
 
-    [[ -z "$chosen" ]] && exec "$SCRIPT"
-
-    case "$chosen" in
-        *"Back"*)
-            exec "$SCRIPT"
-            ;;
-        "$IC_ON  "*)
-            # Connected → offer disconnect
-            local cname
-            cname=$(echo "$chosen" | sed "s/^$IC_ON  //; s/  (.*//")
-            menu_client_action "$cname" "connected"
-            ;;
-        "$IC_OFF  "*)
-            # Disconnected → offer connect
-            local cname
-            cname=$(echo "$chosen" | sed "s/^$IC_OFF  //; s/  (.*//")
-            menu_client_action "$cname" "disconnected"
-            ;;
-    esac
-}
-
-menu_client_action() {
-    local cname="$1" state="$2"
-    local chosen
-
-    if [[ "$state" == "connected" ]]; then
-        chosen=$(printf '%s\n%s\n%s' \
-            "$IC_DISCONNECT  Disconnect $cname" \
-            "" \
-            "$IC_BACK  Back" \
-            | rofi_menu "$IC_CLIENT $cname")
-    else
-        chosen=$(printf '%s\n%s\n%s\n%s' \
-            "$IC_CONNECT  Connect $cname" \
-            "$IC_CONNECT  Connect $cname (global)" \
-            "" \
-            "$IC_BACK  Back" \
-            | rofi_menu "$IC_CLIENT $cname")
-    fi
-
-    [[ -z "$chosen" ]] && exec "$SCRIPT" clients
-
-    case "$chosen" in
-        *"Disconnect"*)
-            local output
-            output=$(docker mcp client disconnect "$cname" 2>&1) || true
-            notify-send "$IC_OK MCP" "Client '$cname' disconnected" -t 3000
-            exec "$SCRIPT" clients
-            ;;
-        *"global"*)
-            local output
-            output=$(docker mcp client connect "$cname" --global 2>&1) || true
-            notify-send "$IC_OK MCP" "Client '$cname' connected (global)" -t 3000
-            exec "$SCRIPT" clients
-            ;;
+    case "$action" in
         *"Connect"*)
-            local output
-            output=$(docker mcp client connect "$cname" 2>&1) || true
-            notify-send "$IC_OK MCP" "Client '$cname' connected" -t 3000
-            exec "$SCRIPT" clients
+            if run_mcpy clients connect "$name" >/dev/null 2>&1; then
+                notify_ok "$name connected"
+            else
+                notify_err "Failed to connect $name"
+            fi
+            exec_back clients
             ;;
-        *"Back"*)
-            exec "$SCRIPT" clients
+        *"Disconnect"*)
+            if run_mcpy clients disconnect "$name" >/dev/null 2>&1; then
+                notify_ok "$name disconnected"
+            else
+                notify_err "Failed to disconnect $name"
+            fi
+            exec_back clients
+            ;;
+        *)
+            exec_back clients
             ;;
     esac
 }
 
-# ── Tools: list, inspect, enable/disable ─────────────────────────────
 menu_tools() {
-    local tools_raw chosen
+    local chosen name action
+    chosen=$(run_mcpy tools rofi | rofi_menu "$IC_TOOLS Tools")
+    [[ -z "$chosen" ]] && exec_back
 
-    tools_raw=$(parse_tools)
+    name=$(printf '%s\n' "$chosen" | choose_name)
+    [[ -z "$name" ]] && exec_back tools
 
-    if [[ -z "$tools_raw" ]]; then
-        local action
-        action=$(printf '%s\n%s' \
-            "$IC_COUNT  No tools loaded (enable servers first)" \
-            "$IC_BACK  Back" \
-            | rofi_menu "$IC_TOOLS Tools")
-        case "$action" in
-            *"Back"*) exec "$SCRIPT" ;;
-            *) exec "$SCRIPT" ;;
-        esac
-    fi
+    action=$(printf '%s\n' \
+        "$IC_INSPECT  Inspect $name" \
+        "$IC_BACK  Back" \
+        | rofi_menu "$IC_TOOLS $name")
 
-    # Format: "tool-name - Description"
-    # Show with count in prompt
-    local count
-    count=$(echo "$tools_raw" | wc -l)
-
-    chosen=$(echo "$tools_raw" | rofi_menu "$IC_TOOLS Tools ($count)")
-    [[ -z "$chosen" ]] && exec "$SCRIPT"
-
-    # Extract tool name (first word before " - ")
-    local tname
-    tname="${chosen%% - *}"
-    tname="$(echo "$tname" | xargs)"
-
-    [[ -z "$tname" ]] && exec "$SCRIPT" tools
-
-    menu_tool_action "$tname"
-}
-
-menu_tool_action() {
-    local tname="$1"
-    local chosen
-
-    chosen=$(printf '%s\n%s\n%s\n%s\n%s' \
-        "$IC_INSPECT  Inspect" \
-        "$IC_DISABLE  Disable" \
-        "$IC_ENABLE  Enable" \
-        "" \
-        "$IC_BACK  Back to Tools" \
-        | rofi_menu "$IC_TOOLS $tname")
-
-    [[ -z "$chosen" ]] && exec "$SCRIPT" tools
-
-    case "$chosen" in
+    case "$action" in
         *"Inspect"*)
-            show_in_terminal "Tool – $tname" "docker mcp tools inspect '$tname' 2>&1 | less -R"
+            show_in_terminal "MCP – Tool: $name" "$MCPY_BIN tools inspect '$name' 2>&1 | less -R"
             ;;
-        *"Disable"*)
-            local output
-            output=$(docker mcp tools disable "$tname" 2>&1) || true
-            notify-send "$IC_OK MCP" "Tool '$tname' disabled" -t 3000
-            exec "$SCRIPT" tools
-            ;;
-        *"Enable"*)
-            local output
-            output=$(docker mcp tools enable "$tname" 2>&1) || true
-            notify-send "$IC_OK MCP" "Tool '$tname' enabled" -t 3000
-            exec "$SCRIPT" tools
-            ;;
-        *"Back"*)
-            exec "$SCRIPT" tools
+        *)
+            exec_back tools
             ;;
     esac
 }
 
-# ── Gateway ──────────────────────────────────────────────────────────
 menu_gateway() {
     local chosen
-
-    chosen=$(printf '%s\n%s\n%s\n%s\n%s' \
-        "$IC_START  Start Gateway" \
-        "$IC_COUNT  Tool Count" \
-        "$IC_TOOLS  List Tools" \
-        "" \
+    chosen=$(printf '%s\n' \
+        "$IC_INSPECT  Gateway Status" \
+        "$IC_ENABLE  Start Gateway" \
         "$IC_BACK  Back" \
         | rofi_menu "$IC_GATEWAY Gateway")
 
-    [[ -z "$chosen" ]] && exec "$SCRIPT"
-
     case "$chosen" in
+        *"Gateway Status"*)
+            show_in_terminal "MCP Gateway" "$MCPY_BIN gateway status 2>&1 | less -R"
+            ;;
         *"Start Gateway"*)
-            notify-send "$IC_GATEWAY MCP" "Starting MCP Gateway…" -t 2000
-            kitty --detach --class "mcp-gateway" \
-                -o "font_size=13" \
-                -T "MCP Gateway" \
-                -e bash -c "docker mcp gateway run; echo; echo '── Gateway stopped. Press Enter ──'; read"
-            ;;
-        *"Tool Count"*)
-            local count
-            count=$(docker mcp tools count 2>&1) || count="Error"
-            notify-send "$IC_COUNT MCP" "$count" -t 5000
-            ;;
-        *"List Tools"*)
-            show_in_terminal "MCP – All Tools" "docker mcp tools ls 2>&1 | less -R"
-            ;;
-        *"Back"*)
-            exec "$SCRIPT"
-            ;;
-    esac
-}
-
-# ── Features: toggle experimental flags ──────────────────────────────
-menu_features() {
-    local features chosen
-
-    features=$(parse_features)
-
-    if [[ -z "$features" ]]; then
-        notify-send "$IC_WARN MCP" "Could not load feature flags" -u normal
-        exec "$SCRIPT"
-    fi
-
-    chosen=$(printf '%s\n%s\n%s' \
-        "$features" \
-        "" \
-        "$IC_BACK  Back" \
-        | rofi_menu "$IC_FEATURE Features")
-
-    [[ -z "$chosen" ]] && exec "$SCRIPT"
-
-    case "$chosen" in
-        *"Back"*)
-            exec "$SCRIPT"
+            show_in_terminal "MCP Gateway" "$MCPY_BIN gateway run"
             ;;
         *)
-            # Format: "ICON  name  –  description"
-            # Extract feature name (second field) and determine state from icon
-            local fname is_enabled
-            fname=$(echo "$chosen" | awk '{print $2}')
-            # Check if the line starts with the "enabled" icon
-            is_enabled=false
-            echo "$chosen" | grep -q "^$IC_ON" && is_enabled=true
-
-            if [[ "$is_enabled" == true ]]; then
-                # Currently enabled → disable
-                local confirm
-                confirm=$(printf '%s\n%s' \
-                    "$IC_DISABLE  Disable $fname" \
-                    "$IC_BACK  Cancel" \
-                    | rofi_menu "$IC_FEATURE $fname")
-                if echo "$confirm" | grep -qi "Disable"; then
-                    docker mcp feature disable "$fname" 2>&1 || true
-                    notify-send "$IC_OK MCP" "Feature '$fname' disabled" -t 3000
-                fi
-            else
-                # Currently disabled → enable
-                local confirm
-                confirm=$(printf '%s\n%s' \
-                    "$IC_ENABLE  Enable $fname" \
-                    "$IC_BACK  Cancel" \
-                    | rofi_menu "$IC_FEATURE $fname")
-                if echo "$confirm" | grep -qi "Enable"; then
-                    docker mcp feature enable "$fname" 2>&1 || true
-                    notify-send "$IC_OK MCP" "Feature '$fname' enabled" -t 3000
-                fi
-            fi
-            exec "$SCRIPT" features
+            exec_back
             ;;
     esac
 }
 
-# ── Secrets ──────────────────────────────────────────────────────────
-menu_secrets() {
-    local chosen
+menu_features() {
+    local chosen name action
+    chosen=$(run_mcpy features rofi | rofi_menu "$IC_FEATURE Features")
+    [[ -z "$chosen" ]] && exec_back
 
-    chosen=$(printf '%s\n%s\n%s\n%s\n%s' \
-        "$IC_SEARCH  List Secrets" \
-        "$IC_ENABLE  Set Secret" \
-        "$IC_DISABLE  Remove Secret" \
-        "" \
+    name=$(printf '%s\n' "$chosen" | choose_name)
+    [[ -z "$name" ]] && exec_back features
+
+    action=$(printf '%s\n' \
+        "$IC_ENABLE  Enable $name" \
+        "$IC_DISABLE  Disable $name" \
         "$IC_BACK  Back" \
-        | rofi_menu "$IC_SECRET Secrets")
+        | rofi_menu "$IC_FEATURE $name")
 
-    [[ -z "$chosen" ]] && exec "$SCRIPT"
-
-    case "$chosen" in
-        *"List"*)
-            show_in_terminal "MCP – Secrets" "docker mcp secret ls 2>&1; echo; docker mcp policy dump 2>&1"
-            ;;
-        *"Set Secret"*)
-            local input
-            input=$(echo "" | rofi_menu "$IC_SECRET Set (KEY=VALUE)" \
-                -theme-str 'listview { lines: 0; } entry { placeholder: "SECRET_NAME=value"; }')
-            [[ -z "$input" ]] && exec "$SCRIPT" secrets
-            local output
-            output=$(docker mcp secret set "$input" 2>&1) || true
-            notify-send "$IC_SECRET MCP" "$output" -t 4000
-            exec "$SCRIPT" secrets
-            ;;
-        *"Remove"*)
-            # List existing secrets and let user pick
-            local slist sname
-            slist=$(docker mcp secret ls 2>&1 | grep -v '^$' | grep -v 'error' || echo "")
-            if [[ -z "$slist" ]]; then
-                notify-send "$IC_WARN MCP" "No secrets found or secret store unavailable" -u normal
-                exec "$SCRIPT" secrets
+    case "$action" in
+        *"Enable"*)
+            if run_mcpy features enable "$name" >/dev/null 2>&1; then
+                notify_ok "$name enabled"
+            else
+                notify_err "Failed to enable $name"
             fi
-            sname=$(echo "$slist" | rofi_menu "$IC_SECRET Remove Secret")
-            [[ -z "$sname" ]] && exec "$SCRIPT" secrets
-            docker mcp secret rm "$sname" 2>&1 || true
-            notify-send "$IC_OK MCP" "Secret '$sname' removed" -t 3000
-            exec "$SCRIPT" secrets
+            exec_back features
             ;;
-        *"Back"*)
-            exec "$SCRIPT"
+        *"Disable"*)
+            if run_mcpy features disable "$name" >/dev/null 2>&1; then
+                notify_ok "$name disabled"
+            else
+                notify_err "Failed to disable $name"
+            fi
+            exec_back features
+            ;;
+        *)
+            exec_back features
             ;;
     esac
 }
 
-# ── Entry point ──────────────────────────────────────────────────────
+menu_settings() {
+    local action key value
+    action=$(printf '%s\n' \
+        "$IC_SEARCH  Show Config" \
+        "$IC_ENABLE  Set Value" \
+        "$IC_INSPECT  Edit Config" \
+        "$IC_BACK  Back" \
+        | rofi_menu "$IC_SETTINGS Settings")
+
+    case "$action" in
+        *"Show Config"*)
+            show_in_terminal "mcpy config" "$MCPY_BIN settings list 2>&1 | less -R"
+            ;;
+        *"Set Value"*)
+            key=$(rofi -dmenu -i -p "Key" -theme "$THEME")
+            [[ -z "$key" ]] && exec_back settings
+            value=$(rofi -dmenu -i -p "Value" -theme "$THEME")
+            [[ -z "$value" ]] && exec_back settings
+            if run_mcpy settings set "$key" "$value" >/dev/null 2>&1; then
+                notify_ok "$key updated"
+            else
+                notify_err "Failed to set $key"
+            fi
+            exec_back settings
+            ;;
+        *"Edit Config"*)
+            run_mcpy settings edit >/dev/null 2>&1
+            exec_back settings
+            ;;
+        *)
+            exec_back
+            ;;
+    esac
+}
+
 preflight
 
 case "${1:-}" in
-    catalog)   menu_catalog   ;;
-    servers)   menu_servers   ;;
-    clients)   menu_clients   ;;
-    tools)     menu_tools     ;;
-    gateway)   menu_gateway   ;;
-    features)  menu_features  ;;
-    secrets)   menu_secrets   ;;
-    *)         menu_main      ;;
+    catalog) menu_catalog ;;
+    servers) menu_servers ;;
+    clients) menu_clients ;;
+    tools) menu_tools ;;
+    gateway) menu_gateway ;;
+    features) menu_features ;;
+    settings) menu_settings ;;
+    *) menu_main ;;
 esac
-
-exit 0

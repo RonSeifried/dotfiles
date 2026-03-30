@@ -19,7 +19,7 @@ Personal dotfiles for Arch Linux with Hyprland, managed with GNU Stow.
 | **Bar** | [Waybar](https://github.com/Alexays/Waybar) |
 | **Notifications** | [SwayNC](https://github.com/ErikReider/SwayNotificationCenter) |
 | **Color Scheme** | [Pywal](https://github.com/dylanaraps/pywal) |
-| **Wallpaper** | [swww](https://github.com/LGFae/swww) |
+| **Wallpaper** | [awww](https://codeberg.org/LGFae/awww) |
 | **Lock Screen** | Hyprlock + Hypridle |
 | **Browser** | Zen Browser |
 | **Git UI** | [Lazygit](https://github.com/jesseduffield/lazygit) |
@@ -31,16 +31,16 @@ Personal dotfiles for Arch Linux with Hyprland, managed with GNU Stow.
 
 ```bash
 sudo pacman -S hyprland kitty waybar rofi neovim yazi zsh starship \
-  swww swaync hypridle hyprlock python-pywal nautilus \
+  awww swaync hypridle hyprlock python-pywal nautilus \
   brightnessctl playerctl wl-clipboard grim slurp grimblast \
   bluez bluez-utils networkmanager gnome-keyring
 ```
 
-### AUR Packages (paru/yay)
+### AUR Packages (yay)
 
 ```bash
-paru -S oh-my-zsh-git zsh-autosuggestions zsh-syntax-highlighting \
-  zsh-you-should-use zsh-bat eza neofetch fastfetch hyprpicker \
+yay -S oh-my-zsh-git zsh-autosuggestions zsh-syntax-highlighting \
+  zsh-you-should-use eza neofetch fastfetch hyprpicker \
   zen-browser-bin webcord-bin
 ```
 
@@ -199,7 +199,7 @@ Colors are automatically applied to:
 
 ### AUR Helper
 
-The default AUR helper is set to `paru`. Change it in `.zshrc`:
+The default AUR helper is set to `yay`. Change it in `.zshrc`:
 
 ```bash
 export aurhelper="yay"  # or your preferred helper

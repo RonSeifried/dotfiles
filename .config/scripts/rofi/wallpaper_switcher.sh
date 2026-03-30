@@ -65,10 +65,10 @@ apply_wallpaper() {
 
     notify-send "Wallpaper" "Applying: $(basename "$selected")" -t 2000
 
-    # Set wallpaper with swww
-    if command -v swww &>/dev/null; then
-        pgrep -x swww-daemon >/dev/null || { swww-daemon & sleep 0.3; }
-        swww img "$selected" --transition-type grow --transition-duration 2 --transition-pos center
+    # Set wallpaper with awww
+    if command -v awww &>/dev/null; then
+        pgrep -x awww-daemon >/dev/null || { awww-daemon & sleep 0.3; }
+        awww img "$selected" --transition-type grow --transition-duration 2 --transition-pos center
     elif command -v swaybg &>/dev/null; then
         pkill -x swaybg 2>/dev/null || true
         swaybg -m fill -i "$selected" &

@@ -128,11 +128,11 @@ autoload -U compinit && compinit
 
 ########## Startup ##########
 
-# Neofetch on terminal open (only for interactive shells, use fastfetch if available)
-if command -v neofetch &> /dev/null; then
-  neofetch
-else
+# Fastfetch on terminal open (fallback to neofetch)
+if command -v fastfetch &> /dev/null; then
   fastfetch
+elif command -v neofetch &> /dev/null; then
+  neofetch
 fi
 
 ########## END ##########
