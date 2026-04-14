@@ -12,9 +12,9 @@ config_file_type = "static"
 
 [profiles.docked_closed.conditions]
 # nur aktiv, wenn der Deckel zu ist
-lid_state = "Closed"            # "Closed" oder "Opened" möglich
+lid_state = "Closed"            # "Closed" or "Opened"
 
-# externe Monitore per Description matchen (DP-XX Nummern können sich ändern!)
+# match external monitors by description (DP-XX numbers can change!)
 [[profiles.docked_closed.conditions.required_monitors]]
 description = "Microstep Optix MAG24C REDACTED-SERIAL"
 
@@ -29,7 +29,7 @@ config_file_type = "static"
 [profiles.laptop_open.conditions]
 lid_state = "Opened"
 
-# eDP-1 ändert sich nie, name-match ist hier safe
+# eDP-1 never changes, name-match is safe here
 [[profiles.laptop_open.conditions.required_monitors]]
 name = "eDP-1"
 

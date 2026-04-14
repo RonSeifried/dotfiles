@@ -53,7 +53,7 @@ esac
 hyprctl dispatch togglespecialworkspace "$WORKSPACE"
 
 # Check if the app is already running in dropterm
-if ! pgrep -f "$TERMINAL.*$PROCESS_MATCH" >/dev/null 2>&1; then
+if ! pgrep -f "^$TERMINAL.*$PROCESS_MATCH" >/dev/null 2>&1; then
     # Launch the terminal with the app
     $TERMINAL --class "$TERM_CLASS" -e bash -c "$RUN_CMD" &
 

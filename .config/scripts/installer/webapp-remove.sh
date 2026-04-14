@@ -38,5 +38,5 @@ for APP_NAME in "${APP_NAMES[@]}"; do
   rm -f "$DESKTOP_DIR/$APP_NAME.desktop"
   rm -f "$ICON_DIR/$APP_NAME.png"
   echo "Removed $APP_NAME"
-  ./show-done.sh
 done
+./show-done.sh

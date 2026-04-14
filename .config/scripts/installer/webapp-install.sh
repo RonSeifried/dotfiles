@@ -25,11 +25,6 @@ else
   INTERACTIVE_MODE=false
 fi
 
-# Debug: Show what we got
-echo "DEBUG: APP_NAME='$APP_NAME'"
-echo "DEBUG: APP_URL='$APP_URL'"
-echo "DEBUG: ICON_REF='$ICON_REF'"
-
 # Ensure valid execution
 if [[ -z "$APP_NAME" || -z "$APP_URL" || -z "$ICON_REF" ]]; then
   echo "You must set app name, app URL, and icon URL!"

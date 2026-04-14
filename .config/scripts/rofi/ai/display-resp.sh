@@ -9,8 +9,8 @@ clear
 echo -e "\033[1;34m󰧑 AI is thinking...\033[0m"
 echo ""
 
-# Wait until the response file appears and has content
-timeout=60
+# Wait until the response file appears and has content (max 60s)
+timeout=200
 elapsed=0
 while [[ ! -s "$RESP_FILE" ]] && (( elapsed < timeout )); do
     sleep 0.3

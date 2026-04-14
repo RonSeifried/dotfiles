@@ -1,6 +1,7 @@
 /*****----- AI Rofi Theme -----*****/
 /* Import pywal colors */
 @import "~/.cache/wal/colors-rofi-dark.rasi"
+@import "~/.cache/wal/colors-rofi-glass.rasi"
 
 /*****----- Global Properties -----*****/
 * {
@@ -14,10 +15,10 @@ window {
     location:                    center;
     anchor:                      center;
     width:                       600px;
-    border:                      2px;
-    border-color:                @active-background;
+    border:                      3px;
+    border-color:                @color4;
     border-radius:               12px;
-    background-color:            @background;
+    background-color:            @bg-glass;
 }
 
 /*****----- Main Box -----*****/
@@ -33,14 +34,14 @@ inputbar {
     spacing:                     10px;
     padding:                     12px 16px;
     border-radius:               8px;
-    background-color:            @alternate-normal-background;
+    background-color:            rgba(0, 0, 0, 0.25);
     text-color:                  @foreground;
     children:                    [ "prompt", "entry" ];
 }
 
 prompt {
     background-color:            inherit;
-    text-color:                  @active-background;
+    text-color:                  @color4;
 }
 
 entry {
@@ -62,7 +63,7 @@ listview {
 message {
     padding:                     10px;
     border-radius:               8px;
-    background-color:            @alternate-normal-background;
+    background-color:            rgba(0, 0, 0, 0.25);
     text-color:                  @foreground;
 }
 

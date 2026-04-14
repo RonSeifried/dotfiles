@@ -7,7 +7,7 @@ google-chrome* | brave-browser* | microsoft-edge* | opera* | vivaldi* | zen*) ;;
 *) browser="chromium.desktop" ;;
 esac
 
-browser_exec=$(sed -n 's/^Exec=\([^ ]*\).*/\1/p' {~/.local,~/.nix-profile,/usr}/share/applications/$browser 2>/dev/null | head -1)
+browser_exec=$(sed -n 's/^Exec=\([^ ]*\).*/\1/p' {"$HOME"/.local,"$HOME"/.nix-profile,/usr}/share/applications/"$browser" 2>/dev/null | head -1)
 
 if [[ -z "$browser_exec" ]]; then
     for fallback in google-chrome chromium brave zen-browser firefox; do

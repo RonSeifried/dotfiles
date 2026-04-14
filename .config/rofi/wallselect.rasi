@@ -3,6 +3,7 @@
 
 /* Import pywal colors */
 @import "~/.cache/wal/colors-rofi-dark.rasi"
+@import "~/.cache/wal/colors-rofi-glass.rasi"
 
 /*****----- Configuration -----*****/
 configuration {
@@ -27,9 +28,9 @@ window {
     width:                       1100px;
     height:                      750px;
     border-radius:               16px;
-    border:                      2px;
-    border-color:                @active-background;
-    background-color:            @background;
+    border:                      3px;
+    border-color:                @color4;
+    background-color:            @bg-glass;
 }
 
 /*****----- Main Layout -----*****/
@@ -38,20 +39,21 @@ mainbox {
     padding:                     20px;
     orientation:                 vertical;
     background-color:            transparent;
+    border-radius:               13px;
     children:                    [ "inputbar", "message", "listview" ];
 }
 
 /*****----- Input Bar (Search) -----*****/
 inputbar {
     children:                    [ prompt, entry ];
-    background-color:            @alternate-normal-background;
+    background-color:            rgba(0, 0, 0, 0.3);
     border-radius:               10px;
     padding:                     0;
 }
 
 prompt {
     padding:                     14px 16px;
-    text-color:                  @active-background;
+    text-color:                  @color4;
     background-color:            transparent;
     font:                        "JetBrains Mono Nerd Font 14";
 }
@@ -73,7 +75,7 @@ message {
 textbox {
     padding:                     10px 14px;
     border-radius:               8px;
-    background-color:            @alternate-normal-background;
+    background-color:            rgba(0, 0, 0, 0.2);
     text-color:                  @foreground;
 }
 
@@ -95,22 +97,22 @@ listview {
 element {
     padding:                     10px;
     border-radius:               12px;
-    background-color:            @alternate-normal-background;
+    background-color:            rgba(0, 0, 0, 0.3);
     orientation:                 vertical;
 }
 
 element normal.normal {
-    background-color:            @alternate-normal-background;
+    background-color:            rgba(0, 0, 0, 0.3);
 }
 
 element alternate.normal {
-    background-color:            @alternate-normal-background;
+    background-color:            rgba(0, 0, 0, 0.3);
 }
 
 element selected.normal {
     background-color:            @selected-normal-background;
     border:                      3px;
-    border-color:                @active-background;
+    border-color:                @color4;
 }
 
 element-icon {
@@ -136,6 +138,6 @@ element-text {
 error-message {
     padding:                     20px;
     border-radius:               12px;
-    background-color:            @background;
+    background-color:            rgba(0, 0, 0, 0.3);
     text-color:                  @urgent-foreground;
 }

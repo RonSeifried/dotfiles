@@ -1,5 +1,5 @@
-# ~/.local/bin/zen-wal-refresh.sh
 #!/usr/bin/env bash
+# ~/.local/bin/zen-wal-refresh.sh
 wal -R
 pywalfox update 2>/dev/null || true
 target="$HOME/.zen/profiles/default/chrome"

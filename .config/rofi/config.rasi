@@ -1,6 +1,7 @@
 
 /*****----- Colors von pywal -----*****/
 @import "~/.cache/wal/colors-rofi-dark.rasi"
+@import "~/.cache/wal/colors-rofi-glass.rasi"
 
 /*****----- Configuration -----*****/
 configuration {
@@ -11,6 +12,15 @@ configuration {
   display-INSTALL:      "INSTALL";
   drun-display-format:  "{name}";
   window-format:        "{w} · {c} · {t}";
+
+  /* Performance */
+  threads:              0;          /* auto-detect CPU cores */
+  matching:             "fuzzy";    /* fuzzy > normal, tolerates typos */
+  levenshtein-sort:     false;      /* not needed with fuzzy, saves time */
+  drun-use-desktop-cache: true;     /* Desktop-Entries cachen */
+  drun-reload-desktop-cache: false; /* kein Reload bei jedem Open */
+  parse-known-hosts:    false;      /* SSH-Hosts nicht parsen */
+  steal-focus:          true;       /* sofort Fokus grabben */
 }
 
 * {
@@ -19,7 +29,7 @@ configuration {
 
   /* pick “alt” surfaces from wal; tweak if you prefer other slots */
   bg-alt:                 @background;
-  accent:                 @urgent-background;
+  accent:                 @color4;
   muted:                  @foreground;
   font:                   "JetBrainsMono Nerd Font 11";
 }
@@ -31,7 +41,9 @@ window {
   anchor:                 center;
   width:                  1100px;
   border-radius:          @radius;
-  background-color:       @background;
+  border:                 3px;
+  border-color:           @color4;
+  background-color:       @bg-glass;
 }
 
 /* ---------- Main layout ---------- */
@@ -43,9 +55,10 @@ mainbox {
 
 /* Left: image panel – cached preview, only loaded for main launcher */
 imagebox {
-  background-color:       @bg-alt;
+  background-color:       rgba(0, 0, 0, 0.15);
   background-image:       url("~/.cache/rofi/current_wallpaper_preview.png", height);
   width:                  520px;
+  border-radius:          11px 0 0 11px;
   orientation:            vertical;
   children:               [ "inputbar", "spacer", "mode-switcher" ];
 }
@@ -62,6 +75,7 @@ listbox {
   spacing:                @gap;
   orientation:            vertical;
   background-color:       transparent;
+  border-radius:          0 11px 11px 0;
   children:               [ "message", "listview" ];
 }
 
@@ -71,7 +85,7 @@ inputbar {
   spacing:                10px;
   padding:                12px 14px;
   border-radius:          10px;
-  background-color:       @bg-alt;
+  background-color:       rgba(0, 0, 0, 0.3);
   text-color:             @foreground;
   children:               [ "textbox-prompt-colon", "entry" ];
 }
@@ -95,7 +109,7 @@ mode-switcher {
 button {
   padding:                10px 14px;
   border-radius:          10px;
-  background-color:       @bg-alt;
+  background-color:       rgba(0, 0, 0, 0.2);
   text-color:             @foreground;
 }
 button selected {
@@ -145,6 +159,6 @@ element-text {
 message, textbox, error-message {
   padding:                10px 12px;
   border-radius:          10px;
-  background-color:       @bg-alt;
+  background-color:       rgba(0, 0, 0, 0.2);
   text-color:             @foreground;
 }

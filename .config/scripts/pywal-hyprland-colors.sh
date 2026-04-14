@@ -34,16 +34,31 @@ cat > "$OUT" <<EOF
 
 # border colors
 general {
-col.active_border = \$accent
+col.active_border = \$accent2
 col.inactive_border = \$bg
 col.nogroup_border = \$bg
 col.nogroup_border_active = \$accent2
 }
 
-# optional shine:
-# col.active_border = \$accent \$accent2
-
 EOF
+
+# Apply border colors live without requiring a full Hyprland reload
+if command -v hyprctl &>/dev/null; then
+    hyprctl keyword general:col.active_border "$(to_argb "$c4")" 2>/dev/null || true
+    hyprctl keyword general:col.inactive_border "$(to_argb "$bg")" 2>/dev/null || true
+fi
+
+# Generate rofi glass colors for blur transparency
+# Parse bg hex into r,g,b components for rgba() format
+bg_hex="${bg#\#}"
+r=$((16#${bg_hex:0:2}))
+g=$((16#${bg_hex:2:2}))
+b=$((16#${bg_hex:4:2}))
+cat > "$HOME/.cache/wal/colors-rofi-glass.rasi" <<ROFI_EOF
+* {
+    bg-glass:   rgba(${r}, ${g}, ${b}, 0.78);
+}
+ROFI_EOF
 
 # Also generate hyprlock colors (replaces matugen dependency)
 "$HOME/.config/scripts/pywal-hyprlock-colors.sh" 2>/dev/null || true

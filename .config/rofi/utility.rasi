@@ -2,14 +2,13 @@
 /* No wallpaper image – instant startup for WiFi, BT, VPN, Power etc. */
 
 @import "~/.cache/wal/colors-rofi-dark.rasi"
+@import "~/.cache/wal/colors-rofi-glass.rasi"
 
 * {
     font:                   "JetBrainsMono Nerd Font 12";
     radius:                 12px;
     gap:                    10px;
-    bg-alt:                 @background;
-    accent:                 @urgent-background;
-    muted:                  @foreground;
+    accent:                 @color4;
 }
 
 window {
@@ -18,44 +17,44 @@ window {
     anchor:                 center;
     width:                  420px;
     border-radius:          14px;
-    border:                 2px;
-    border-color:           @active-background;
-    background-color:       @background;
+    border:                 3px;
+    border-color:           @color4;
+    background-color:       @bg-glass;
 }
 
 mainbox {
     spacing:                @gap;
-    padding:                18px;
+    padding:                16px;
     background-color:       transparent;
-    children:               [ "inputbar", "message", "listview" ];
+    children:               [ "inputbar", "listview" ];
 }
 
 inputbar {
     spacing:                10px;
-    padding:                12px 14px;
+    padding:                10px 12px;
     border-radius:          10px;
-    background-color:       @alternate-normal-background;
+    background-color:       rgba(0, 0, 0, 0.25);
     text-color:             @foreground;
     children:               [ "textbox-prompt-colon", "entry" ];
 }
 
 textbox-prompt-colon {
     str:                    "";
-    background-color:       inherit;
-    text-color:             @active-background;
+    background-color:       transparent;
+    text-color:             @color4;
 }
 
 entry {
-    background-color:       inherit;
+    background-color:       transparent;
     text-color:             @foreground;
     placeholder:            "Search...";
-    placeholder-color:      @muted;
+    placeholder-color:      rgba(255, 255, 255, 0.35);
 }
 
 listview {
     columns:                1;
     lines:                  8;
-    spacing:                6px;
+    spacing:                4px;
     scrollbar:              false;
     background-color:       transparent;
 }
@@ -69,7 +68,7 @@ element {
 }
 
 element selected.normal {
-    background-color:       @active-background;
+    background-color:       @color4;
     text-color:             @background;
 }
 
@@ -88,6 +87,6 @@ element-text {
 message, textbox, error-message {
     padding:                10px 12px;
     border-radius:          10px;
-    background-color:       @alternate-normal-background;
+    background-color:       rgba(0, 0, 0, 0.2);
     text-color:             @foreground;
 }

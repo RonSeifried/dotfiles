@@ -5,9 +5,8 @@
 * {
     border: none;
     border-radius: 0;
-    font-family:
-        "JetBrainsMono Nerd Font Propo", "JetBrainsMono Nerd Font", monospace;
-    font-size: 15px;
+    font-family: "JetBrainsMono Nerd Font Propo", "JetBrainsMono Nerd Font", monospace;
+    font-size: 14px;
     font-weight: 600;
     min-height: 0;
 }
@@ -17,29 +16,28 @@ window#waybar {
     color: @foreground;
 }
 
-/* BAR CONTAINER -------------------------------------------------- */
-
 window#waybar > box {
-    margin: 4px 10px;
-    padding: 8px 12px;
-    border-radius: 16px;
-    background-color: alpha(@background, 0.82);
-    box-shadow: 0 0 10px alpha(@color0, 0.55);
+    margin: 6px 4px;
+    padding: 0;
+    background-color: transparent;
 }
 
-/* MODULE CONTAINER GROUPS ---------------------------------------- */
+/* THREE ISLANDS — accent border matches hyprland window borders -- */
 
 .modules-left,
 .modules-center,
 .modules-right {
-    padding: 0 4px;
+    background-color: alpha(@background, 0.82);
+    border-radius: 14px;
+    padding: 4px 12px;
+    margin: 0 4px;
+    border: 3px solid @color4;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.45);
 }
 
-/* PILL BASE – every module gets this ----------------------------- */
+/* MODULE BASE -------------------------------------------------- */
 
-#custom-power,
 #clock,
-#window,
 #tray,
 #custom-vpn,
 #pulseaudio,
@@ -47,158 +45,114 @@ window#waybar > box {
 #bluetooth,
 #battery,
 #custom-notification-center {
-    border-radius: 999px;
-    background-color: alpha(@background-alt, 0.92);
-    padding: 6px 12px;
-    margin: 0 4px;
-    min-height: 26px;
-    min-width: 26px;
-    padding-top: 4px;
-    padding-bottom: 4px;
+    padding: 4px 10px;
+    margin: 0 1px;
+    min-height: 24px;
+    border-radius: 8px;
+    color: @foreground;
 }
 
-/* HOVER ---------------------------------------------------------- */
-
-#custom-power:hover,
 #clock:hover,
-#window:hover,
-#tray:hover,
 #custom-vpn:hover,
 #pulseaudio:hover,
 #network:hover,
 #bluetooth:hover,
 #battery:hover,
 #custom-notification-center:hover {
-    background-color: alpha(@color1, 0.35);
+    background-color: alpha(@color4, 0.18);
 }
 
-/* POWER BUTTON --------------------------------------------------- */
-
-#custom-power {
-    background-color: alpha(@color1, 0.95);
-    color: @background;
-    font-weight: 700;
-}
-
-/* CLOCK ---------------------------------------------------------- */
+/* CLOCK -------------------------------------------------------- */
 
 #clock {
     font-weight: 700;
-}
-
-/* FOCUSED WINDOW (task indicator) -------------------------------- */
-
-#window {
-    font-weight: 400;
     font-size: 13px;
-    color: alpha(@foreground, 0.8);
+    color: @foreground;
 }
 
-#window.empty {
-    background-color: transparent;
-    padding: 0;
-    margin: 0;
-    min-width: 0;
-}
-
-/* WORKSPACES ----------------------------------------------------- */
+/* WORKSPACES --------------------------------------------------- */
 
 #workspaces {
-    margin: 0 6px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background-color: alpha(@background-alt, 0.9);
+    padding: 0 2px;
 }
 
 #workspaces button {
     all: unset;
-    margin: 0 4px;
-    padding: 4px 8px;
-    min-width: 18px;
-    min-height: 18px;
-    border-radius: 999px;
-    background-color: alpha(@foreground, 0.15);
-    box-shadow: none;
+    margin: 0 3px;
+    padding: 4px 13px;
+    min-width: 22px;
+    min-height: 22px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: alpha(@foreground, 0.3);
+    background-color: transparent;
+    transition: all 0.15s ease;
 }
 
-#workspaces button.empty {
-    background-color: alpha(@foreground, 0.1);
+/* workspace has windows but not focused */
+#workspaces button.occupied {
+    color: alpha(@foreground, 0.8);
+    background-color: alpha(@color4, 0.12);
 }
 
-#workspaces button:not(.empty):not(.active) {
-    background-color: alpha(@foreground, 0.25);
-}
-
+/* active workspace — same accent as hyprland border */
 #workspaces button.active {
-    background-color: @color1;
-    color: @background;
-    min-width: 26px;
-    min-height: 20px;
-    padding-left: 12px;
-    padding-right: 12px;
+    color: @foreground;
+    background-color: alpha(@color4, 0.3);
+    padding: 4px 16px;
 }
 
 #workspaces button:hover {
-    background-color: alpha(@color1, 0.6);
+    color: @foreground;
+    background-color: alpha(@color4, 0.2);
 }
 
-#workspaces button label {
-    margin-top: -2px;
-    padding: 0;
-    font-size: 14px;
-}
+/* VPN ---------------------------------------------------------- */
 
-/* VPN ------------------------------------------------------------ */
+#custom-vpn.on  { color: @color2; }
+#custom-vpn.off { color: alpha(@foreground, 0.3); }
 
-#custom-vpn.on {
-    color: @color2;
-}
+/* NETWORK ------------------------------------------------------ */
 
-#custom-vpn.off {
-    color: alpha(@foreground, 0.6);
-}
+#network { font-size: 12px; }
+#network.disconnected { color: alpha(@foreground, 0.3); }
 
-/* AUDIO – muted state uses pywal color, not hardcoded ------------ */
+/* AUDIO -------------------------------------------------------- */
 
-#pulseaudio.muted {
+#pulseaudio.muted        { color: alpha(@foreground, 0.3); }
+#pulseaudio.source-muted { color: alpha(@foreground, 0.3); }
+
+/* BATTERY ------------------------------------------------------ */
+
+#battery                        { font-size: 12px; }
+#battery.charging               { color: @color2; }
+#battery.warning:not(.charging) { color: @color3; }
+#battery.critical:not(.charging){
     color: @color1;
+    animation: blink 1s linear infinite;
 }
 
-/* BATTERY -------------------------------------------------------- */
+@keyframes blink { to { opacity: 0.4; } }
 
-#battery.warning {
-    color: @color3;
-}
+/* NOTIFICATION ------------------------------------------------- */
 
-#battery.critical {
-    color: @color1;
-}
+#custom-notification-center { font-size: 16px; }
 
-/* NOTIFICATION CENTER -------------------------------------------- */
+/* TRAY --------------------------------------------------------- */
 
-#custom-notification-center {
-    font-size: 17px;
-}
+#tray { padding: 4px 8px; }
 
-/* DND states – use pywal accent instead of hardcoded #ea6962 */
-/* (DND icons are handled via format-icons in config, no CSS override needed) */
-
-/* TRAY ----------------------------------------------------------- */
-
-#tray {
-    padding-left: 8px;
-    padding-right: 8px;
-}
-
-/* TOOLTIP -------------------------------------------------------- */
+/* TOOLTIP ------------------------------------------------------ */
 
 tooltip {
-    background-color: alpha(@background, 0.95);
-    border-radius: 8px;
-    border: 1px solid alpha(@color0, 0.7);
+    background-color: alpha(@background, 0.97);
+    border-radius: 10px;
+    border: 1px solid alpha(@color4, 0.3);
 }
 
 tooltip label {
     color: @foreground;
     padding: 4px 8px;
+    font-size: 13px;
 }

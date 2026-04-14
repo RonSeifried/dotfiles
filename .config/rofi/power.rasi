@@ -1,12 +1,10 @@
 /*****----- Power Menu Theme -----*****/
-/* Compact centered grid for shutdown/reboot/lock etc. */
 
 @import "~/.cache/wal/colors-rofi-dark.rasi"
+@import "~/.cache/wal/colors-rofi-glass.rasi"
 
 * {
     font:                   "JetBrainsMono Nerd Font 18";
-    bg-alt:                 @background;
-    accent:                 @urgent-background;
 }
 
 window {
@@ -15,13 +13,13 @@ window {
     anchor:                 center;
     width:                  320px;
     border-radius:          16px;
-    border:                 2px;
-    border-color:           @active-background;
-    background-color:       @background;
+    border:                 3px;
+    border-color:           @color4;
+    background-color:       @bg-glass;
 }
 
 mainbox {
-    spacing:                12px;
+    spacing:                10px;
     padding:                20px;
     background-color:       transparent;
     children:               [ "message", "listview" ];
@@ -35,7 +33,7 @@ message {
 textbox {
     padding:                8px 12px;
     border-radius:          10px;
-    background-color:       @alternate-normal-background;
+    background-color:       rgba(0, 0, 0, 0.2);
     text-color:             @foreground;
     horizontal-align:       0.5;
     font:                   "JetBrainsMono Nerd Font 11";
@@ -44,7 +42,7 @@ textbox {
 listview {
     columns:                1;
     lines:                  5;
-    spacing:                8px;
+    spacing:                6px;
     scrollbar:              false;
     background-color:       transparent;
 }
@@ -52,13 +50,13 @@ listview {
 element {
     padding:                14px 16px;
     border-radius:          12px;
-    background-color:       @alternate-normal-background;
+    background-color:       rgba(0, 0, 0, 0.15);
     text-color:             @foreground;
     cursor:                 pointer;
 }
 
 element selected.normal {
-    background-color:       @active-background;
+    background-color:       @color4;
     text-color:             @background;
 }
 
