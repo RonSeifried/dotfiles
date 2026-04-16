@@ -46,7 +46,7 @@
     <td align="center"><strong>Hyprlock</strong></td>
   </tr>
   <tr>
-    <td><img src="screenshots/rofi-launcher" width="430"/></td>
+    <td><img src="screenshots/rofi-launcher.png" width="430"/></td>
     <td><img src="screenshots/hyprlock.png" width="430"/></td>
   </tr>
 </table>
