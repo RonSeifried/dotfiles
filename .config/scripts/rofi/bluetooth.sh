@@ -13,7 +13,7 @@ ICON_ON="󰂯"
 ICON_OFF="󰂲"
 ICON_CONNECTED="󰂱"
 ICON_PAIRED="󰂰"
-ICON_SCAN="󰂰"
+ICON_SCAN="󰂍"
 ICON_BACK="󰁍"
 
 # Check if bluetooth controller is powered on

@@ -2,7 +2,7 @@
 /* No wallpaper image – instant startup for WiFi, BT, VPN, Power etc. */
 
 @import "~/.cache/wal/colors-rofi-dark.rasi"
-@import "~/.cache/wal/colors-rofi-glass.rasi"
+@import "~/.cache/wal/colors-rofi-colors.rasi"
 
 * {
     font:                   "JetBrainsMono Nerd Font 12";
@@ -12,14 +12,13 @@
 }
 
 window {
-    transparency:           "real";
     location:               center;
     anchor:                 center;
     width:                  420px;
     border-radius:          14px;
     border:                 3px;
     border-color:           @color4;
-    background-color:       @bg-glass;
+    background-color:       @background;
 }
 
 mainbox {

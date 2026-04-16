@@ -48,17 +48,142 @@ if command -v hyprctl &>/dev/null; then
     hyprctl keyword general:col.inactive_border "$(to_argb "$bg")" 2>/dev/null || true
 fi
 
-# Generate rofi glass colors for blur transparency
-# Parse bg hex into r,g,b components for rgba() format
-bg_hex="${bg#\#}"
-r=$((16#${bg_hex:0:2}))
-g=$((16#${bg_hex:2:2}))
-b=$((16#${bg_hex:4:2}))
-cat > "$HOME/.cache/wal/colors-rofi-glass.rasi" <<ROFI_EOF
-* {
-    bg-glass:   rgba(${r}, ${g}, ${b}, 0.78);
-}
-ROFI_EOF
+# Generate rofi color variables (color0-color15) so @color4 etc. resolve
+python3 - <<'PY' > "$HOME/.cache/wal/colors-rofi-colors.rasi"
+import json, os
+with open(os.path.expanduser("~/.cache/wal/colors.json")) as f:
+    c = json.load(f)
+print("* {")
+for i in range(16):
+    print(f"    color{i}: {c['colors'][f'color{i}']};")
+print("}")
+PY
 
 # Also generate hyprlock colors (replaces matugen dependency)
 "$HOME/.config/scripts/pywal-hyprlock-colors.sh" 2>/dev/null || true
+
+# ── Yazi theme ────────────────────────────────────────────────
+python3 - <<'PY' > "$HOME/.config/yazi/theme.toml"
+import json, os
+with open(os.path.expanduser("~/.cache/wal/colors.json")) as f:
+    c = json.load(f)
+col = {i: c['colors'][f'color{i}'] for i in range(16)}
+bg  = c['special']['background']
+fg  = c['special']['foreground']
+a   = col[4]   # primary accent
+a2  = col[6]   # secondary accent
+drk = col[0]
+mid = col[8]
+print(f"""[mgr]
+cwd = {{ fg = "{a}" }}
+
+hovered         = {{ fg = "{bg}", bg = "{a}" }}
+preview_hovered = {{ underline = true }}
+
+find_keyword  = {{ fg = "{col[3]}", italic = true }}
+find_position = {{ fg = "{col[5]}", bg = "reset", italic = true }}
+
+marker_selected = {{ fg = "{col[2]}", bg = "{col[2]}" }}
+marker_copied   = {{ fg = "{col[3]}", bg = "{col[3]}" }}
+marker_cut      = {{ fg = "{col[1]}", bg = "{col[1]}" }}
+
+tab_active   = {{ fg = "{bg}", bg = "{a}" }}
+tab_inactive = {{ fg = "{mid}", bg = "{drk}" }}
+tab_width    = 1
+
+border_symbol = "│"
+border_style  = {{ fg = "{mid}" }}
+
+syntect_theme = ""
+
+[status]
+separator_open  = ""
+separator_close = ""
+separator_style = {{ fg = "{drk}", bg = "{drk}" }}
+
+mode_normal = {{ fg = "{bg}", bg = "{a2}", bold = true }}
+mode_select = {{ fg = "{bg}", bg = "{col[2]}", bold = true }}
+mode_unset  = {{ fg = "{bg}", bg = "{col[5]}", bold = true }}
+
+progress_label  = {{ fg = "{fg}", bold = true }}
+progress_normal = {{ fg = "{a}",    bg = "{drk}" }}
+progress_error  = {{ fg = "{col[1]}", bg = "{drk}" }}
+
+permissions_t = {{ fg = "{col[2]}" }}
+permissions_r = {{ fg = "{col[3]}" }}
+permissions_w = {{ fg = "{col[1]}" }}
+permissions_x = {{ fg = "{a}" }}
+permissions_s = {{ fg = "{mid}" }}
+
+[input]
+border   = {{ fg = "{a}" }}
+title    = {{}}
+value    = {{}}
+selected = {{ reversed = true }}
+
+[select]
+border   = {{ fg = "{a}" }}
+active   = {{ fg = "{col[3]}" }}
+inactive = {{}}
+
+[tasks]
+border  = {{ fg = "{a}" }}
+title   = {{}}
+hovered = {{ underline = true }}
+
+[which]
+cols            = 3
+mask            = {{ bg = "{drk}" }}
+cand            = {{ fg = "{col[2]}" }}
+rest            = {{ fg = "{mid}" }}
+desc            = {{ fg = "{col[3]}" }}
+separator       = "  "
+separator_style = {{ fg = "{drk}" }}
+
+[help]
+on      = {{ fg = "{col[3]}" }}
+exec    = {{ fg = "{col[2]}" }}
+desc    = {{ fg = "{mid}" }}
+hovered = {{ bg = "{drk}", bold = true }}
+footer  = {{ fg = "{drk}", bg = "{fg}" }}
+
+[filetype]
+rules = [
+    {{ mime = "image/*",                    fg = "{col[2]}" }},
+    {{ mime = "video/*",                    fg = "{col[3]}" }},
+    {{ mime = "audio/*",                    fg = "{col[3]}" }},
+    {{ mime = "application/zip",            fg = "{col[5]}" }},
+    {{ mime = "application/gzip",           fg = "{col[5]}" }},
+    {{ mime = "application/x-tar",          fg = "{col[5]}" }},
+    {{ mime = "application/x-bzip",         fg = "{col[5]}" }},
+    {{ mime = "application/x-bzip2",        fg = "{col[5]}" }},
+    {{ mime = "application/x-7z-compressed",fg = "{col[5]}" }},
+    {{ mime = "application/x-rar",          fg = "{col[5]}" }},
+    {{ name = "*",  fg = "{fg}" }},
+    {{ name = "*/", fg = "{a}" }},
+]""")
+PY
+
+# ── Tmux colors ───────────────────────────────────────────────
+python3 - <<'PY' > "$HOME/.cache/wal/colors-tmux.conf"
+import json, os
+with open(os.path.expanduser("~/.cache/wal/colors.json")) as f:
+    c = json.load(f)
+col = {i: c['colors'][f'color{i}'] for i in range(16)}
+bg  = c['special']['background']
+fg  = c['special']['foreground']
+a   = col[4]
+a2  = col[6]
+drk = col[0]
+mid = col[8]
+print(f"""set -g status-style "bg={bg},fg={fg}"
+set -g status-left "#[fg={a},bold] #S #[default] "
+set -g status-right "#[fg={a2}]%H:%M "
+set -g window-status-current-format "#[fg={a},bold] *#I:#W* "
+set -g window-status-format "#[fg={mid}] #I:#W "
+set -g pane-border-style "fg={drk}"
+set -g pane-active-border-style "fg={a}"
+set -g message-style "bg={a},fg={bg}"
+set -g copy-mode-match-style "bg={col[3]},fg={bg}"
+set -g copy-mode-current-match-style "bg={a2},fg={bg}" """)
+PY

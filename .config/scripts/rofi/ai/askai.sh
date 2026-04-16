@@ -8,9 +8,10 @@ if [[ ! -f "$ENV_FILE" ]]; then
     notify-send "Ask AI" "Missing config file: $ENV_FILE\nCopy from .askai-env.example" -u critical
     exit 1
 fi
-source "$ENV_FILE"
+# Extract key without sourcing arbitrary code
+GEMINI_API_KEY=$(grep -E '^(export )?GEMINI_API_KEY=' "$ENV_FILE" \
+    | head -1 | sed "s/^[^=]*=//; s/^['\"]//; s/['\"]$//")
 
-# Check if API key is set
 if [[ -z "${GEMINI_API_KEY:-}" ]]; then
     notify-send "Ask AI" "GEMINI_API_KEY not set in $ENV_FILE" -u critical
     exit 1
@@ -52,7 +53,7 @@ response=$(curl -s "https://generativelanguage.googleapis.com/v1beta/models/gemi
 # Check for errors in response
 if echo "$response" | jq -e '.error' >/dev/null 2>&1; then
     error_msg=$(echo "$response" | jq -r '.error.message // "Unknown error"')
-    echo "# Error\n\n$error_msg" > "$RESP_FILE"
+    printf '# Error\n\n%s\n' "$error_msg" > "$RESP_FILE"
     notify-send "Ask AI" "API Error: $error_msg" -u critical
     exit 1
 fi

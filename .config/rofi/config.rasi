@@ -1,7 +1,7 @@
 
 /*****----- Colors von pywal -----*****/
 @import "~/.cache/wal/colors-rofi-dark.rasi"
-@import "~/.cache/wal/colors-rofi-glass.rasi"
+@import "~/.cache/wal/colors-rofi-colors.rasi"
 
 /*****----- Configuration -----*****/
 configuration {
@@ -36,14 +36,13 @@ configuration {
 
 /* ---------- Window ---------- */
 window {
-  transparency:           "real";
   location:               center;
   anchor:                 center;
   width:                  1100px;
   border-radius:          @radius;
   border:                 3px;
   border-color:           @color4;
-  background-color:       @bg-glass;
+  background-color:       @background;
 }
 
 /* ---------- Main layout ---------- */

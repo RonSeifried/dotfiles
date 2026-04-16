@@ -8,14 +8,7 @@ mkdir -p "$outputDir"
 mode=${1:-area}
 
 case "$mode" in
-active)
-    command="grimblast copysave active $outputPath"
-    ;;
-output)
-    command="grimblast copysave output $outputPath"
-    ;;
-area)
-    command="grimblast copysave area $outputPath"
+active|output|area)
     ;;
 *)
     echo "Invalid option: $mode"
@@ -24,7 +17,7 @@ area)
     ;;
 esac
 
-if eval "$command"; then
+if grimblast copysave "$mode" "$outputPath"; then
     recentFile=$(find "$outputDir" -name 'snapshot_*.png' -printf '%T+ %p\n' | sort -r | head -n 1 | cut -d' ' -f2-)
     notify-send "Grimblast" "Your snapshot has been saved." \
         -i video-x-generic \
@@ -34,4 +27,3 @@ if eval "$command"; then
         --action="scriptAction:-xdg-open $outputDir=Directory" \
         --action="scriptAction:-xdg-open $recentFile=View"
 fi
-

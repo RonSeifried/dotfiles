@@ -4,69 +4,28 @@
     "type": "kitty",
     "source": "~/.cache/current_wallpaper",
     "width": 30,
-    "height": 13,
+    "height": 16,
     "padding": {
-      "top": 0,
+      "top": 1,
       "right": 2
     }
   },
   "display": {
-    "separator": " \u279c  ",
+    "separator": "  ",
     "color": {
       "keys": "blue"
     }
   },
   "modules": [
-    "break",
+    "title",
     {
       "type": "custom",
-      "format": "\u001b[34m\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510"
+      "format": "\u001b[34m────────────────────────────────────────"
     },
     {
-      "type": "custom",
-      "format": "\u001b[33m \uf192  System Overview"
-    },
-    {
-      "type": "custom",
-      "format": "\u001b[34m\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518"
-    },
-    {
-      "type": "host",
-      "key": " \uf7c9  Host",
+      "type": "os",
+      "key": " \udb82\udcc7  OS",
       "keyColor": "blue"
-    },
-    {
-      "type": "cpu",
-      "key": " \uf4bc  CPU",
-      "keyColor": "blue"
-    },
-    {
-      "type": "gpu",
-      "key": " \udb80\udf5b  GPU",
-      "keyColor": "blue"
-    },
-    {
-      "type": "memory",
-      "key": " \uefc5  RAM",
-      "keyColor": "blue"
-    },
-    {
-      "type": "display",
-      "key": " \uead0  Resolution",
-      "keyColor": "blue"
-    },
-    "break",
-    {
-      "type": "custom",
-      "format": "\u001b[34m\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510"
-    },
-    {
-      "type": "custom",
-      "format": "\u001b[32m \uf192  Software"
-    },
-    {
-      "type": "custom",
-      "format": "\u001b[34m\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518"
     },
     {
       "type": "kernel",
@@ -74,13 +33,13 @@
       "keyColor": "blue"
     },
     {
-      "type": "os",
-      "key": " \udb82\udcc7  Distro",
+      "type": "uptime",
+      "key": " \uf017  Uptime",
       "keyColor": "blue"
     },
     {
       "type": "de",
-      "key": " \ue23c  Desktop",
+      "key": " \ue23c  WM",
       "keyColor": "blue"
     },
     {
@@ -102,6 +61,39 @@
       "type": "packages",
       "key": " \uf487  Packages",
       "keyColor": "blue"
+    },
+    {
+      "type": "custom",
+      "format": "\u001b[36m────────────────────────────────────────"
+    },
+    {
+      "type": "host",
+      "key": " \uf7c9  Host",
+      "keyColor": "cyan"
+    },
+    {
+      "type": "cpu",
+      "key": " \uf4bc  CPU",
+      "keyColor": "cyan"
+    },
+    {
+      "type": "gpu",
+      "key": " \udb80\udf5b  GPU",
+      "keyColor": "cyan"
+    },
+    {
+      "type": "memory",
+      "key": " \uefc5  RAM",
+      "keyColor": "cyan"
+    },
+    {
+      "type": "display",
+      "key": " \uead0  Resolution",
+      "keyColor": "cyan"
+    },
+    {
+      "type": "custom",
+      "format": "\u001b[36m────────────────────────────────────────"
     },
     "break",
     {

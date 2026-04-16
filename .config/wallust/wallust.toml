@@ -20,6 +20,10 @@ colors_kitty = { template = "colors-kitty.conf", target = "~/.cache/wal/colors-k
 colors_json = { template = "colors.json", target = "~/.cache/wal/colors.json" }
 # SwayOSD style – regenerated on every wallpaper change
 swayosd = { template = 'swayosd.css', target = '~/.config/swayosd/style.css' }
+# Waybar style – inlines colors, avoids hardcoded /home/... @import path
+waybar_style = { template = 'waybar-style.css', target = '~/.config/waybar/style.css' }
+# Swaync style – same approach
+swaync_style = { template = 'swaync-style.css', target = '~/.config/swaync/style.css' }
 
 [hooks]
 # Reload hyprland colors after palette generation

@@ -105,8 +105,8 @@ case "$chosen" in
         notify-send "Wi-Fi" "Disabled" -t 2000
         ;;
     "󰖪  Disconnect"*)
-        nmcli device disconnect wlan0 2>/dev/null || \
-        nmcli device disconnect wlp0s20f3 2>/dev/null || \
+        wifi_iface=$(nmcli -t -f DEVICE,TYPE device status | awk -F: '$2=="wifi"{print $1;exit}')
+        nmcli device disconnect "$wifi_iface" 2>/dev/null || \
         nmcli connection down "$(current_ssid)" 2>/dev/null
         notify-send "Wi-Fi" "Disconnected" -t 2000
         ;;

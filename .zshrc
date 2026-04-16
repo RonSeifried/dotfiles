@@ -26,12 +26,15 @@ plugins=(
     aliases
     zsh-syntax-highlighting
 )
-source $ZSH/oh-my-zsh.sh
+source "$ZSH/oh-my-zsh.sh"
 
 ########## ENVIRONMENT ##########
 
 # PATH
 export PATH="$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH"
+
+# LM Studio CLI
+export PATH="$PATH:$HOME/.lmstudio/bin"
 
 # Default editor
 export EDITOR="nvim"
@@ -136,7 +139,3 @@ elif command -v neofetch &> /dev/null; then
 fi
 
 ########## END ##########
-
-# Added by LM Studio CLI (lms)
-export PATH="$PATH:/home/ron/.lmstudio/bin"
-# End of LM Studio CLI section

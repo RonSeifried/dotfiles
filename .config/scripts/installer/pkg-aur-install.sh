@@ -1,4 +1,5 @@
 #!/bin/bash
+INSTALLER_DIR="$(dirname "$(readlink -f "$0")")"
 
 fzf_args=(
   --multi
@@ -17,8 +18,8 @@ fzf_args=(
 pkg_names=$(yay -Slqa | fzf "${fzf_args[@]}")
 
 if [[ -n "$pkg_names" ]]; then
-  # Convert newline-separated selections to space-separated for yay
-  echo "$pkg_names" | tr '\n' ' ' | xargs yay -S --noconfirm
+  mapfile -t pkgs <<< "$pkg_names"
+  yay -S --noconfirm "${pkgs[@]}"
   sudo updatedb
-  ./show-done.sh
+  "$INSTALLER_DIR/show-done.sh"
 fi

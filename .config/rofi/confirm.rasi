@@ -1,21 +1,20 @@
 /*****----- Confirmation Dialog Theme -----*****/
 
 @import "~/.cache/wal/colors-rofi-dark.rasi"
-@import "~/.cache/wal/colors-rofi-glass.rasi"
+@import "~/.cache/wal/colors-rofi-colors.rasi"
 
 * {
     font:                   "JetBrainsMono Nerd Font 13";
 }
 
 window {
-    transparency:           "real";
     location:               center;
     anchor:                 center;
     width:                  260px;
     border-radius:          16px;
     border:                 3px;
     border-color:           @color4;
-    background-color:       @bg-glass;
+    background-color:       @background;
 }
 
 mainbox {

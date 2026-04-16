@@ -16,51 +16,52 @@ TERMINAL="kitty"
 # Parse arguments
 APP="${1:-}"
 shift 2>/dev/null || true
-APP_ARGS="$*"
 
-# Determine what to run
+# Build run command as array for safe execution
 case "$APP" in
     yazi|y)
-        RUN_CMD="yazi"
+        RUN_ARGS=(yazi)
         PROCESS_MATCH="yazi"
         ;;
     taskwarrior|task|t)
-        RUN_CMD="taskwarrior-tui"
+        RUN_ARGS=(taskwarrior-tui)
         PROCESS_MATCH="taskwarrior-tui"
         ;;
     btop|b)
-        RUN_CMD="btop"
+        RUN_ARGS=(btop)
         PROCESS_MATCH="btop"
         ;;
     nvim|n)
-        RUN_CMD="nvim $APP_ARGS"
+        RUN_ARGS=(nvim "$@")
         PROCESS_MATCH="nvim"
         ;;
     "")
         # Plain terminal with tmux
         SESSION_NAME="${PWD##*/}"
-        RUN_CMD="tmux new-session -A -s \"$SESSION_NAME\""
+        RUN_ARGS=(tmux new-session -A -s "$SESSION_NAME")
         PROCESS_MATCH="tmux"
         ;;
     *)
         # Custom command
-        RUN_CMD="$APP $APP_ARGS"
+        RUN_ARGS=("$APP" "$@")
         PROCESS_MATCH="$APP"
         ;;
 esac
 
+# Check if a dropterm window already exists
+HAS_WINDOW=$(hyprctl clients -j 2>/dev/null | python3 -c \
+    "import json,sys; c=json.load(sys.stdin); print('yes' if any(x.get('class')=='$TERM_CLASS' for x in c) else 'no')" \
+    2>/dev/null || echo "no")
+
 # Toggle the special workspace
 hyprctl dispatch togglespecialworkspace "$WORKSPACE"
 
-# Check if the app is already running in dropterm
-if ! pgrep -f "^$TERMINAL.*$PROCESS_MATCH" >/dev/null 2>&1; then
+if [[ "$HAS_WINDOW" == "no" ]]; then
     # Launch the terminal with the app
-    $TERMINAL --class "$TERM_CLASS" -e bash -c "$RUN_CMD" &
+    "$TERMINAL" --class "$TERM_CLASS" -e "${RUN_ARGS[@]}" &
 
-    # Wait a moment for window to appear
-    sleep 0.2
-
-    # Focus the dropdown window
+    # Wait for window to appear then focus
+    sleep 0.4
     hyprctl dispatch focuswindow "class:$TERM_CLASS"
 fi
 

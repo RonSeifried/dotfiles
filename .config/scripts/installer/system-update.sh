@@ -1,4 +1,5 @@
 #!/bin/bash
+INSTALLER_DIR="$(dirname "$(readlink -f "$0")")"
 
 echo -e "\e[32mChecking for system updates...\e[0m\n"
 
@@ -21,7 +22,7 @@ fi
 
 if [[ -n "$aur_updates" ]]; then
     if [[ -n "$all_updates" ]]; then
-        all_updates="$all_updates\n$aur_updates"
+        all_updates="${all_updates}"$'\n'"${aur_updates}"
     else
         all_updates="$aur_updates"
     fi
@@ -30,7 +31,7 @@ fi
 
 if [[ $update_count -eq 0 ]]; then
     echo -e "\e[32m✓ System is up to date!\e[0m"
-    ./show-done.sh
+    "$INSTALLER_DIR/show-done.sh"
     exit 0
 fi
 
@@ -47,10 +48,7 @@ fzf_args=(
     --no-multi
 )
 
-echo -e "$all_updates" | fzf "${fzf_args[@]}" > /dev/null
-
-# Check if user pressed enter (fzf returns 0 on selection)
-if [[ $? -eq 0 ]]; then
+if printf '%s\n' "$all_updates" | fzf "${fzf_args[@]}" > /dev/null; then
     echo -e "\n\e[33mStarting system update...\e[0m\n"
 
     # Update system using yay (handles both official and AUR packages)
@@ -60,7 +58,7 @@ if [[ $? -eq 0 ]]; then
     sudo updatedb
 
     echo -e "\n\e[32m✓ System update completed!\e[0m"
-    ./show-done.sh
+    "$INSTALLER_DIR/show-done.sh"
 else
     echo -e "\n\e[31mUpdate cancelled.\e[0m"
 fi

@@ -56,6 +56,13 @@ if [[ -z "$geometry" ]]; then
     exit 1
 fi
 
+# Convert slurp output "X,Y WxH" → gpu-screen-recorder region format "WxH+X+Y"
+_pos="${geometry% *}"
+_size="${geometry#* }"
+_x="${_pos%,*}"; _y="${_pos#*,}"
+_w="${_size%x*}"; _h="${_size#*x}"
+region="${_w}x${_h}+${_x}+${_y}"
+
 # Notify that recording has started
 notify-send "Screen Recording" "Recording started. Press Shift+Print to stop." \
     -i media-record \
@@ -63,8 +70,8 @@ notify-send "Screen Recording" "Recording started. Press Shift+Print to stop." \
     -t 3000 \
     -u normal
 
-# Start recording
-gpu-screen-recorder -w screen -c "$geometry" -f mp4 -o "$outputPath" &
+# Start recording (-c = container format, -f = framerate)
+gpu-screen-recorder -w "region:${region}" -c mp4 -f 60 -o "$outputPath" &
 recorderPid=$!
 echo "$recorderPid" > "$pidFile"
 

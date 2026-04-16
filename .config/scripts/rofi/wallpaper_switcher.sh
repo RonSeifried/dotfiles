@@ -80,11 +80,8 @@ apply_wallpaper() {
     # Update symlink
     ln -sf "$selected" "$CACHE_DIR/current_wallpaper"
 
-    # Step 1: wallust handles all pywal cache files now (~/.cache/wal/colors-waybar.css, colors-rofi-dark.rasi, etc.)
-    # wal writes ALL the cache files that waybar/rofi/swaync @import from
-
-    # Step 2: Run wallust for templates (swayosd CSS) + hooks (hyprland colors, app reloads)
-    # wallust does NOT write ~/.cache/wal/ — it only handles its own templates + hooks
+    # wallust: generates colors.json + colors-waybar.css + colors-rofi-dark.rasi etc. via templates,
+    # then runs hooks (hyprland colors, waybar reload, swaync reload, yazi/tmux theme generation)
     if command -v wallust &>/dev/null; then
         wallust run -q "$selected"
     else
