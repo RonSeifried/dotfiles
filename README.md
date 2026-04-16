@@ -42,11 +42,11 @@
     <td><img src="screenshots/terminal-fetch.png" width="430"/></td>
   </tr>
   <tr>
-    <td align="center"><strong>Rofi Menu Suite</strong></td>
+    <td align="center"><strong>Rofi Launcher</strong></td>
     <td align="center"><strong>Hyprlock</strong></td>
   </tr>
   <tr>
-    <td><img src="screenshots/rofi-menus-collage.png" width="430"/></td>
+    <td><img src="screenshots/rofi-launcher" width="430"/></td>
     <td><img src="screenshots/hyprlock.png" width="430"/></td>
   </tr>
 </table>
