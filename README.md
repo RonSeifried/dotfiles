@@ -32,34 +32,24 @@
 
 ## Screenshots
 
-<div align="center">
 <table>
   <tr>
     <td align="center"><strong>Desktop Overview</strong></td>
-    <td align="center"><strong>Rofi App Launcher</strong></td>
-  </tr>
-  <tr>
-    <td align="center"><em>Coming soon</em></td>
-    <td align="center"><em>Coming soon</em></td>
-  </tr>
-  <tr>
-    <td align="center"><strong>Rofi Menu Suite</strong></td>
     <td align="center"><strong>Terminal + Fastfetch</strong></td>
   </tr>
   <tr>
-    <td align="center"><em>Coming soon</em></td>
-    <td align="center"><em>Coming soon</em></td>
+    <td><img src="screenshots/desktop-overview.png" width="430"/></td>
+    <td><img src="screenshots/terminal-fetch.png" width="430"/></td>
   </tr>
   <tr>
+    <td align="center"><strong>Rofi Menu Suite</strong></td>
     <td align="center"><strong>Hyprlock</strong></td>
-    <td align="center"><strong>Dynamic Theming</strong></td>
   </tr>
   <tr>
-    <td align="center"><em>Coming soon</em></td>
-    <td align="center"><em>Coming soon</em></td>
+    <td><img src="screenshots/rofi-menus-collage.png" width="430"/></td>
+    <td><img src="screenshots/hyprlock.png" width="430"/></td>
   </tr>
 </table>
-</div>
 
 ---
 

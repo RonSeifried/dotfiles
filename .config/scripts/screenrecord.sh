@@ -1,79 +1,56 @@
 #!/usr/bin/env bash
 
 # Screen Recording Script for Hyprland
-# Uses gpu-screen-recorder for recording, slurp for area selection
-# Saves to file and copies to clipboard
+# Uses gpu-screen-recorder, slurp for area selection
+# Toggle: first press starts, second press stops and saves
 
 outputDir="$HOME/Videos/screenrecording"
-outputFile="recording_$(date +%Y-%m-%d_%H-%M-%S).mp4"
-outputPath="$outputDir/$outputFile"
-pidFile="/tmp/screenrecord.pid"
+lockFile="/tmp/screenrecord.lock"
 
 mkdir -p "$outputDir"
 
-# Check if a recording is already running
-if [[ -f "$pidFile" ]]; then
-    pid=$(cat "$pidFile")
-    if kill -0 "$pid" 2>/dev/null; then
-        # Stop the recording
-        kill -SIGINT "$pid"
-        rm -f "$pidFile"
+# --- Stop if already recording ---
+if [[ -f "$lockFile" ]]; then
+    pkill -SIGINT -f "gpu-screen-recorder" 2>/dev/null
+    rm -f "$lockFile"
 
-        # Wait for the file to be written
-        sleep 1
+    sleep 1
 
-        # Find the most recent recording
-        recentFile=$(find "$outputDir" -name 'recording_*.mp4' -printf '%T+ %p\n' | sort -r | head -n 1 | cut -d' ' -f2-)
+    recentFile=$(find "$outputDir" -name 'recording_*.mp4' -printf '%T+ %p\n' \
+        | sort -r | head -n 1 | cut -d' ' -f2-)
 
-        if [[ -f "$recentFile" ]]; then
-            # Copy to clipboard
-            wl-copy < "$recentFile"
-
-            notify-send "Screen Recording" "Recording saved and copied to clipboard." \
-                -i video-x-generic \
-                -a "Screen Recorder" \
-                -t 7000 \
-                -u normal \
-                --action="scriptAction:-xdg-open $outputDir=Directory" \
-                --action="scriptAction:-xdg-open $recentFile=Play"
-        fi
-        exit 0
-    else
-        # Stale PID file, remove it
-        rm -f "$pidFile"
+    if [[ -f "$recentFile" ]]; then
+        wl-copy < "$recentFile"
+        notify-send "Screen Recording" "Saved: $(basename "$recentFile")" \
+            -i video-x-generic -a "Screen Recorder" -t 5000 \
+            --action="scriptAction:-xdg-open $outputDir=Directory" \
+            --action="scriptAction:-xdg-open $recentFile=Play"
     fi
+    exit 0
 fi
 
-# Select area with slurp
+# --- Start new recording ---
 geometry=$(slurp 2>/dev/null)
-
 if [[ -z "$geometry" ]]; then
-    notify-send "Screen Recording" "Area selection cancelled." \
-        -i dialog-error \
-        -a "Screen Recorder" \
-        -t 3000 \
-        -u normal
+    notify-send "Screen Recording" "Cancelled." \
+        -i dialog-error -a "Screen Recorder" -t 3000
     exit 1
 fi
 
-# Convert slurp output "X,Y WxH" → gpu-screen-recorder region format "WxH+X+Y"
+# Convert slurp "X,Y WxH" → "WxH+X+Y"
 _pos="${geometry% *}"
 _size="${geometry#* }"
 _x="${_pos%,*}"; _y="${_pos#*,}"
 _w="${_size%x*}"; _h="${_size#*x}"
 region="${_w}x${_h}+${_x}+${_y}"
 
-# Notify that recording has started
+outputPath="$outputDir/recording_$(date +%Y-%m-%d_%H-%M-%S).mp4"
+
+touch "$lockFile"
+
 notify-send "Screen Recording" "Recording started. Press Shift+Print to stop." \
-    -i media-record \
-    -a "Screen Recorder" \
-    -t 3000 \
-    -u normal
+    -i media-record -a "Screen Recorder" -t 3000
 
-# Start recording (-c = container format, -f = framerate)
-gpu-screen-recorder -w "region:${region}" -c mp4 -f 60 -o "$outputPath" &
-recorderPid=$!
-echo "$recorderPid" > "$pidFile"
+gpu-screen-recorder -w region -region "$region" -c mp4 -f 60 -o "$outputPath"
 
-# Wait for the recorder to finish (will be killed by the stop command)
-wait "$recorderPid" 2>/dev/null
+rm -f "$lockFile"

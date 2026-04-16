@@ -5,6 +5,7 @@
     "source": "~/.cache/current_wallpaper",
     "width": 30,
     "height": 16,
+    "preserveAspectRatio": true,
     "padding": {
       "top": 1,
       "right": 2
