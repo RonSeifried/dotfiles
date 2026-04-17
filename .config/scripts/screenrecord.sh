@@ -42,15 +42,17 @@ _pos="${geometry% *}"
 _size="${geometry#* }"
 _x="${_pos%,*}"; _y="${_pos#*,}"
 _w="${_size%x*}"; _h="${_size#*x}"
+# Strip decimals (slurp emits floats at fractional display scales)
+_x="${_x%.*}"; _y="${_y%.*}"; _w="${_w%.*}"; _h="${_h%.*}"
 region="${_w}x${_h}+${_x}+${_y}"
 
 outputPath="$outputDir/recording_$(date +%Y-%m-%d_%H-%M-%S).mp4"
 
 touch "$lockFile"
+trap 'rm -f "$lockFile"' EXIT
 
 notify-send "Screen Recording" "Recording started. Press Shift+Print to stop." \
     -i media-record -a "Screen Recorder" -t 3000
 
-gpu-screen-recorder -w region -region "$region" -c mp4 -f 60 -o "$outputPath"
-
-rm -f "$lockFile"
+gpu-screen-recorder -w region -region "$region" -c mp4 -f 60 \
+    -k h264 -fallback-cpu-encoding yes -o "$outputPath"

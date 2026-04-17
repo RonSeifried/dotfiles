@@ -119,31 +119,32 @@ show_menu() {
         exit 1
     fi
 
-    # Build associative array: basename -> full path
+    # Build associative array: relative path -> full path
     declare -A path_map
     for img in "${images[@]}"; do
-        local bname
-        bname=$(basename "$img")
-        path_map["$bname"]="$img"
+        local relpath
+        relpath="${img#$WALLDIR/}"
+        path_map["$relpath"]="$img"
     done
 
     # Build rofi input
     # Rofi 2.0 dmenu format: text\0icon\x1fpath
+    # Use relative path (e.g. "anime/001-angel.png") so category is searchable
     local selected
     if [[ -f "$ROFI_THEME" ]]; then
         selected=$(
             for img in "${images[@]}"; do
-                local bname
-                bname=$(basename "$img")
-                printf '%s\0icon\x1f%s\n' "$bname" "$img"
+                local relpath
+                relpath="${img#$WALLDIR/}"
+                printf '%s\0icon\x1f%s\n' "$relpath" "$img"
             done | rofi -dmenu -i -show-icons -theme "$ROFI_THEME" -p ">" -format 's'
         )
     else
         selected=$(
             for img in "${images[@]}"; do
-                local bname
-                bname=$(basename "$img")
-                printf '%s\0icon\x1f%s\n' "$bname" "$img"
+                local relpath
+                relpath="${img#$WALLDIR/}"
+                printf '%s\0icon\x1f%s\n' "$relpath" "$img"
             done | rofi -dmenu -i -show-icons -p "Wallpaper" -format 's'
         )
     fi

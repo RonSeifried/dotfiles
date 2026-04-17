@@ -32,6 +32,12 @@
 
 ## Screenshots
 
+### Overview
+
+<div align="center">
+  <img src="screenshots/overview.gif" width="900"/>
+</div>
+
 <table>
   <tr>
     <td align="center"><strong>Desktop Overview</strong></td>
@@ -50,6 +56,11 @@
     <td><img src="screenshots/hyprlock.png" width="430"/></td>
   </tr>
 </table>
+
+<div align="center">
+  <strong>Rofi Menus</strong><br/>
+  <img src="screenshots/rofi-menus-collage.png" width="900"/>
+</div>
 
 ---
 

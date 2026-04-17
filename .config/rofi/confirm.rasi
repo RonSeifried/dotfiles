@@ -10,7 +10,7 @@
 window {
     location:               center;
     anchor:                 center;
-    width:                  260px;
+    width:                  380px;
     border-radius:          16px;
     border:                 3px;
     border-color:           @color4;
