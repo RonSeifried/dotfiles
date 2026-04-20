@@ -1,0 +1,19 @@
+# swaylock-effects config — replaces hyprlock for niri
+daemonize
+ignore-empty-password
+show-failed-attempts
+
+# Screenshot blur background (like hyprlock)
+screenshots
+effect-blur=7x5
+fade-in=0.2
+
+# Clock
+clock
+timestr=%H:%M
+datestr=%A, %d. %B
+
+# Indicator
+indicator
+indicator-radius=90
+indicator-thickness=7

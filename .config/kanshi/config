@@ -1,0 +1,17 @@
+# kanshi monitor profiles — replaces hyprdynamicmonitors for niri
+# Run `niri msg outputs` to verify exact output descriptions/names
+# and adjust the strings below if needed.
+
+# Docked mode: lid closed, both external monitors connected
+profile docked {
+    output "Microstep Optix MAG24C REDACTED-SERIAL" mode 1920x1080@120 position -1920,0
+    output "Microstep G274QPF-QD REDACTED-SERIAL" mode 2560x1440@144 position 0,0
+    output eDP-1 disable
+    exec sh -c "pkill -SIGUSR2 waybar || waybar &"
+}
+
+# Laptop mode: only eDP-1 connected (or docked displays not present)
+profile laptop {
+    output eDP-1 scale 1.333333
+    exec sh -c "pkill -SIGUSR2 waybar || waybar &"
+}

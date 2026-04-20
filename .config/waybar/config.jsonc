@@ -5,7 +5,7 @@
   "reload_style_on_change": true,
 
   "modules-left": ["clock"],
-  "modules-center": ["hyprland/workspaces"],
+  "modules-center": ["niri/workspaces"],
   "modules-right": [
     "tray",
     "custom/vpn",
@@ -33,14 +33,8 @@
   },
 
   // ── CENTER ───────────────────────────────────────────────────────────
-  "hyprland/workspaces": {
-    "format": "{id}",
+  "niri/workspaces": {
     "on-click": "activate",
-    "on-scroll-up": "hyprctl dispatch workspace e+1",
-    "on-scroll-down": "hyprctl dispatch workspace e-1",
-    "persistent-workspaces": {
-      "*": [1, 2, 3, 4],
-    },
   },
 
   // ── RIGHT ────────────────────────────────────────────────────────────

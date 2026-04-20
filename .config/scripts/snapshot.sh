@@ -17,13 +17,24 @@ active|output|area)
     ;;
 esac
 
-if grimblast copysave "$mode" "$outputPath"; then
+do_screenshot() {
+    if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then
+        grimblast copysave "$mode" "$outputPath"
+    else
+        case "$mode" in
+            area)   grim -g "$(slurp)" "$outputPath" ;;
+            active) grim -g "$(swaymsg -t get_tree 2>/dev/null | jq -r '.. | select(.focused?) | .rect | "\(.x),\(.y) \(.width)x\(.height)"' 2>/dev/null || slurp)" "$outputPath" ;;
+            output) grim "$outputPath" ;;
+        esac
+        wl-copy < "$outputPath" 2>/dev/null || true
+    fi
+}
+
+if do_screenshot; then
     recentFile=$(find "$outputDir" -name 'snapshot_*.png' -printf '%T+ %p\n' | sort -r | head -n 1 | cut -d' ' -f2-)
-    notify-send "Grimblast" "Your snapshot has been saved." \
+    notify-send "Screenshot" "Saved." \
         -i video-x-generic \
-        -a "Grimblast" \
-        -t 7000 \
-        -u normal \
+        -t 5000 \
         --action="scriptAction:-xdg-open $outputDir=Directory" \
         --action="scriptAction:-xdg-open $recentFile=View"
 fi

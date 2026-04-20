@@ -39,3 +39,5 @@ swayosd_restart = "pkill -x swayosd-server; sleep 0.3; swayosd-server &"
 swaync_reload = "swaync-client -rs"
 # Reload waybar
 waybar_reload = "pkill -SIGUSR2 waybar"
+# Update niri border colors (no-op when hyprland is running)
+niri_colors = "$HOME/.config/scripts/pywal-niri-colors.sh"
