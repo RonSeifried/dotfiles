@@ -5,10 +5,13 @@
 backend = "wal"
 
 # What color space to use for prominent color selection
-color_space = "lch"
+color_space = "labmixed"
 
 # Scheme color palette
-palette = "dark16"
+palette = "kmeans"
+
+# Threshold: lower = more colors extracted (good for monochrome)
+threshold = 11
 
 # Alpha value for templating (default 100)
 #alpha = 100
