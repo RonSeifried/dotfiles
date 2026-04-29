@@ -31,7 +31,7 @@ output "eDP-1" {
 layout {
     gaps 5
 
-    center-focused-column "never"
+    center-focused-column "on-overflow"
 
     preset-column-widths {
         proportion 0.33333
@@ -74,6 +74,13 @@ environment {
 
 screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
+blur {
+    passes 3
+    offset 3
+    noise 0.02
+    saturation 1.5
+}
+
 animations {
     window-open {
         spring damping-ratio=0.85 stiffness=700 epsilon=0.0001
@@ -98,10 +105,27 @@ animations {
     }
 }
 
-hotkey-overlay {
-    // Remove this comment to hide the hotkeys popup at startup:
-    // skip-at-startup
+recent-windows {
+    debounce-ms 750
+    open-delay-ms 150
+    highlight {
+        active-color "#99999999"
+        corner-radius 8
+        padding 30
+    }
+    previews {
+        max-scale 0.5
+        max-height 480
+    }
 }
+
+hotkey-overlay {
+    // skip-at-startup
+    hide-not-bound
+}
+
+// Ask apps to drop client-side decorations → niri draws borders cleanly
+prefer-no-csd
 
 // ── Autostart ──────────────────────────────────────────────────────────────
 
@@ -115,6 +139,8 @@ spawn-sh-at-startup "wal -R"
 
 // Clipboard history
 spawn-at-startup "wl-paste" "--watch" "cliphist" "store"
+spawn-sh-at-startup "wl-paste --type image --watch cliphist store"
+spawn-at-startup "wl-clip-persist" "--clipboard" "both"
 
 // Idle: 240s → monitors off, 300s → lock screen
 spawn-sh-at-startup "swayidle -w timeout 240 'niri msg action power-off-monitors' timeout 300 'swaylock -f' before-sleep 'swaylock -f'"
@@ -128,9 +154,19 @@ spawn-at-startup "lxqt-policykit-agent"
 
 // ── Window rules ───────────────────────────────────────────────────────────
 
-// Rounded corners on all windows (matches Hyprland rounding=10)
+// Rounded corners + blur on all windows
 window-rule {
-    geometry-corner-radius 10
+    geometry-corner-radius 12
+    clip-to-geometry true
+    background-effect {
+        blur true
+        noise 0.05
+    }
+}
+
+window-rule {
+    match is-floating=false
+    tiled-state true
 }
 
 // Firefox / Zen PiP
@@ -196,6 +232,33 @@ window-rule {
     default-column-width {}
 }
 
+// ── Layer rules (blur for panels/overlays) ─────────────────────────────────
+
+// Waybar — no blur: 3-island CSS layout blurs full layer width (looks bad)
+// transparency handled by waybar CSS alpha already
+
+// Rofi launcher/menus
+layer-rule {
+    match namespace="^rofi$"
+    background-effect {
+        blur true
+        xray false
+        noise 0.05
+    }
+}
+
+layer-rule {
+    match namespace="^waybar$"
+    popups {
+        geometry-corner-radius 6
+        background-effect {
+            blur true
+        }
+    }
+}
+
+// SwayOSD — no blur: small overlay, blur looks out of place
+
 // ── Binds ──────────────────────────────────────────────────────────────────
 
 binds {
@@ -212,6 +275,7 @@ binds {
     Mod+Shift+N hotkey-overlay-title="LibreOffice"          { spawn "libreoffice"; }
     Mod+Shift+E hotkey-overlay-title="Files (Nautilus)"     { spawn "nautilus"; }
     Mod+Space   hotkey-overlay-title="App launcher"         { spawn-sh "~/.config/scripts/rofi/launcher.sh"; }
+    Mod+grave   hotkey-overlay-title="Dropdown terminal"    { spawn-sh "ndrop kitty"; }
 
     // ── Scripts & tools ──────────────────────────────────────────────────
     Mod+E       hotkey-overlay-title="File manager (yazi)"  { spawn "kitty" "--class=floating" "-e" "yazi"; }
@@ -239,8 +303,8 @@ binds {
     // ── System ──────────────────────────────────────────────────────────
     Mod+Q        repeat=false hotkey-overlay-title="Close window"       { close-window; }
     Mod+F                     hotkey-overlay-title="Fullscreen"         { fullscreen-window; }
-    Mod+Shift+F               hotkey-overlay-title="Maximize column"    { maximize-column; }
-    Mod+Shift+M               hotkey-overlay-title="Maximize window"    { maximize-window-to-edges; }
+    Mod+Shift+F               hotkey-overlay-title="Maximize (no gaps)"  { maximize-window-to-edges; }
+    Mod+Shift+M               hotkey-overlay-title="Maximize (keep gaps)" { maximize-column; }
     Mod+Shift+V               hotkey-overlay-title="Toggle float"       { toggle-window-floating; }
     Super+Alt+L               hotkey-overlay-title="Lock screen"        { spawn "swaylock"; }
     Mod+Shift+L               hotkey-overlay-title="Power menu"         { spawn-sh "~/.config/scripts/rofi/power.sh"; }

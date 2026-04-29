@@ -4,7 +4,7 @@
   "output": ["*"],
   "reload_style_on_change": true,
 
-  "modules-left": ["clock"],
+  "modules-left": ["clock", "niri/window"],
   "modules-center": ["niri/workspaces"],
   "modules-right": [
     "tray",
@@ -32,9 +32,22 @@
     },
   },
 
+  "niri/window": {
+    "format": "{}",
+    "separate-outputs": true,
+    "icon": true,
+    "icon-size": 18,
+    "rewrite": {
+      "(.*) — Mozilla Firefox": "$1",
+      "(.*) - zsh": " $1",
+      "(.*) — Zen Browser": "$1",
+    },
+  },
+
   // ── CENTER ───────────────────────────────────────────────────────────
   "niri/workspaces": {
     "on-click": "activate",
+    "hide-empty": true,
   },
 
   // ── RIGHT ────────────────────────────────────────────────────────────
