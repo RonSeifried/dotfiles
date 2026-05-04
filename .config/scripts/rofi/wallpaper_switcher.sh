@@ -55,15 +55,22 @@ generate_preview() {
 }
 
 # Apply wallpaper and generate colors
+#
+# When invoked from the quickshell picker (--apply), the picker already shows an
+# in-shell "Applying" badge; in that case we suppress the intermediate
+# "Applying…" notify-send to avoid duplicate UI feedback.
 apply_wallpaper() {
     local selected="$1"
+    local quiet="${QUIET_APPLY:-0}"
 
     if [[ ! -f "$selected" ]]; then
         notify-send "Wallpaper Switcher" "File not found: $selected" -u critical
         return 1
     fi
 
-    notify-send "Wallpaper" "Applying: $(basename "$selected")" -t 2000
+    if [[ "$quiet" != "1" ]]; then
+        notify-send "Wallpaper" "Applying: $(basename "$selected")" -t 2000
+    fi
 
     # Set wallpaper with awww
     if command -v awww &>/dev/null; then
@@ -80,16 +87,10 @@ apply_wallpaper() {
     # Update symlink
     ln -sf "$selected" "$CACHE_DIR/current_wallpaper"
 
-    # wallust: generates colors.json + colors-waybar.css + colors-rofi-dark.rasi etc. via templates,
-    # then runs hooks (hyprland colors, waybar reload, swaync reload, yazi/tmux theme generation)
+    # wallust: generates colors.json + colors-rofi-dark.rasi etc. via templates,
+    # then runs hooks (niri colors, starship, yazi/tmux theme generation)
     if command -v wallust &>/dev/null; then
         wallust run -q "$selected"
-    else
-        # Fallback: manual reloads if wallust is not installed
-        local pywal_script="$HOME/.config/scripts/pywal-hyprland-colors.sh"
-        [[ -x "$pywal_script" ]] && "$pywal_script"
-        pgrep -x waybar &>/dev/null && pkill -SIGUSR2 waybar
-        command -v swaync-client &>/dev/null && swaync-client -rs
     fi
 
     # Generate preview for rofi launcher background
@@ -101,7 +102,9 @@ apply_wallpaper() {
         command -v pywalfox &>/dev/null && pywalfox update
     } &>/dev/null &
 
-    notify-send "Wallpaper" "Applied: $(basename "$selected")" -t 3000
+    if [[ "$quiet" != "1" ]]; then
+        notify-send "Wallpaper" "Applied: $(basename "$selected")" -t 3000
+    fi
 }
 
 # Show rofi menu
@@ -187,6 +190,13 @@ get_images() {
 # Command line handling
 case "${1:-}" in
     --apply)
+        # Picker shows its own apply state — suppress notify-send by default.
+        # Pass --apply --notify to keep notifications, or set QUIET_APPLY=0.
+        if [[ "${3:-}" == "--notify" ]]; then
+            QUIET_APPLY=0
+        else
+            QUIET_APPLY="${QUIET_APPLY:-1}"
+        fi
         [[ -n "${2:-}" ]] && apply_wallpaper "$2" || echo "Usage: $0 --apply /path/to/image"
         ;;
     --random)

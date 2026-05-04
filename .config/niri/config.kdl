@@ -30,6 +30,7 @@ output "eDP-1" {
 
 layout {
     gaps 5
+    background-color "#010019" // pywal-overview
 
     center-focused-column "on-overflow"
 
@@ -49,8 +50,8 @@ layout {
     border {
         width 3
         // pywal colors — updated by pywal-niri-colors.sh
-        active-color "#2E6062" // pywal-active
-        inactive-color "#081517" // pywal-inactive
+        active-color "#0466E6" // pywal-active
+        inactive-color "#010019" // pywal-inactive
     }
 
     shadow {
@@ -129,21 +130,25 @@ prefer-no-csd
 
 // ── Autostart ──────────────────────────────────────────────────────────────
 
-spawn-at-startup "swaync"
-spawn-at-startup "waybar"
-spawn-at-startup "swayosd-server"
+spawn-at-startup "qs"
 spawn-at-startup "kanshi"
 
-// Restore wallust/pywal colors
+// Restore wallust/pywal colors (also regenerates Colors.qml for quickshell)
 spawn-sh-at-startup "wal -R"
+
+// Restore wallpaper (awww preferred, swaybg fallback)
+spawn-sh-at-startup "WALLPAPER=\"$HOME/.cache/current_wallpaper\"; [ -f \"$WALLPAPER\" ] || exit 0; if command -v awww >/dev/null 2>&1; then pgrep -x awww-daemon >/dev/null || { awww-daemon & sleep 0.3; }; awww img \"$WALLPAPER\" --transition-type grow --transition-duration 2 --transition-pos center; elif command -v swaybg >/dev/null 2>&1; then pkill -x swaybg 2>/dev/null || true; swaybg -m fill -i \"$WALLPAPER\" & fi"
 
 // Clipboard history
 spawn-at-startup "wl-paste" "--watch" "cliphist" "store"
 spawn-sh-at-startup "wl-paste --type image --watch cliphist store"
 spawn-at-startup "wl-clip-persist" "--clipboard" "both"
 
-// Idle: 240s → monitors off, 300s → lock screen
-spawn-sh-at-startup "swayidle -w timeout 240 'niri msg action power-off-monitors' timeout 300 'swaylock -f' before-sleep 'swaylock -f'"
+// Lock daemon (persistent, IPC-triggered for instant activation)
+spawn-sh-at-startup "qs -d -p \"$HOME/.config/quickshell/lock\""
+
+// Idle: 240s → monitors off, 300s → lock via IPC
+spawn-sh-at-startup "swayidle -w timeout 240 'niri msg action power-off-monitors' timeout 300 'qs -p ~/.config/quickshell/lock ipc call lock lock' before-sleep 'qs -p ~/.config/quickshell/lock ipc call lock lock'"
 
 // Session / keyring
 spawn-at-startup "dbus-update-activation-environment" "--all"
@@ -234,10 +239,9 @@ window-rule {
 
 // ── Layer rules (blur for panels/overlays) ─────────────────────────────────
 
-// Waybar — no blur: 3-island CSS layout blurs full layer width (looks bad)
-// transparency handled by waybar CSS alpha already
+// Quickshell blur — nicht aktiviert (niri unterstützt das erst ab nächster Version)
 
-// Rofi launcher/menus
+// Rofi launcher/menus (still used for wifi/bt/wallpaper/ai)
 layer-rule {
     match namespace="^rofi$"
     background-effect {
@@ -257,8 +261,6 @@ layer-rule {
     }
 }
 
-// SwayOSD — no blur: small overlay, blur looks out of place
-
 // ── Binds ──────────────────────────────────────────────────────────────────
 
 binds {
@@ -274,7 +276,7 @@ binds {
     Mod+N       hotkey-overlay-title="Notes"                { spawn "obsidian" "--enable-features=UseOzonePlatform" "--ozone-platform=wayland"; }
     Mod+Shift+N hotkey-overlay-title="LibreOffice"          { spawn "libreoffice"; }
     Mod+Shift+E hotkey-overlay-title="Files (Nautilus)"     { spawn "nautilus"; }
-    Mod+Space   hotkey-overlay-title="App launcher"         { spawn-sh "~/.config/scripts/rofi/launcher.sh"; }
+    Mod+Space   hotkey-overlay-title="App launcher"         { spawn-sh "qs ipc call launcher toggle"; }
     Mod+grave   hotkey-overlay-title="Dropdown terminal"    { spawn-sh "ndrop kitty"; }
 
     // ── Scripts & tools ──────────────────────────────────────────────────
@@ -282,12 +284,11 @@ binds {
     Mod+Shift+T hotkey-overlay-title="Task manager"         { spawn "kitty" "--class=floating" "-e" "taskwarrior-tui"; }
     Mod+A       hotkey-overlay-title="AI assistant"         { spawn-sh "~/.config/scripts/rofi/ai/askai.sh"; }
     Mod+P       hotkey-overlay-title="Package installer"    { spawn-sh "~/.config/scripts/rofi/install-launcher.sh"; }
-    Mod+G       hotkey-overlay-title="Wallpaper menu"       { spawn-sh "~/.config/scripts/rofi/wallpaper_switcher.sh"; }
+    Mod+G       hotkey-overlay-title="Wallpaper menu"       { spawn-sh "qs ipc call wallpaper toggle"; }
     Mod+Shift+S hotkey-overlay-title="Next wallpaper"       { spawn-sh "~/.config/scripts/rofi/wallpaper_switcher.sh --next"; }
     Mod+Shift+G hotkey-overlay-title="Random wallpaper"     { spawn-sh "~/.config/scripts/rofi/wallpaper_switcher.sh --random"; }
     Mod+M       hotkey-overlay-title="MCP server manager"   { spawn-sh "~/.config/scripts/rofi/mcp.sh"; }
-    Mod+R       hotkey-overlay-title="Display resolution"   { spawn-sh "~/.config/scripts/rofi/resolution.sh"; }
-    Mod+V       hotkey-overlay-title="Clipboard history"    { spawn-sh "~/.config/scripts/rofi/clipboard.sh"; }
+    Mod+V       hotkey-overlay-title="Clipboard history"    { spawn-sh "qs ipc call clipboard toggle"; }
 
     // ── Screen capture ───────────────────────────────────────────────────
     Print       hotkey-overlay-title="Screenshot area"      { screenshot; }
@@ -306,8 +307,8 @@ binds {
     Mod+Shift+F               hotkey-overlay-title="Maximize (no gaps)"  { maximize-window-to-edges; }
     Mod+Shift+M               hotkey-overlay-title="Maximize (keep gaps)" { maximize-column; }
     Mod+Shift+V               hotkey-overlay-title="Toggle float"       { toggle-window-floating; }
-    Super+Alt+L               hotkey-overlay-title="Lock screen"        { spawn "swaylock"; }
-    Mod+Shift+L               hotkey-overlay-title="Power menu"         { spawn-sh "~/.config/scripts/rofi/power.sh"; }
+    Super+Alt+L               hotkey-overlay-title="Lock screen"        { spawn-sh "qs -p ~/.config/quickshell/lock ipc call lock lock"; }
+    Mod+Shift+L               hotkey-overlay-title="Power menu"         { spawn-sh "qs ipc call power toggle"; }
     Mod+Shift+P               hotkey-overlay-title="Monitors off"       { power-off-monitors; }
     Mod+O        repeat=false hotkey-overlay-title="Overview"           { toggle-overview; }
     Ctrl+Alt+Delete           hotkey-overlay-title="Quit niri"          { quit; }
@@ -429,12 +430,12 @@ binds {
     Mod+WheelScrollLeft      hotkey-overlay-title=null { focus-column-left; }
 
     // ── Multimedia ───────────────────────────────────────────────────────
-    XF86AudioRaiseVolume  allow-when-locked=true hotkey-overlay-title=null { spawn "swayosd-client" "--output-volume" "raise"; }
-    XF86AudioLowerVolume  allow-when-locked=true hotkey-overlay-title=null { spawn "swayosd-client" "--output-volume" "lower"; }
-    XF86AudioMute         allow-when-locked=true hotkey-overlay-title=null { spawn "swayosd-client" "--output-volume" "mute-toggle"; }
-    XF86AudioMicMute      allow-when-locked=true hotkey-overlay-title=null { spawn "swayosd-client" "--input-volume" "mute-toggle"; }
-    XF86MonBrightnessUp   allow-when-locked=true hotkey-overlay-title=null { spawn "swayosd-client" "--brightness" "raise"; }
-    XF86MonBrightnessDown allow-when-locked=true hotkey-overlay-title=null { spawn "swayosd-client" "--brightness" "lower"; }
+    XF86AudioRaiseVolume  allow-when-locked=true hotkey-overlay-title=null { spawn-sh "~/.config/scripts/qs-osd.sh volume-raise"; }
+    XF86AudioLowerVolume  allow-when-locked=true hotkey-overlay-title=null { spawn-sh "~/.config/scripts/qs-osd.sh volume-lower"; }
+    XF86AudioMute         allow-when-locked=true hotkey-overlay-title=null { spawn-sh "~/.config/scripts/qs-osd.sh volume-mute"; }
+    XF86AudioMicMute      allow-when-locked=true hotkey-overlay-title=null { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SOURCE@" "toggle"; }
+    XF86MonBrightnessUp   allow-when-locked=true hotkey-overlay-title=null { spawn-sh "~/.config/scripts/qs-osd.sh brightness-raise"; }
+    XF86MonBrightnessDown allow-when-locked=true hotkey-overlay-title=null { spawn-sh "~/.config/scripts/qs-osd.sh brightness-lower"; }
     XF86AudioPlay         allow-when-locked=true hotkey-overlay-title=null { spawn "playerctl" "play-pause"; }
     XF86AudioPause        allow-when-locked=true hotkey-overlay-title=null { spawn "playerctl" "play-pause"; }
     XF86AudioNext         allow-when-locked=true hotkey-overlay-title=null { spawn "playerctl" "next"; }

@@ -17,27 +17,14 @@ threshold = 11
 #alpha = 100
 
 [templates]
-colors_waybar = { template = "colors-waybar.css", target = "~/.cache/wal/colors-waybar.css" }
 colors_rofi = { template = "colors-rofi-dark.rasi", target = "~/.cache/wal/colors-rofi-dark.rasi" }
 colors_kitty = { template = "colors-kitty.conf", target = "~/.cache/wal/colors-kitty.conf" }
 colors_json = { template = "colors.json", target = "~/.cache/wal/colors.json" }
-# SwayOSD style – regenerated on every wallpaper change
-swayosd = { template = 'swayosd.css', target = '~/.config/swayosd/style.css' }
-# Waybar style – inlines colors, avoids hardcoded /home/... @import path
-waybar_style = { template = 'waybar-style.css', target = '~/.config/waybar/style.css' }
-# Swaync style – same approach
-swaync_style = { template = 'swaync-style.css', target = '~/.config/swaync/style.css' }
+# NOTE: Quickshell reads colors.json directly via FileView (watchChanges) — no
+# template needed. Hot-reload happens in-process; no qs restart, no flash.
 
 [hooks]
-# Reload hyprland colors after palette generation
-hyprland_colors = "$HOME/.config/scripts/pywal-hyprland-colors.sh"
 # Regenerate starship palette
 starship_colors = "$HOME/.config/scripts/starship-color-gen.sh"
-# Restart SwayOSD to pick up new CSS
-swayosd_restart = "pkill -x swayosd-server; sleep 0.3; swayosd-server &"
-# Reload swaync theme
-swaync_reload = "swaync-client -rs"
-# Reload waybar
-waybar_reload = "pkill -SIGUSR2 waybar"
-# Update niri border colors (no-op when hyprland is running)
+# Update niri border / overview colors
 niri_colors = "$HOME/.config/scripts/pywal-niri-colors.sh"

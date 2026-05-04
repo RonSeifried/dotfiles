@@ -51,7 +51,7 @@ Niri is a **scrollable tiling Wayland compositor**. Unlike Hyprland, windows are
 | `Super+Shift+F` | Toggle maximize column |
 | `Super+Shift+M` | True maximize (fills screen, no gaps) |
 | `Super+Shift+V` | Toggle floating/tiling |
-| `Super+Alt+L` | Lock screen (swaylock) |
+| `Super+Alt+L` | Lock screen (quickshell) |
 | `Super+Shift+L` | Power menu (shutdown/reboot/suspend) |
 | `Super+Shift+P` | Turn off monitors |
 | `Super+F1` | Show all keybinds overlay |
@@ -146,7 +146,7 @@ Niri is a **scrollable tiling Wayland compositor**. Unlike Hyprland, windows are
 | Blur | Yes | Not available |
 | Window dim | Yes | Not available |
 | Monitor profiles | hyprdynamicmonitors | kanshi |
-| Lock screen | hyprlock | swaylock |
+| Lock screen | hyprlock | quickshell (`lock/shell.qml`) |
 | Idle | hypridle | swayidle |
 
 ## Autostart

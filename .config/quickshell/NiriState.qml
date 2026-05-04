@@ -1,0 +1,104 @@
+pragma Singleton
+import Quickshell
+import QtQuick
+import Quickshell.Io
+
+Singleton {
+    id: root
+
+    property var workspaces: []
+    property int activeWorkspaceId: -1
+    property string focusedWindowTitle: ""
+    property var allWindows: []
+
+    // Initial workspace query
+    Process {
+        id: initWs
+        command: ["niri", "msg", "--json", "workspaces"]
+        running: true
+        stdout: SplitParser {
+            onRead: line => {
+                try {
+                    const ws = JSON.parse(line)
+                    root.workspaces = ws.sort((a, b) => a.idx - b.idx)
+                    const active = ws.find(w => w.is_focused)
+                    if (active) root.activeWorkspaceId = active.id
+                } catch (e) {}
+            }
+        }
+    }
+
+    // Initial focused-window query; re-run when a window closes
+    Process {
+        id: initWin
+        command: ["niri", "msg", "--json", "windows"]
+        running: true
+        stdout: SplitParser {
+            onRead: line => {
+                try {
+                    const wins = JSON.parse(line)
+                    root.allWindows = wins
+                    const focused = wins.find(w => w.is_focused)
+                    root.focusedWindowTitle = focused ? (focused.title || focused.app_id || "") : ""
+                } catch (e) {}
+            }
+        }
+    }
+
+    // Live event stream — auto-restarts on exit
+    Process {
+        id: eventStream
+        command: ["niri", "msg", "--json", "event-stream"]
+        running: true
+        onRunningChanged: if (!running) running = true
+        stdout: SplitParser {
+            onRead: line => {
+                try {
+                    const ev = JSON.parse(line)
+                    const type = Object.keys(ev)[0]
+
+                    if (type === "WorkspacesChanged") {
+                        const ws = ev.WorkspacesChanged.workspaces
+                        root.workspaces = ws.sort((a, b) => a.idx - b.idx)
+                        const active = ws.find(w => w.is_focused)
+                        if (active) root.activeWorkspaceId = active.id
+                    } else if (type === "WorkspaceActivated") {
+                        if (ev.WorkspaceActivated.focused)
+                            root.activeWorkspaceId = ev.WorkspaceActivated.id
+                    } else if (type === "WindowsChanged") {
+                        root.allWindows = ev.WindowsChanged.windows || []
+                        const f = root.allWindows.find(w => w.is_focused)
+                        if (f) root.focusedWindowTitle = f.title || f.app_id || ""
+                    } else if (type === "WindowOpenedOrChanged") {
+                        const win = ev.WindowOpenedOrChanged.window
+                        if (win.is_focused)
+                            root.focusedWindowTitle = win.title || win.app_id || ""
+                        // upsert window in allWindows
+                        const idx = root.allWindows.findIndex(w => w.id === win.id)
+                        const next = root.allWindows.slice()
+                        if (idx >= 0) next[idx] = win; else next.push(win)
+                        root.allWindows = next
+                    } else if (type === "WindowFocusChanged") {
+                        const winId = ev.WindowFocusChanged.id
+                        const w = root.allWindows.find(x => x.id === winId)
+                        root.focusedWindowTitle = w ? (w.title || w.app_id || "") : ""
+                    } else if (type === "WindowClosed") {
+                        const cid = ev.WindowClosed.id
+                        root.allWindows = root.allWindows.filter(w => w.id !== cid)
+                        initWin.running = true
+                    }
+                } catch (e) {}
+            }
+        }
+    }
+
+    // One-shot process for programmatic workspace focus
+    Process {
+        id: focusProc
+    }
+
+    function focusWorkspace(id) {
+        focusProc.command = ["niri", "msg", "action", "focus-workspace-by-id", String(id)]
+        focusProc.running = true
+    }
+}

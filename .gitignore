@@ -38,17 +38,15 @@ tmp/**
 .DS_Store
 Thumbs.db
 
-# hyprland monitor config (machine-specific)
-.config/hypr/modules/monitors.conf
-
 # backup directory (temporary, can be deleted after confirming changes)
 .config/backup/
-TODO.md
+# TODO file (temporary, can be deleted after confirming changes)
+# TODO.md
 
 # askai environment file (contains API keys)
 .askai-env
 
-/.config/hypr/modules/hyprland-pywal.conf
-/.config/hypr/colors/hyprlock-colors.conf
-/.config/swayosd/style.css
 /.config/starship/starship.toml
+
+# Wallust-generated quickshell colors
+.config/quickshell/Colors.qml

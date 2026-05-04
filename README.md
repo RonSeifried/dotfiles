@@ -2,11 +2,12 @@
 
 <h1>dotfiles</h1>
 
-<p><em>Arch Linux · Hyprland · Wayland-native · Dynamic Wallust theming</em></p>
+<p><em>Arch Linux · Niri · Quickshell · Wayland-native · Dynamic Wallust theming</em></p>
 
 <p>
   <img src="https://img.shields.io/badge/Arch_Linux-1793D1?style=for-the-badge&logo=arch-linux&logoColor=white" />
-  <img src="https://img.shields.io/badge/Hyprland-58E1FF?style=for-the-badge&logo=hyprland&logoColor=black" />
+  <img src="https://img.shields.io/badge/Niri-1f1f1f?style=for-the-badge&logoColor=white" />
+  <img src="https://img.shields.io/badge/Quickshell-2C2C2C?style=for-the-badge&logoColor=white" />
   <img src="https://img.shields.io/badge/Wayland-FFBC00?style=for-the-badge&logo=wayland&logoColor=black" />
 </p>
 
@@ -22,8 +23,9 @@
 </p>
 
 <p>
-  Every wallpaper change regenerates the full color scheme — borders, bar,<br/>
-  launcher, terminal, lock screen — live, with zero manual intervention.
+  Scrollable tiling on <a href="https://github.com/YaLTeR/niri">niri</a>, custom shell built in
+  <a href="https://quickshell.outfoxxed.me/">Quickshell</a>. Every wallpaper change regenerates
+  the full color scheme — borders, bar, OSD, lock screen — live, with zero manual intervention.
 </p>
 
 </div>
@@ -47,28 +49,38 @@
     <td><img src="screenshots/desktop-overview.png" width="430"/></td>
     <td><img src="screenshots/terminal-fetch.png" width="430"/></td>
   </tr>
-  <tr>
-    <td align="center"><strong>Rofi Launcher</strong></td>
-    <td align="center"><strong>Hyprlock</strong></td>
-  </tr>
-  <tr>
-    <td><img src="screenshots/rofi-launcher.png" width="430"/></td>
-    <td><img src="screenshots/hyprlock.png" width="430"/></td>
-  </tr>
 </table>
-
-<div align="center">
-  <strong>Rofi Menus</strong><br/>
-  <img src="screenshots/rofi-menus-collage.png" width="900"/>
-</div>
 
 ---
 
 ## What Makes This Setup Different
 
+### Scrollable Tiling (Niri)
+
+Windows live in **columns** on an infinite horizontal strip. The screen is a viewport you scroll
+through, not a grid that fills automatically. Each column can stack multiple windows vertically,
+each monitor has its own independent workspace list. See `.config/niri/README.md` for the full
+keybind reference.
+
+### Quickshell Custom Shell
+
+Bar, OSDs, lock screen, power menu, wallpaper picker, notifications — all written from scratch in
+QML under `.config/quickshell/`. Single design language: rounded pills, slide-in/out animations
+flush with the screen edge, pywal-driven colors throughout.
+
+| Component | File |
+|---|---|
+| Top bar (workspaces · window title · MPRIS · tray · clock) | `bar/Bar.qml` |
+| Volume / Brightness OSD (right edge slide-in) | `osd/Osd.qml` |
+| Lock screen (separate qs instance, IPC-triggered) | `lock/` |
+| Power menu (`Super+Shift+L`) | `menus/PowerMenu.qml` |
+| Wallpaper picker (`Super+G`) | `menus/WallpaperPicker.qml` |
+| Notification center | `NotifState.qml` + panel |
+
 ### Dynamic Theming Pipeline
 
-One command — `wallust run wallpaper.jpg` — propagates a full 16-color scheme derived from the wallpaper to every component simultaneously. No manual color picking, no config edits.
+One command — `wallust run wallpaper.jpg` — propagates a full 16-color scheme derived from the
+wallpaper to every component simultaneously. No manual color picking, no config edits.
 
 ```
 Wallpaper
@@ -77,50 +89,29 @@ Wallpaper
 wallust run wallpaper.jpg
    │
    ├──▶ Kitty terminal       (.config/wallust/templates/colors-kitty.conf)
-   ├──▶ Waybar CSS           (colors-waybar.css + waybar-style.css)
-   ├──▶ Rofi RASI            (colors-rofi-dark.rasi)
-   ├──▶ Swaync CSS           (swaync-style.css)
-   ├──▶ SwayOSD CSS          (swayosd.css)
-   ├──▶ Hyprland borders     (pywal-hyprland-colors.sh → hyprctl)
-   ├──▶ Hyprlock             (pywal-hyprlock-colors.sh)
+   ├──▶ Quickshell colors    (Colors.qml — bar, OSD, menus, lock)
+   ├──▶ Niri borders         (pywal-niri-colors.sh → niri msg)
    ├──▶ Starship prompt      (starship-color-gen.sh)
+   ├──▶ Yazi theme           (theme.toml)
+   ├──▶ Rofi RASI            (colors-rofi-dark.rasi — remaining flows)
    └──▶ Zen Browser          (zen-wal-refresh.sh)
 ```
 
-Color templates live in `.config/wallust/templates/` — edit them to customize which color roles map to which UI elements.
-
-### Rofi as System Control Center
-
-Almost every system action is a Rofi menu. No floating panels, no system tray dialogs — just keyboard-driven fuzzy menus.
-
-| Menu | Keybind |
-|------|---------|
-| App Launcher | `Super + Space` |
-| Wallpaper Picker | `Super + G` |
-| Next Wallpaper | `Super + Shift + S` |
-| Power Menu | `Super + Shift + L` |
-| Package Installer | `Super + P` |
-| Clipboard History | `Super + V` |
-| AI Assistant | `Super + A` |
-| MCP Management | `Super + M` |
-| Resolution | `Super + R` |
-| WiFi, Bluetooth, VPN | (launched from scripts) |
-
-### Modular Hyprland Config
-
-The Hyprland config is split into 8 self-contained modules under `.config/hypr/modules/`:
-
-`autostart` · `environment` · `hyprland-pywal` · `inputs` · `keybinds` · `programs` · `style` · `windows`
-
-Add, remove, or override individual modules without touching the main `hyprland.conf` entry point.
+Color templates live in `.config/wallust/templates/` — edit them to customize which color roles
+map to which UI elements.
 
 ### AI + MCP Integration
 
-`Super+A` opens an AI assistant via Rofi. `Super+M` manages MCP servers with a custom Python helper and Rofi menu. Scripts live in `.config/scripts/rofi/ai/` and `.config/scripts/rofi/mcp.sh`.
+`Super+A` opens an AI assistant via Rofi. `Super+M` manages MCP servers with a custom Python
+helper and Rofi menu. Scripts live in `.config/scripts/rofi/ai/` and
+`.config/scripts/rofi/mcp.sh`. These flows are scheduled for migration to Quickshell panels — see
+`TODO.md`.
 
-### Dynamic Monitor Profiles
+### Dynamic Monitor Profiles (kanshi)
 
-`hyprdynamicmonitors` automatically switches between laptop-only and docked display configurations. Machine-specific monitor config is intentionally not tracked in this repo.
+`kanshi` automatically switches between docked and laptop-only display configurations based on
+connected outputs. Machine-specific monitor config (`~/.config/kanshi/config`) is intentionally
+not tracked in this repo.
 
 ---
 
@@ -128,28 +119,29 @@ Add, remove, or override individual modules without touching the main `hyprland.
 
 | Component | Tool |
 |-----------|------|
-| Window Manager | [Hyprland](https://hyprland.org/) |
+| Compositor | [niri](https://github.com/YaLTeR/niri) (scrollable tiling) |
+| Shell / Bar / OSD / Lock | [Quickshell](https://quickshell.outfoxxed.me/) (custom QML) |
 | Terminal | [Kitty](https://sw.kovidgoyal.net/kitty/) |
 | Shell | ZSH + [Oh My ZSH](https://ohmyz.sh/) + [Starship](https://starship.rs/) |
 | Editor | [Neovim](https://neovim.io/) (LazyVim) |
 | Code Editor (GUI) | [Zed](https://zed.dev/) |
-| Status Bar | [Waybar](https://github.com/Alexays/Waybar) |
-| App Launcher | [Rofi](https://github.com/davatorium/rofi) (Wayland fork) |
-| Notifications | [swaync](https://github.com/ErikReider/SwayNotificationCenter) |
+| Launcher / AI / MCP | [Rofi](https://github.com/davatorium/rofi) (Wayland fork) |
 | Color Theming | [Wallust](https://codeberg.org/explosion-mental/wallust) (pywal-compatible) |
-| Wallpaper | [swww](https://github.com/LGFae/swww) |
-| Lock Screen | [Hyprlock](https://github.com/hyprwm/hyprlock) + [Hypridle](https://github.com/hyprwm/hypridle) |
+| Wallpaper | [awww](https://github.com/LGFae/awww) / swaybg fallback |
+| Idle daemon | [swayidle](https://github.com/swaywm/swayidle) |
+| Monitor Mgmt | [kanshi](https://sr.ht/~emersion/kanshi/) |
+| Notifications | Quickshell `NotifState` (D-Bus) |
 | File Manager | [Yazi](https://yazi-rs.github.io/) (TUI) / Nautilus (GUI) |
 | Browser | [Zen Browser](https://zen-browser.app/) |
 | Git TUI | [Lazygit](https://github.com/jesseduffield/lazygit) |
 | Multiplexer | [Tmux](https://github.com/tmux/tmux) |
 | System Info | [Fastfetch](https://github.com/fastfetch-cli/fastfetch) |
-| Monitor Mgmt | [hyprdynamicmonitors](https://github.com/zakissimo/hyprdynamicmonitors) |
-| MCP Management | mcpy + Rofi menu |
 
 ---
 
 ## Keybindings
+
+> Full reference: `.config/niri/README.md`. Summary below.
 
 ### Applications
 
@@ -162,78 +154,92 @@ Add, remove, or override individual modules without touching the main `hyprland.
 | `Super + D` | Discord |
 | `Super + N` | Notes (Obsidian) |
 | `Super + Shift + N` | Document Editor (LibreOffice) |
-| `Super + E` | File Manager (Yazi — dropdown) |
+| `Super + E` | File Manager (Yazi — floating) |
 | `Super + Shift + E` | File Manager (Nautilus) |
-| `Super + Shift + T` | Taskwarrior (dropdown) |
+| `Super + Shift + T` | Taskwarrior (floating) |
+| `Super + Space` | App Launcher (Rofi) |
 
-### Rofi Menus
+### Menus / Tools
 
 | Keybind | Action |
 |---------|--------|
-| `Super + Space` | App Launcher |
-| `Super + G` | Wallpaper Picker |
+| `Super + G` | Wallpaper Picker (Quickshell) |
 | `Super + Shift + S` | Next Wallpaper |
-| `Super + P` | Package Installer |
+| `Super + Shift + G` | Random Wallpaper |
+| `Super + Shift + L` | Power Menu (Quickshell) |
 | `Super + V` | Clipboard History |
-| `Super + A` | AI Assistant |
-| `Super + M` | MCP Management |
-| `Super + R` | Resolution |
-| `Super + Shift + L` | Power Menu |
+| `Super + A` | AI Assistant (Rofi) |
+| `Super + P` | Package Installer (Rofi) |
+| `Super + M` | MCP Server Manager (Rofi) |
 
 ### System
 
 | Keybind | Action |
 |---------|--------|
-| `Super + L` | Lock Screen |
+| `Super + Alt + L` | Lock Screen (Quickshell) |
+| `Super + Shift + P` | Turn off monitors |
+| `Super + F1` | Show all keybinds overlay |
+| `Super + O` | Overview (zoomed-out workspaces) |
 | `Super + F9` | Night Mode (4500K) |
 | `Super + F10` | Night Mode (3000K) |
 | `Super + Shift + F9` | Night Mode Off |
-| `Print` | Screenshot (area select) |
-| `Shift + Print` | Screen Recording |
+| `Print` | Screenshot UI (area select) |
+| `Ctrl + Print` | Screenshot full screen |
+| `Alt + Print` | Screenshot focused window |
+| `Shift + Print` | Screen recording |
+| `Ctrl + Alt + Delete` | Quit niri |
 
-### Window Management
+### Window / Column Management (niri-specific)
 
 | Keybind | Action |
 |---------|--------|
 | `Super + Q` | Close Window |
 | `Super + F` | Fullscreen |
-| `Super + Arrow Keys` | Move Focus |
-| `Super + 1–9` | Switch Workspace |
-| `Super + Shift + 1–9` | Move Window to Workspace |
-| `Super + LMB` | Move Window (drag) |
-| `Super + RMB` | Resize Window (drag) |
-| `Super + Scroll` | Cycle Workspaces |
+| `Super + Shift + F` | Maximize column |
+| `Super + Shift + M` | True maximize (no gaps) |
+| `Super + Shift + V` | Toggle floating/tiling |
+| `Super + H/J/K/L` (or arrows) | Focus column / window |
+| `Super + Ctrl + H/J/K/L` | Move column / window |
+| `Super + 1–9, 0` | Switch workspace |
+| `Super + Shift + 1–9, 0` | Move window to workspace |
+| `Super + Ctrl + R` | Cycle preset widths (1/3 → 1/2 → 2/3) |
+| `Super + - / =` | Shrink / grow column width |
+| `Super + ,` | Pull next window into column (stack) |
+| `Super + .` | Expel bottom window from column |
+| `Super + WheelUp/Down` | Scroll workspaces |
 
 ### Media Keys
 
 | Key | Action |
 |-----|--------|
-| Volume Up/Down/Mute | Audio (via SwayOSD) |
+| Volume Up/Down/Mute | Audio (Quickshell OSD via wpctl) |
 | Mic Mute | Microphone |
-| Brightness Up/Down | Screen brightness (via SwayOSD) |
+| Brightness Up/Down | Screen brightness (Quickshell OSD via brightnessctl) |
 | Play/Pause/Next/Prev | Media control (playerctl) |
 
 ---
 
 ## Installation
 
-> **Prerequisites:** Arch Linux with a working Wayland session. Running `stow .` before installing dependencies will create broken symlinks.
+> **Prerequisites:** Arch Linux with a working Wayland session. Running `stow .` before
+> installing dependencies will create broken symlinks.
 
 ### 1. Install dependencies
 
 **pacman:**
 ```bash
-sudo pacman -S hyprland kitty waybar rofi-wayland neovim yazi zsh starship tmux jq \
-  swww swaync hypridle hyprlock wallust nautilus gum fzf plocate \
-  hyprpolkitagent hyprsunset \
-  brightnessctl playerctl wl-clipboard grim slurp grimblast \
-  bluez bluez-utils networkmanager gnome-keyring \
+sudo pacman -S niri kitty rofi-wayland neovim yazi zsh starship tmux jq \
+  swaybg swayidle kanshi wallust nautilus gum fzf plocate \
+  brightnessctl playerctl wl-clipboard cliphist wl-clip-persist \
+  grim slurp \
+  bluez bluez-utils networkmanager gnome-keyring lxqt-policykit \
   fastfetch lazygit btop
 ```
 
 **AUR (yay):**
 ```bash
-yay -S oh-my-zsh-git zsh-you-should-use hyprpicker zen-browser-bin taskwarrior-tui
+yay -S quickshell-git awww oh-my-zsh-git zsh-you-should-use \
+  zen-browser-bin taskwarrior-tui
 ```
 
 **Oh My ZSH plugins:**
@@ -271,21 +277,28 @@ chsh -s $(which zsh)
 wallust run /path/to/wallpaper.jpg
 ```
 
-This generates color schemes for Hyprland, Waybar, Rofi, Kitty, Hyprlock, Starship, and more — automatically.
+This generates color schemes for niri borders, Quickshell, Kitty, Starship, Yazi and Rofi —
+automatically.
 
 ### 5. Monitor config (machine-specific, not tracked)
 
-Create `~/.config/hypr/modules/monitors.conf`:
+Create `~/.config/kanshi/config`:
 
-```ini
-monitor=DP-1,2560x1440@144,0x0,1
-monitor=,preferred,auto,1
+```
+profile docked {
+    output eDP-1 disable
+    output DP-1 mode 2560x1440@144Hz position 0,0 scale 1
+}
+
+profile laptop {
+    output eDP-1 mode preferred scale 1.333
+}
 ```
 
 ### 6. Face icon for lock screen (optional)
 
 ```bash
-cp your-photo.jpg ~/.face.icon   # shown as circle on Hyprlock
+cp your-photo.jpg ~/.face.icon   # rendered by quickshell lock surface
 ```
 
 ---
@@ -295,39 +308,40 @@ cp your-photo.jpg ~/.face.icon   # shown as circle on Hyprlock
 ```
 dotfiles/
 ├── .config/
-│   ├── hypr/
-│   │   ├── hyprland.conf           # Entry point
-│   │   ├── hyprlock.conf           # Lock screen
-│   │   ├── hypridle.conf           # Idle daemon
-│   │   ├── modules/                # 8 config modules (keybinds, style, env, …)
-│   │   └── scripts/                # Hyprland-specific scripts (dropdown, etc.)
-│   ├── hyprdynamicmonitors/        # Laptop/dock display profiles
-│   │   └── hyprconfigs/            # docked_closed, fallback, laptop_open
-│   ├── fastfetch/                  # System info display
-│   ├── kitty/                      # Terminal
-│   ├── nvim/                       # Neovim (LazyVim)
-│   ├── rofi/                       # Launcher themes (wallust-aware RASI files)
+│   ├── niri/
+│   │   ├── config.kdl               # Compositor config (input, layout, keybinds, rules)
+│   │   └── README.md                # Full niri keybind reference
+│   ├── quickshell/
+│   │   ├── shell.qml                # Main shell entry (bar, OSDs, menus)
+│   │   ├── Theme.qml                # Animation/radius/spacing constants
+│   │   ├── Colors.qml               # Generated by wallust (gitignored)
+│   │   ├── bar/                     # Top bar pills
+│   │   ├── osd/                     # Volume / Brightness OSD
+│   │   ├── menus/                   # Power, Wallpaper, Clipboard, …
+│   │   ├── launcher/                # (in progress)
+│   │   ├── lock/                    # Separate qs instance for lock surface
+│   │   └── *State.qml               # Audio / MPRIS / Network / Notif / Niri
+│   ├── kanshi/                      # Monitor profiles (not tracked)
+│   ├── fastfetch/                   # System info display
+│   ├── kitty/                       # Terminal
+│   ├── nvim/                        # Neovim (LazyVim)
+│   ├── rofi/                        # Launcher + remaining AI/MCP/installer themes
 │   ├── scripts/
-│   │   ├── rofi/                   # Rofi menu scripts
-│   │   │   ├── ai/                 # AI assistant (askai.sh)
-│   │   │   ├── launcher.sh
-│   │   │   ├── wallpaper_switcher.sh
-│   │   │   ├── power.sh
-│   │   │   ├── wifi.sh
-│   │   │   ├── bluetooth.sh
-│   │   │   ├── vpn.sh
-│   │   │   ├── mcp.sh
-│   │   │   ├── clipboard.sh
-│   │   │   └── install-launcher.sh
-│   │   └── installer/              # Package installer helpers
-│   ├── starship/                   # Shell prompt + wallust palette
-│   ├── swaync/                     # Notification center
-│   ├── tmux/                       # Terminal multiplexer
+│   │   ├── pywal-niri-colors.sh     # niri border color refresh hook
+│   │   ├── qs-osd.sh                # OSD IPC trigger (bound from niri)
+│   │   ├── rofi/                    # Remaining rofi flows
+│   │   │   ├── ai/                  # AI assistant (askai.sh)
+│   │   │   ├── mcp.sh               # MCP server manager
+│   │   │   ├── install-launcher.sh  # Package installer
+│   │   │   ├── list-installer.sh
+│   │   │   └── wallpaper_switcher.sh # Backend for qs wallpaper picker
+│   │   └── installer/               # Package installer helpers
+│   ├── starship/                    # Shell prompt + wallust palette
+│   ├── tmux/                        # Terminal multiplexer
 │   ├── wallust/
-│   │   └── templates/              # Color templates for each component
-│   ├── waybar/                     # Status bar (3-island layout)
-│   ├── yazi/                       # TUI file manager
-│   └── zed/                        # Code editor (settings.json gitignored)
+│   │   └── templates/               # Color templates for each component
+│   ├── yazi/                        # TUI file manager
+│   └── zed/                         # Code editor (settings.json gitignored)
 ├── .zshrc
 ├── .zprofile
 ├── LICENSE
@@ -338,8 +352,14 @@ dotfiles/
 
 ## Notes
 
-- `zed/settings.json` is gitignored — it contains API keys. Copy `settings.json.example` as a starting point.
-- Monitor config (`monitors.conf`) is machine-specific and not tracked.
+- `zed/settings.json` is gitignored — it contains API keys. Copy `settings.json.example` as a
+  starting point.
+- `quickshell/Colors.qml` is generated by `wallust run` and gitignored.
+- Monitor config (`kanshi/config`) is machine-specific and not tracked.
 - The Tmux prefix is `Ctrl+Space` (not the default `Ctrl+B`).
-- Wallust templates in `.config/wallust/templates/` define which color roles map to which UI variables — edit these to customize color behavior without changing any app config.
-- Generated files (Waybar CSS, Swaync CSS, Yazi theme, Hyprland pywal config) are excluded from stow — they are created on first `wallust run`.
+- Wallust templates in `.config/wallust/templates/` define which color roles map to which UI
+  variables — edit these to customize color behavior without changing any app config.
+- Generated files (Quickshell `Colors.qml`, Yazi theme) are excluded from stow — they are created
+  on first `wallust run`.
+- This setup is mid-migration from Hyprland → niri/Quickshell. See `TODO.md` for open work
+  (battery threshold panel, niri overview blur, lockscreen redesign, full rofi → qs port).
