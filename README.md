@@ -229,7 +229,7 @@ not tracked in this repo.
 **pacman:**
 ```bash
 sudo pacman -S niri kitty rofi-wayland neovim yazi zsh starship tmux jq \
-  swaybg swayidle kanshi wallust nautilus gum fzf plocate \
+  swaybg swayidle kanshi nautilus gum fzf plocate \
   brightnessctl playerctl wl-clipboard cliphist wl-clip-persist \
   grim slurp \
   bluez bluez-utils networkmanager gnome-keyring lxqt-policykit \
@@ -238,7 +238,7 @@ sudo pacman -S niri kitty rofi-wayland neovim yazi zsh starship tmux jq \
 
 **AUR (yay):**
 ```bash
-yay -S quickshell-git awww oh-my-zsh-git zsh-you-should-use \
+yay -S quickshell-git awww-bin wallust oh-my-zsh-git zsh-you-should-use \
   zen-browser-bin taskwarrior-tui
 ```
 
