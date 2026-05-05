@@ -30,7 +30,7 @@ output "eDP-1" {
 
 layout {
     gaps 5
-    background-color "#010019" // pywal-overview
+    background-color "#24222B" // pywal-overview
 
     center-focused-column "on-overflow"
 
@@ -50,8 +50,8 @@ layout {
     border {
         width 3
         // pywal colors — updated by pywal-niri-colors.sh
-        active-color "#0466E6" // pywal-active
-        inactive-color "#010019" // pywal-inactive
+        active-color "#528DC5" // pywal-active
+        inactive-color "#24222B" // pywal-inactive
     }
 
     shadow {

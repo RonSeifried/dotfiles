@@ -1,5 +1,6 @@
 import QtQuick
 import "../.."
+import Quickshell.Io
 import Quickshell.Services.UPower
 
 Column {
@@ -17,6 +18,45 @@ Column {
     property int st: bat?.state ?? 0
     property bool charging: st === 1
     property bool full: st === 4
+
+    // ── Charge thresholds (sysfs) ────────────────────────────────
+    // Requires system/udev/99-charge-threshold.rules installed for write access.
+    readonly property string thresholdEndPath:   "/sys/class/power_supply/BAT0/charge_control_end_threshold"
+    readonly property string thresholdStartPath: "/sys/class/power_supply/BAT0/charge_control_start_threshold"
+    property int thresholdEnd:   80
+    property int thresholdStart: 75
+    property bool thresholdAvailable: false
+
+    FileView {
+        id: endFile
+        path: root.thresholdEndPath
+        watchChanges: true
+        onFileChanged: reload()
+        onLoaded: {
+            const v = parseInt(text().trim(), 10)
+            if (!isNaN(v)) { root.thresholdEnd = v; root.thresholdAvailable = true }
+        }
+        onLoadFailed: root.thresholdAvailable = false
+    }
+    FileView {
+        id: startFile
+        path: root.thresholdStartPath
+        watchChanges: true
+        onFileChanged: reload()
+        onLoaded: {
+            const v = parseInt(text().trim(), 10)
+            if (!isNaN(v)) root.thresholdStart = v
+        }
+    }
+
+    Process { id: thresholdWriter }
+
+    function setEndThreshold(value) {
+        // Direct redirect; needs the file to be group-writable for the user
+        // (see system/udev/99-charge-threshold.rules).
+        thresholdWriter.command = ["sh", "-c", "echo " + value + " > " + root.thresholdEndPath]
+        thresholdWriter.running = true
+    }
 
     // Big % + icon
     Row {
@@ -110,6 +150,91 @@ Column {
                 }
                 MouseArea { id: hovArea; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: PowerProfiles.profile = profBtn.modelData.val }
             }
+        }
+    }
+
+    // ── Charge Threshold ─────────────────────────────────────────
+    Rectangle {
+        visible: root.thresholdAvailable
+        width: parent.width; height: 1
+        color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.dividerAlpha)
+    }
+
+    Text {
+        visible: root.thresholdAvailable
+        text: "Charge Threshold"
+        color: Colors.textMuted; font.pixelSize: Theme.fontSmall; font.bold: true
+        font.family: Theme.fontFamily
+    }
+
+    // Slider row: live drag preview + commit on release
+    Row {
+        visible: root.thresholdAvailable
+        width: parent.width; spacing: Theme.spacingNormal
+
+        Text {
+            id: thrLabel
+            text: "Stop at"
+            color: Colors.textMuted; font.pixelSize: Theme.fontSmall
+            font.family: Theme.fontFamily
+            anchors.verticalCenter: thrSlider.verticalCenter
+        }
+
+        Rectangle {
+            id: thrSlider
+            readonly property int minVal: 50
+            readonly property int maxVal: 100
+            readonly property int step: 5
+            // While dragging, show local value; otherwise reflect actual sysfs value
+            property int displayVal: root.thresholdEnd
+
+            width: parent.width - thrLabel.width - thrPct.width - 2 * parent.spacing
+            height: 6; radius: 3
+            color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.sliderTrackAlpha)
+
+            Rectangle {
+                width: parent.width * Math.max(0, (thrSlider.displayVal - thrSlider.minVal)) / (thrSlider.maxVal - thrSlider.minVal)
+                height: parent.height; radius: parent.radius
+                color: thrSlider.displayVal >= 100 ? Colors.error : Colors.accent
+                Behavior on width { NumberAnimation { duration: 80 } }
+            }
+            // 80% recommended marker
+            Rectangle {
+                x: parent.width * (80 - thrSlider.minVal) / (thrSlider.maxVal - thrSlider.minVal); y: -2
+                width: 1; height: parent.height + 4
+                color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.4)
+            }
+
+            function snap(x) {
+                const raw = thrSlider.minVal + (x / width) * (thrSlider.maxVal - thrSlider.minVal)
+                return Math.max(thrSlider.minVal, Math.min(thrSlider.maxVal,
+                    Math.round(raw / thrSlider.step) * thrSlider.step))
+            }
+
+            MouseArea {
+                anchors.fill: parent; cursorShape: Qt.SizeHorCursor
+                onPressed: ev => thrSlider.displayVal = thrSlider.snap(ev.x)
+                onPositionChanged: ev => { if (pressed) thrSlider.displayVal = thrSlider.snap(ev.x) }
+                onReleased: {
+                    if (thrSlider.displayVal !== root.thresholdEnd)
+                        root.setEndThreshold(thrSlider.displayVal)
+                }
+            }
+
+            // Sync local preview when sysfs reports new value (and we're not dragging)
+            Connections {
+                target: root
+                function onThresholdEndChanged() { thrSlider.displayVal = root.thresholdEnd }
+            }
+        }
+
+        Text {
+            id: thrPct
+            text: thrSlider.displayVal + "%"
+            color: Colors.text; font.pixelSize: Theme.fontNormal; font.bold: true
+            font.family: Theme.fontFamily; width: 38
+            horizontalAlignment: Text.AlignRight
+            anchors.verticalCenter: thrSlider.verticalCenter
         }
     }
 }

@@ -130,6 +130,52 @@ PopupWindow {
                 color: Colors.textMuted; font.pixelSize: Theme.fontNormal
                 font.family: Theme.fontFamily; wrapMode: Text.WordWrap
             }
+
+            Flow {
+                width: parent.width
+                spacing: Theme.spacingSmall
+                visible: (root.toastNotif?.actions?.length ?? 0) > 0
+                topPadding: Theme.spacingTight
+
+                Repeater {
+                    model: root.toastNotif?.actions ?? []
+                    delegate: Rectangle {
+                        id: toastActionBtn
+                        required property var modelData
+                        // Hide FDO "default" — that's click-on-notif activation, not a labeled button.
+                        visible: modelData.identifier !== "default"
+                        implicitWidth: toastActionLabel.implicitWidth + 16
+                        implicitHeight: toastActionLabel.implicitHeight + 8
+                        radius: Theme.radiusTiny
+                        color: toastActionMa.containsMouse
+                            ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.25)
+                            : Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.12)
+                        border.width: 1
+                        border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.3)
+
+                        Behavior on color { ColorAnimation { duration: Theme.durHover } }
+
+                        Text {
+                            id: toastActionLabel
+                            anchors.centerIn: parent
+                            text: modelData.text || modelData.identifier
+                            color: Colors.text
+                            font.pixelSize: Theme.fontSmall
+                            font.family: Theme.fontFamily
+                        }
+                        MouseArea {
+                            id: toastActionMa
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                NotifState.invokeAction(root.toastNotif.id, toastActionBtn.modelData)
+                                root.hideToast()
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
