@@ -9,22 +9,24 @@ PanelWindow {
     id: root
 
     property bool open: false
-    property string confirmAction: ""
-    property string confirmLabel: ""
-    property bool confirming: confirmAction !== ""
 
-    readonly property int panelWidth: 240
+    readonly property int panelWidth: 96
     readonly property int hiddenOffset: panelWidth + 4
+    readonly property int holdDurationMs: 650
+    readonly property int tileHeight: 60
+    readonly property int iconFontSize: 26
+
     readonly property var items: [
-        { icon: "󰌾", label: "Lock",     cmd: "qs -p " + (Quickshell.env("HOME") || "") + "/.config/quickshell/lock ipc call lock lock", confirm: false },
-        { icon: "󰍃", label: "Logout",   cmd: "niri msg action quit --skip-confirmation", confirm: true  },
-        { icon: "󰒲", label: "Suspend",  cmd: "systemctl suspend",  confirm: false },
-        { icon: "󰜉", label: "Reboot",   cmd: "systemctl reboot",   confirm: true  },
-        { icon: "󰐥", label: "Shutdown", cmd: "systemctl poweroff", confirm: true  }
+        { icon: "󰌾", label: "Lock",     cmd: "qs -p " + (Quickshell.env("HOME") || "") + "/.config/quickshell/lock ipc call lock lock" },
+        { icon: "󰍃", label: "Logout",   cmd: "niri msg action quit --skip-confirmation" },
+        { icon: "󰒲", label: "Suspend",  cmd: "systemctl suspend" },
+        { icon: "󰜉", label: "Reboot",   cmd: "systemctl reboot" },
+        { icon: "󰐥", label: "Shutdown", cmd: "systemctl poweroff" }
     ]
 
     property int selectedIndex: 0
-    property int confirmSelectedIndex: 1  // 0 = Yes, 1 = Cancel (default safe)
+    property bool holdActive: false
+    property real holdProgress: 0
 
     visible: open || closeAnim.running
     color: "transparent"
@@ -38,44 +40,74 @@ PanelWindow {
 
     onOpenChanged: {
         if (open) {
-            confirmAction = ""
-            confirmLabel = ""
+            cancelHold()
             selectedIndex = 0
-            confirmSelectedIndex = 1
             backdrop.opacity = 0
             slideTransform.x = root.hiddenOffset
             openAnim.start()
             Qt.callLater(() => scope.forceActiveFocus())
         } else {
+            cancelHold()
             closeAnim.start()
         }
     }
 
     function close() { ControlState.powerMenuOpen = false }
 
-    function triggerItem(idx) {
+    function trigger(idx) {
         const it = items[idx]
         if (!it) return
-        if (it.confirm) {
-            confirmLabel = it.label
-            confirmAction = it.cmd
-            confirmSelectedIndex = 1
+        execProc.command = ["sh", "-c", it.cmd]
+        execProc.running = true
+        close()
+    }
+
+    function startHold() {
+        const it = items[selectedIndex]
+        if (!it) return
+        retractAnim.stop()
+        holdAnim.stop()
+        holdActive = true
+        holdAnim.from = root.holdProgress
+        holdAnim.to = 1
+        holdAnim.duration = Math.max(80, root.holdDurationMs * (1 - root.holdProgress))
+        holdAnim.start()
+    }
+
+    function cancelHold() {
+        const wasActive = holdActive
+        holdActive = false
+        holdAnim.stop()
+        if (wasActive && holdProgress > 0) {
+            retractAnim.stop()
+            retractAnim.from = root.holdProgress
+            retractAnim.to = 0
+            retractAnim.duration = Math.max(80, root.holdProgress * 220)
+            retractAnim.start()
         } else {
-            execProc.command = ["sh", "-c", it.cmd]
-            execProc.running = true
-            close()
+            retractAnim.stop()
+            holdProgress = 0
         }
     }
 
-    function triggerConfirm() {
-        if (confirmSelectedIndex === 0) {
-            execProc.command = ["sh", "-c", confirmAction]
-            execProc.running = true
-            close()
-        } else {
-            confirmAction = ""
-            confirmLabel = ""
+    NumberAnimation {
+        id: holdAnim
+        target: root
+        property: "holdProgress"
+        easing.type: Easing.Linear
+        onFinished: {
+            if (root.holdProgress >= 0.999 && root.holdActive) {
+                const idx = root.selectedIndex
+                root.holdActive = false
+                root.trigger(idx)
+            }
         }
+    }
+    NumberAnimation {
+        id: retractAnim
+        target: root
+        property: "holdProgress"
+        easing.type: Easing.OutQuad
     }
 
     // ── Open / close animations ─────────────────────────────────
@@ -107,11 +139,11 @@ PanelWindow {
         }
     }
 
-    // ── Backdrop (click-outside dismiss) ────────────────────────
+    // ── Backdrop (click-outside dismiss, no dim) ────────────────
     Rectangle {
         id: backdrop
         anchors.fill: parent
-        color: Qt.rgba(0, 0, 0, 0.35)
+        color: "transparent"
         opacity: 0
         MouseArea { anchors.fill: parent; onClicked: root.close() }
     }
@@ -123,9 +155,8 @@ PanelWindow {
 
         Keys.onPressed: event => {
             if (event.key === Qt.Key_Escape) {
-                if (root.confirming) {
-                    root.confirmAction = ""
-                    root.confirmLabel = ""
+                if (root.holdActive) {
+                    root.cancelHold()
                 } else {
                     root.close()
                 }
@@ -133,44 +164,35 @@ PanelWindow {
                 return
             }
 
-            if (root.confirming) {
-                if (event.key === Qt.Key_Left || event.key === Qt.Key_Right ||
-                    event.key === Qt.Key_Tab || event.key === Qt.Key_H || event.key === Qt.Key_L) {
-                    root.confirmSelectedIndex = (root.confirmSelectedIndex + 1) % 2
-                    event.accepted = true
-                } else if (event.key === Qt.Key_Y) {
-                    root.confirmSelectedIndex = 0
-                    root.triggerConfirm()
-                    event.accepted = true
-                } else if (event.key === Qt.Key_N) {
-                    root.confirmAction = ""
-                    root.confirmLabel = ""
-                    event.accepted = true
-                } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-                    root.triggerConfirm()
-                    event.accepted = true
-                }
-                return
-            }
-
             const n = root.items.length
             if (event.key === Qt.Key_Down || event.key === Qt.Key_J) {
+                if (root.holdActive) root.cancelHold()
                 root.selectedIndex = (root.selectedIndex + 1) % n
                 event.accepted = true
             } else if (event.key === Qt.Key_Up || event.key === Qt.Key_K) {
+                if (root.holdActive) root.cancelHold()
                 root.selectedIndex = (root.selectedIndex - 1 + n) % n
                 event.accepted = true
             } else if (event.key === Qt.Key_Home) {
+                if (root.holdActive) root.cancelHold()
                 root.selectedIndex = 0
                 event.accepted = true
             } else if (event.key === Qt.Key_End) {
+                if (root.holdActive) root.cancelHold()
                 root.selectedIndex = n - 1
                 event.accepted = true
             } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-                root.triggerItem(root.selectedIndex)
+                if (event.isAutoRepeat) { event.accepted = true; return }
+                root.startHold()
                 event.accepted = true
-            } else if (event.key === Qt.Key_L) {
-                root.selectedIndex = 0; root.triggerItem(0); event.accepted = true
+            }
+        }
+
+        Keys.onReleased: event => {
+            if (event.isAutoRepeat) return
+            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+                if (root.holdActive) root.cancelHold()
+                event.accepted = true
             }
         }
 
@@ -197,190 +219,87 @@ PanelWindow {
             // Consume clicks
             MouseArea { anchors.fill: parent }
 
-            Item {
+            ColumnLayout {
                 id: contentColumn
                 anchors {
                     left: parent.left; right: parent.right; top: parent.top
                     margins: Theme.panelPadding
                 }
-                implicitHeight: root.confirming ? confirmPanel.implicitHeight : mainPanel.implicitHeight
+                spacing: Theme.spacingSmall
 
-                ColumnLayout {
-                    id: mainPanel
-                    visible: !root.confirming
-                    anchors { left: parent.left; right: parent.right; top: parent.top }
-                    spacing: Theme.spacingTight
+                Repeater {
+                    model: root.items
 
-                    Text {
-                        text: "Power"
-                        color: Colors.textMuted
-                        font.pixelSize: Theme.fontSmall; font.bold: true
-                        font.family: Theme.fontFamily
-                        Layout.leftMargin: Theme.spacingSmall; Layout.topMargin: Theme.spacingTight
-                        Layout.bottomMargin: Theme.spacingTight
-                    }
+                    delegate: Rectangle {
+                        id: tile
+                        required property var modelData
+                        required property int index
 
-                    Repeater {
-                        model: root.items
+                        Layout.fillWidth: true
+                        height: root.tileHeight
+                        radius: Theme.radiusMedium
+                        clip: true
 
-                        delegate: Rectangle {
-                            id: powerDelegate
-                            required property var modelData
-                            required property int index
+                        readonly property bool selected: root.selectedIndex === index
+                        readonly property real progress: selected ? root.holdProgress : 0
 
-                            Layout.fillWidth: true
-                            height: 40
-                            radius: Theme.radiusSmall
+                        color: selected
+                            ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillHoverAlpha)
+                            : "transparent"
+                        border.color: selected
+                            ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
+                            : "transparent"
+                        border.width: 1
 
-                            readonly property bool selected: root.selectedIndex === index
+                        Behavior on color { ColorAnimation { duration: Theme.durFast } }
+                        Behavior on border.color { ColorAnimation { duration: Theme.durFast } }
 
-                            color: selected
-                                ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillHoverAlpha)
-                                : "transparent"
-                            border.color: selected
-                                ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
-                                : "transparent"
-                            border.width: 1
-
-                            Behavior on color { ColorAnimation { duration: Theme.durFast } }
-                            Behavior on border.color { ColorAnimation { duration: Theme.durFast } }
-
-                            RowLayout {
-                                anchors {
-                                    left: parent.left; right: parent.right
-                                    verticalCenter: parent.verticalCenter
-                                    leftMargin: Theme.spacingLarge; rightMargin: Theme.spacingLarge
-                                }
-                                spacing: Theme.spacingLarge
-
-                                Text {
-                                    text: powerDelegate.modelData.icon
-                                    color: Colors.accent
-                                    font.pixelSize: Theme.fontLarge + 2
-                                    font.family: Theme.fontFamily
-                                }
-                                Text {
-                                    text: powerDelegate.modelData.label
-                                    color: Colors.text
-                                    font.pixelSize: Theme.fontMedium
-                                    font.family: Theme.fontFamily
-                                    Layout.fillWidth: true
-                                }
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onEntered: root.selectedIndex = powerDelegate.index
-                                onClicked: root.triggerItem(powerDelegate.index)
-                            }
-                        }
-                    }
-                }
-
-                ColumnLayout {
-                    id: confirmPanel
-                    visible: root.confirming
-                    anchors { left: parent.left; right: parent.right; top: parent.top }
-                    spacing: Theme.spacingLarge
-
-                    Text {
-                        text: root.confirmLabel + "?"
-                        color: Colors.text
-                        font.pixelSize: Theme.fontLarge; font.bold: true
-                        font.family: Theme.fontFamily
-                        Layout.alignment: Qt.AlignHCenter
-                        Layout.topMargin: Theme.spacingTight
-                    }
-
-                    Text {
-                        text: "Are you sure?"
-                        color: Colors.textMuted
-                        font.pixelSize: Theme.fontNormal
-                        font.family: Theme.fontFamily
-                        Layout.alignment: Qt.AlignHCenter
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true; spacing: Theme.spacingNormal
-                        Layout.topMargin: Theme.spacingSmall
-
+                        // Hold-progress fill (rises bottom → top)
                         Rectangle {
-                            id: yesBtn
-                            Layout.fillWidth: true; height: 36
-                            radius: Theme.radiusSmall
-
-                            readonly property bool selected: root.confirmSelectedIndex === 0
-
-                            color: selected
-                                ? Qt.rgba(Colors.error.r, Colors.error.g, Colors.error.b, 0.35)
-                                : Qt.rgba(Colors.error.r, Colors.error.g, Colors.error.b, 0.18)
-                            border.color: selected
-                                ? Qt.rgba(Colors.error.r, Colors.error.g, Colors.error.b, 0.85)
-                                : Qt.rgba(Colors.error.r, Colors.error.g, Colors.error.b, 0.4)
-                            border.width: 1
-
-                            Behavior on color { ColorAnimation { duration: Theme.durFast } }
-                            Behavior on border.color { ColorAnimation { duration: Theme.durFast } }
-
-                            Text {
-                                anchors.centerIn: parent; text: "Yes"
-                                color: Colors.text
-                                font.pixelSize: Theme.fontMedium
-                                font.bold: yesBtn.selected
-                                font.family: Theme.fontFamily
+                            anchors {
+                                left: parent.left; right: parent.right; bottom: parent.bottom
                             }
-                            MouseArea {
-                                anchors.fill: parent; hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onEntered: root.confirmSelectedIndex = 0
-                                onClicked: { root.confirmSelectedIndex = 0; root.triggerConfirm() }
-                            }
+                            height: parent.height * tile.progress
+                            color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.32)
+                            radius: parent.radius
+                            visible: tile.progress > 0
                         }
 
+                        // Bottom progress bar (sharp edge indicator)
                         Rectangle {
-                            id: cancelBtn
-                            Layout.fillWidth: true; height: 36
-                            radius: Theme.radiusSmall
-
-                            readonly property bool selected: root.confirmSelectedIndex === 1
-
-                            color: selected
-                                ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillHoverAlpha)
-                                : Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.4)
-                            border.color: selected
-                                ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.7)
-                                : Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.25)
-                            border.width: 1
-
-                            Behavior on color { ColorAnimation { duration: Theme.durFast } }
-                            Behavior on border.color { ColorAnimation { duration: Theme.durFast } }
-
-                            Text {
-                                anchors.centerIn: parent; text: "Cancel"
-                                color: cancelBtn.selected ? Colors.text : Colors.textMuted
-                                font.pixelSize: Theme.fontMedium
-                                font.bold: cancelBtn.selected
-                                font.family: Theme.fontFamily
-                            }
-                            MouseArea {
-                                anchors.fill: parent; hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onEntered: root.confirmSelectedIndex = 1
-                                onClicked: { root.confirmSelectedIndex = 1; root.triggerConfirm() }
-                            }
+                            anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+                            height: 2
+                            color: Colors.accent
+                            opacity: tile.progress > 0 ? 1 : 0
+                            visible: opacity > 0
+                            Behavior on opacity { NumberAnimation { duration: Theme.durFast } }
                         }
-                    }
 
-                    // Hint row
-                    Text {
-                        text: "↵ confirm   ←/→ switch   esc back"
-                        color: Colors.textMuted
-                        font.pixelSize: Theme.fontTiny
-                        font.family: Theme.fontFamily
-                        Layout.alignment: Qt.AlignHCenter
-                        Layout.topMargin: Theme.spacingTight
+                        Text {
+                            anchors.centerIn: parent
+                            text: tile.modelData.icon
+                            color: Colors.accent
+                            font.pixelSize: root.iconFontSize
+                            font.family: Theme.fontFamily
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onEntered: {
+                                if (!root.holdActive) root.selectedIndex = tile.index
+                            }
+                            onExited: {
+                                if (root.holdActive && root.selectedIndex === tile.index) root.cancelHold()
+                            }
+                            onPressed: {
+                                root.selectedIndex = tile.index
+                                root.startHold()
+                            }
+                            onReleased: root.cancelHold()
+                            onCanceled: root.cancelHold()
+                        }
                     }
                 }
             }

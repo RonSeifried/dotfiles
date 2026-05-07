@@ -10,6 +10,13 @@ import "osd"
 import "menus"
 
 ShellRoot {
+    id: shellRoot
+
+    // Effective screen for popups (launcher, menus, OSD).
+    // Bar-set override > niri keyboard/mouse focused output > first screen (boot fallback).
+    readonly property string targetScreen: ControlState.activeScreen
+        || NiriState.focusedOutput
+        || (Quickshell.screens.length > 0 ? Quickshell.screens[0].name : "")
 
     // ── Bar — one per screen ────────────────────────────────────
     Variants {
@@ -26,8 +33,7 @@ ShellRoot {
         delegate: Launcher {
             required property var modelData
             screen: modelData
-            open: ControlState.launcherOpen
-            onOpenChanged: ControlState.launcherOpen = open
+            open: ControlState.launcherOpen && modelData.name === shellRoot.targetScreen
         }
     }
 
@@ -37,6 +43,7 @@ ShellRoot {
         delegate: Osd {
             required property var modelData
             screen: modelData
+            active: modelData.name === shellRoot.targetScreen
         }
     }
 
@@ -46,8 +53,7 @@ ShellRoot {
         delegate: PowerMenu {
             required property var modelData
             screen: modelData
-            open: ControlState.powerMenuOpen
-            onOpenChanged: ControlState.powerMenuOpen = open
+            open: ControlState.powerMenuOpen && modelData.name === shellRoot.targetScreen
         }
     }
 
@@ -57,8 +63,7 @@ ShellRoot {
         delegate: ClipboardMenu {
             required property var modelData
             screen: modelData
-            open: ControlState.clipboardOpen
-            onOpenChanged: ControlState.clipboardOpen = open
+            open: ControlState.clipboardOpen && modelData.name === shellRoot.targetScreen
         }
     }
 
@@ -68,8 +73,7 @@ ShellRoot {
         delegate: WallpaperPicker {
             required property var modelData
             screen: modelData
-            open: ControlState.wallpaperPickerOpen
-            onOpenChanged: ControlState.wallpaperPickerOpen = open
+            open: ControlState.wallpaperPickerOpen && modelData.name === shellRoot.targetScreen
         }
     }
 
@@ -114,11 +118,11 @@ ShellRoot {
         function volume(v: string, muted: string) {
             ControlState.osdVolume = parseFloat(v)
             ControlState.osdMuted = (muted === "1" || muted === "true" || muted === "yes")
-            ControlState.osdVolumeVisible = true
+            ControlState.osdVolumeRequested(ControlState.osdVolume, ControlState.osdMuted)
         }
         function brightness(v: string) {
             ControlState.osdBrightness = parseFloat(v)
-            ControlState.osdBrightnessVisible = true
+            ControlState.osdBrightnessRequested(ControlState.osdBrightness)
         }
     }
 }

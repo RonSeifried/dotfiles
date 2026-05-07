@@ -1,30 +1,19 @@
-# wallust v3.5
-# Config for pywal-compatible color generation
+# wallust v4 — palette generator left near defaults. Per-consumer slot choice
+# (Colors.qml, starship.toml.base, niri-colors.sh, fastfetch-launcher.sh)
+# decides which slot to use where, instead of brute-forcing readability into
+# every slot via aggressive saturation/contrast knobs.
 
-# How the image is parsed to get colors
-backend = "wal"
-
-# What color space to use for prominent color selection
-color_space = "labmixed"
-
-# Scheme color palette
-palette = "kmeans"
-
-# Threshold: lower = more colors extracted (good for monochrome)
-threshold = 11
-
-# Alpha value for templating (default 100)
-#alpha = 100
+backend = "fastresize"
+palette = "salience"
+salience = { sampling = "balanced", intensity = "normal" }
+style = "dark"
 
 [templates]
 colors_rofi = { template = "colors-rofi-dark.rasi", target = "~/.cache/wal/colors-rofi-dark.rasi" }
 colors_kitty = { template = "colors-kitty.conf", target = "~/.cache/wal/colors-kitty.conf" }
 colors_json = { template = "colors.json", target = "~/.cache/wal/colors.json" }
-# NOTE: Quickshell reads colors.json directly via FileView (watchChanges) — no
-# template needed. Hot-reload happens in-process; no qs restart, no flash.
 
 [hooks]
-# Regenerate starship palette
 starship_colors = "$HOME/.config/scripts/starship-color-gen.sh"
-# Update niri border / overview colors
 niri_colors = "$HOME/.config/scripts/pywal-niri-colors.sh"
+kitty_reload = "pkill -USR1 -x kitty 2>/dev/null; true"

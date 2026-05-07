@@ -66,14 +66,16 @@ PanelWindow {
 
     Process {
         id: scanProc
-        command: ["bash", "-c",
-            "find \"" + root.wallDir + "\" -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \\) 2>/dev/null | sort"
-        ]
+        command: ["bash", Quickshell.env("HOME") + "/.config/scripts/wallpaper-thumb-gen.sh", root.wallDir]
         stdout: StdioCollector {
             onStreamFinished: {
-                root.wallpapers = text.trim().split("\n").filter(p => p.length > 0)
+                const lines = text.trim().split("\n").filter(l => l.length > 0)
+                root.wallpapers = lines.map(l => {
+                    const parts = l.split("\t")
+                    return { orig: parts[0], thumb: parts[1] || parts[0] }
+                })
                 if (root.currentWallpaper) {
-                    const idx = root.wallpapers.indexOf(root.currentWallpaper)
+                    const idx = root.wallpapers.findIndex(w => w.orig === root.currentWallpaper)
                     if (idx >= 0) carousel.currentIndex = idx
                 }
             }
@@ -87,7 +89,7 @@ PanelWindow {
             onStreamFinished: {
                 root.currentWallpaper = text.trim()
                 if (root.currentWallpaper) {
-                    const idx = root.wallpapers.indexOf(root.currentWallpaper)
+                    const idx = root.wallpapers.findIndex(w => w.orig === root.currentWallpaper)
                     if (idx >= 0) carousel.currentIndex = idx
                 }
             }
@@ -154,16 +156,16 @@ PanelWindow {
                 const out = []
                 for (let i = -r; i <= r; ++i) {
                     const idx = ((carousel.currentIndex + i) % n + n) % n
-                    const path = root.wallpapers[idx]
-                    if (path && out.indexOf(path) === -1) out.push(path)
+                    const w = root.wallpapers[idx]
+                    if (w && w.thumb && out.indexOf(w.thumb) === -1) out.push(w.thumb)
                 }
                 return out
             }
             delegate: Image {
                 required property string modelData
                 source: modelData ? "file://" + modelData : ""
-                sourceSize.width: 720
-                sourceSize.height: 480
+                sourceSize.width: 480
+                sourceSize.height: 320
                 cache: true
                 asynchronous: true
                 width: 1; height: 1
@@ -172,11 +174,11 @@ PanelWindow {
         }
     }
 
-    // ── Backdrop dim + click-outside close ──────────────────────
+    // ── Backdrop (click-outside close, no dim) ──────────────────
     Rectangle {
         id: backdrop
         anchors.fill: parent
-        color: Qt.rgba(0, 0, 0, 0.42)
+        color: "transparent"
         opacity: 0
         MouseArea { anchors.fill: parent; onClicked: root.close() }
     }
@@ -421,10 +423,10 @@ PanelWindow {
                     property var filtered: {
                         const s = searchInput.text.trim().toLowerCase()
                         if (!s) return root.wallpapers
-                        return root.wallpapers.filter(p => p.split("/").pop().toLowerCase().includes(s))
+                        return root.wallpapers.filter(w => w.orig.split("/").pop().toLowerCase().includes(s))
                     }
                     readonly property string currentPath: filtered.length > 0
-                        ? filtered[Math.max(0, Math.min(currentIndex, filtered.length - 1))]
+                        ? filtered[Math.max(0, Math.min(currentIndex, filtered.length - 1))].orig
                         : ""
 
                     function indexAt(offset) {
@@ -452,7 +454,9 @@ PanelWindow {
                             required property int index
                             readonly property int offset: index - 2
                             readonly property int wpIdx: carousel.indexAt(offset)
-                            readonly property string wpPath: wpIdx >= 0 ? carousel.filtered[wpIdx] : ""
+                            readonly property var wpItem: wpIdx >= 0 ? carousel.filtered[wpIdx] : null
+                            readonly property string wpPath: wpItem ? wpItem.orig : ""
+                            readonly property string wpThumb: wpItem ? wpItem.thumb : ""
                             readonly property bool isCenter: offset === 0
                             readonly property bool isAdjacent: Math.abs(offset) === 1
 
@@ -502,12 +506,12 @@ PanelWindow {
                                 Image {
                                     anchors.fill: parent
                                     anchors.margins: 2
-                                    source: cell.wpPath ? "file://" + cell.wpPath : ""
+                                    source: cell.wpThumb ? "file://" + cell.wpThumb : ""
                                     fillMode: Image.PreserveAspectCrop
                                     asynchronous: true
                                     cache: true
-                                    sourceSize.width: 720
-                                    sourceSize.height: 480
+                                    sourceSize.width: 480
+                                    sourceSize.height: 320
                                     smooth: true
                                     mipmap: true
                                 }

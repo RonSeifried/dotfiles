@@ -29,10 +29,14 @@ PopupWindow {
     anchor.rect.height: 0
 
     // ── Slide animation orchestration ────────────────────────────
+    // Multi-monitor: only react if my bar's screen is the active one.
+    readonly property bool _onActiveScreen: bar && bar.screen
+        && bar.screen.name === ControlState.activeScreen
+
     Connections {
         target: ControlState
         function onRightPanelChanged() {
-            if (ControlState.rightPanel !== "none") {
+            if (ControlState.rightPanel !== "none" && root._onActiveScreen) {
                 if (!root.popupVisible) {
                     root.popupVisible = true
                     panelOuter.y = -panelOuter.implicitHeight
@@ -40,8 +44,11 @@ PopupWindow {
                 }
                 // switching panels: Loader swaps content, no re-anim
             } else {
-                cornerDelay.stop()
-                panelSlideUp.start()
+                // closing globally OR another screen's bar took over → retract this popup.
+                if (root.popupVisible) {
+                    cornerDelay.stop()
+                    panelSlideUp.start()
+                }
             }
         }
     }

@@ -31,7 +31,9 @@ Item {
         { title: "Toggle Caffeine",    subtitle: "Inhibit idle/sleep",      glyph: "󰛊", action: () => ControlState.idleInhibited = !ControlState.idleInhibited },
         { title: "Toggle Notifications", subtitle: "Show notification panel", glyph: "󰂚", action: () => ControlState.togglePanel("notif") },
         { title: "Niri Overview",      subtitle: "Open workspace overview", glyph: "󰕮", action: () => _run("niri msg action toggle-overview") },
-        { title: "Reload Colors",      subtitle: "Re-run wallust palette",  glyph: "󰏘", action: () => _run("wallust run \"$(cat ~/.cache/current_wallpaper 2>/dev/null || echo)\" 2>/dev/null") }
+        { title: "Reload Colors",      subtitle: "Re-run wallust palette",  glyph: "󰏘", action: () => _run("wallust run \"$(cat ~/.cache/current_wallpaper 2>/dev/null || echo)\" 2>/dev/null") },
+        { title: "Update System",      subtitle: "pacman + AUR via yay",    glyph: "󰚰", action: () => _run("kitty --class installer-pkg -e ~/.config/scripts/installer/system-update.sh") },
+        { title: "Remove Package",     subtitle: "fzf picker, multi-select", glyph: "󰮈", action: () => _run("kitty --class installer-pkg -e ~/.config/scripts/installer/pkg-remove.sh") }
     ]
 
     function _scoreAction(a, q) {

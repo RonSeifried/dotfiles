@@ -1,0 +1,10 @@
+[Unit]
+Description=Restore battery charge threshold from saved state
+ConditionPathExists=%S/quickshell/battery-threshold
+
+[Service]
+Type=oneshot
+ExecStart=%h/.config/scripts/restore-charge-threshold.sh
+
+[Install]
+WantedBy=default.target

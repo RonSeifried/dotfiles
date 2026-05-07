@@ -11,6 +11,7 @@ PanelWindow {
     property real value: 0
     property bool muted: false
     property bool showing: false
+    property bool active: true   // false = this screen is not the focus target, ignore signals
 
     readonly property int panelWidth: 64
     readonly property int panelHeight: 220
@@ -26,19 +27,10 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
-    Component.onCompleted: {
-        ControlState.osdVolumeVisibleChanged.connect(() => {
-            if (ControlState.osdVolumeVisible) {
-                root.showVolume(ControlState.osdVolume, ControlState.osdMuted)
-                ControlState.osdVolumeVisible = false
-            }
-        })
-        ControlState.osdBrightnessVisibleChanged.connect(() => {
-            if (ControlState.osdBrightnessVisible) {
-                root.showBrightness(ControlState.osdBrightness)
-                ControlState.osdBrightnessVisible = false
-            }
-        })
+    Connections {
+        target: ControlState
+        function onOsdVolumeRequested(v, m) { if (root.active) root.showVolume(v, m) }
+        function onOsdBrightnessRequested(v) { if (root.active) root.showBrightness(v) }
     }
 
     function showVolume(v, m) { type = "volume"; value = v; muted = m === true; _appear() }

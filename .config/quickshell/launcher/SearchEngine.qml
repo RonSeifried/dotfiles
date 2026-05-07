@@ -8,6 +8,7 @@ import "providers"
 //   "? text"  → web only
 //   "w name"  → niri windows only
 //   "f name"  → file search via fd (async, debounced)
+//   "p name"  → package search (pacman + AUR)
 // No prefix → apps + windows + system (matches) + calc (auto if numeric) + web fallback.
 Item {
     id: root
@@ -15,7 +16,7 @@ Item {
 
     property string query: ""
     property var results: []
-    property string mode: "default"   // "default" | "calc" | "system" | "web" | "window" | "files"
+    property string mode: "default"   // "default" | "calc" | "system" | "web" | "window" | "files" | "pkg"
     property string modeHint: ""
 
     AppsProvider       { id: appsP }
@@ -24,6 +25,13 @@ Item {
     NiriWindowProvider { id: winP }
     WebProvider        { id: webP }
     FilesProvider      { id: filesP }
+    PkgProvider        { id: pkgP }
+
+    // Recompute when pkg lists finish loading mid-session.
+    Connections {
+        target: pkgP
+        function onReadyChanged() { if (root.mode === "pkg") root._recompute() }
+    }
 
     Connections {
         target: filesP
@@ -59,6 +67,7 @@ Item {
         if (q.startsWith("?"))                       return { mode: "web",    rest: q.slice(1).trim(), hint: "web search" }
         if (q.startsWith("w ") || q === "w")         return { mode: "window", rest: q.slice(1).trim(), hint: "windows"    }
         if (q.startsWith("f ") || q === "f")         return { mode: "files",  rest: q.slice(1).trim(), hint: "files"      }
+        if (q.startsWith("p ") || q === "p")         return { mode: "pkg",    rest: q.slice(1).trim(), hint: "packages"   }
         return { mode: "default", rest: q, hint: "" }
     }
 
@@ -100,6 +109,8 @@ Item {
             out = webP.search(parsed.rest)
         } else if (parsed.mode === "window") {
             out = winP.search(parsed.rest)
+        } else if (parsed.mode === "pkg") {
+            out = pkgP.search(parsed.rest)
         } else if (parsed.mode === "files") {
             filesP.query = parsed.rest
             if (!parsed.rest) {

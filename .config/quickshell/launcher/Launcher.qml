@@ -59,6 +59,7 @@ PanelWindow {
             case "web":    return ""
             case "window": return "󰖯"
             case "files":  return ""
+            case "pkg":    return ""
             default:       return ""
         }
     }
@@ -69,7 +70,8 @@ PanelWindow {
             case "web":    return "Search the web…"
             case "window": return "Focus window…"
             case "files":  return "Find files…"
-            default:       return "Search apps, type =  >  ?  w  f …"
+            case "pkg":    return "Install package…  pacman + AUR"
+            default:       return "Search apps, type =  >  ?  w  f  p …"
         }
     }
 
@@ -217,7 +219,7 @@ PanelWindow {
                     Item { Layout.fillWidth: true }
 
                     Text {
-                        text: "= calc · > action · w window · f file · ? web"
+                        text: "= calc · > action · w window · f file · p pkg · ? web"
                         color: Colors.textMuted
                         font.pixelSize: Theme.fontTiny + 1
                         font.family: Theme.fontFamily

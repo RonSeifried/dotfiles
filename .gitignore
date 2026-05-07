@@ -41,7 +41,7 @@ Thumbs.db
 # backup directory (temporary, can be deleted after confirming changes)
 .config/backup/
 # TODO file (temporary, can be deleted after confirming changes)
-# TODO.md
+TODO.md
 
 # askai environment file (contains API keys)
 .askai-env

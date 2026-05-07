@@ -22,7 +22,16 @@ PopupWindow {
     anchor.rect.width: anchorItem ? anchorItem.width : 0
     anchor.rect.height: 0
 
-    Component.onCompleted: NotifState.toastRequested.connect(showToast)
+    // Multi-monitor: only the focused screen shows the toast.
+    Connections {
+        target: NotifState
+        function onToastRequested(notif) {
+            if (root.bar && root.bar.screen
+                && root.bar.screen.name === NiriState.focusedOutput) {
+                root.showToast(notif)
+            }
+        }
+    }
 
     Timer {
         id: dismissTimer

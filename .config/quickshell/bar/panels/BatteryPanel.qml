@@ -1,5 +1,6 @@
 import QtQuick
 import "../.."
+import Quickshell
 import Quickshell.Io
 import Quickshell.Services.UPower
 
@@ -49,13 +50,53 @@ Column {
         }
     }
 
-    Process { id: thresholdWriter }
+    Process {
+        id: thresholdWriter
+        stdout: StdioCollector { id: thresholdOut }
+        stderr: StdioCollector { id: thresholdErr }
+        onExited: (code) => {
+            if (code !== 0) {
+                root.lastError = thresholdErr.text.trim() || ("exit " + code)
+                endFile.reload()
+                startFile.reload()
+            } else {
+                root.lastError = ""
+            }
+        }
+    }
+    Process { id: persistWriter }
+
+    property string lastError: ""
+
+    // Hysteresis between start and end (driver requires end >= start + delta).
+    readonly property int thresholdHysteresis: 5
+    readonly property string statePath: Quickshell.env("HOME") + "/.local/state/quickshell/battery-threshold"
 
     function setEndThreshold(value) {
-        // Direct redirect; needs the file to be group-writable for the user
-        // (see system/udev/99-charge-threshold.rules).
-        thresholdWriter.command = ["sh", "-c", "echo " + value + " > " + root.thresholdEndPath]
+        const newEnd = value
+        // end=100 means "no limit" → start=0 so laptop keeps charging fully (no bypass-band).
+        // Below 100: keep hysteresis so battery doesn't constantly micro-charge.
+        const newStart = newEnd >= 100 ? 0 : Math.max(0, newEnd - root.thresholdHysteresis)
+        const curEnd = root.thresholdEnd
+        // Order matters: driver rejects writes that would make start > end.
+        // If new_start would exceed current end, raise end first; otherwise lower start first.
+        const main = newStart > curEnd
+            ? "echo " + newEnd + " > " + root.thresholdEndPath
+              + " && echo " + newStart + " > " + root.thresholdStartPath
+            : "echo " + newStart + " > " + root.thresholdStartPath
+              + " && echo " + newEnd + " > " + root.thresholdEndPath
+        // Force state-machine re-eval: driver may stay in "stopped" state if bat is between
+        // start and end and was previously paused. Bump start above end-1 then back to target
+        // — the second write kicks the driver into re-evaluating bat vs thresholds.
+        const kickHigh = Math.max(0, newEnd - 1)
+        const kick = "echo " + kickHigh + " > " + root.thresholdStartPath
+                   + " && echo " + newStart + " > " + root.thresholdStartPath
+        thresholdWriter.command = ["sh", "-c", main + " && " + kick]
         thresholdWriter.running = true
+        // Persist for reboot restore (systemd user service reapplies on boot).
+        persistWriter.command = ["sh", "-c",
+            "mkdir -p \"$(dirname '" + root.statePath + "')\" && echo " + newEnd + " > '" + root.statePath + "'"]
+        persistWriter.running = true
     }
 
     // Big % + icon
@@ -225,6 +266,9 @@ Column {
             Connections {
                 target: root
                 function onThresholdEndChanged() { thrSlider.displayVal = root.thresholdEnd }
+                function onLastErrorChanged() {
+                    if (root.lastError !== "") thrSlider.displayVal = root.thresholdEnd
+                }
             }
         }
 
@@ -236,5 +280,13 @@ Column {
             horizontalAlignment: Text.AlignRight
             anchors.verticalCenter: thrSlider.verticalCenter
         }
+    }
+
+    Text {
+        visible: root.thresholdAvailable && root.lastError !== ""
+        width: parent.width
+        text: "Write failed: " + root.lastError
+        color: Colors.error; font.pixelSize: Theme.fontTiny
+        font.family: Theme.fontFamily; wrapMode: Text.WordWrap
     }
 }

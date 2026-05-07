@@ -2,6 +2,10 @@ pragma Singleton
 import Quickshell
 
 Singleton {
+    // Empty = fall back to NiriState.focusedOutput (mouse/keyboard focused screen).
+    // Bar interactions set this to their own screen so popups pin to the bar that was clicked.
+    property string activeScreen: ""
+
     property bool launcherOpen: false
     property bool powerMenuOpen: false
     property bool clipboardOpen: false
@@ -14,8 +18,11 @@ Singleton {
     property real osdVolume: 0
     property real osdBrightness: 0
     property bool osdMuted: false
-    property bool osdVolumeVisible: false
-    property bool osdBrightnessVisible: false
+
+    // OSD requests — fired on every volume/brightness keypress.
+    // Multi-monitor: all Osd instances receive, only active one shows.
+    signal osdVolumeRequested(real v, bool muted)
+    signal osdBrightnessRequested(real v)
 
     function togglePanel(name) {
         rightPanel = (rightPanel === name) ? "none" : name

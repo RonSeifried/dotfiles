@@ -1,6 +1,14 @@
 # ─────────────────────────────────────────────
-# Starship Prompt – angelehnt an starship-primer
-# Farben kommen aus dem Terminal (pywal)
+# Starship Prompt — Wallust-driven palette
+# Each segment uses a distinct wallust slot as bg; fg is auto-picked by
+# starship-color-gen.sh as ink_colorN (color0 or color15) per bg luminance.
+# Slot mapping rationale:
+#   username  → color6  vibrant readable accent (identity)
+#   directory → color8  medium-tint surface
+#   git_branch→ color5  warm secondary accent
+#   git_status→ color2  dim blue, decorative bg w/ light ink
+#   python    → color3  dim purple
+#   time      → color1  dim brown, subtle right edge
 # ─────────────────────────────────────────────
 
 format = """
@@ -13,71 +21,71 @@ palette = "wal"
 
 [username]
 show_always = true
-style_user = "fg:black bg:bright-yellow"
-style_root = "fg:black bg:red"
-format = "[](fg:bright-yellow)[$user]($style)[](fg:bright-yellow) "
+style_user = "fg:ink_color6 bg:color6"
+style_root = "fg:ink_color5 bg:color5"
+format = "[](fg:color6)[$user]($style)[](fg:color6) "
 
 [directory]
 truncation_length = 3
 truncate_to_repo = false
-style = "fg:bright-white bg:bright-blue"
-format = "[](fg:bright-blue)[󰉋 ](bg:bright-blue fg:black)[$path]($style)[](fg:bright-blue) "
+style = "fg:ink_color8 bg:color8"
+format = "[](fg:color8)[󰉋 $path]($style)[](fg:color8) "
 
 [directory.substitutions]
 "Documents" = "󰈙 "
-"Downloads" = " "
-"Music" = " "
-"Pictures" = " "
+"Downloads" = " "
+"Music" = " "
+"Pictures" = " "
 
 [git_branch]
-symbol = ""
-style = "fg:black bg:bright-cyan"
-format = "[](fg:bright-cyan)[$symbol $branch]($style)[](fg:bright-cyan) "
+symbol = ""
+style = "fg:ink_color5 bg:color5"
+format = "[](fg:color5)[$symbol $branch]($style)[](fg:color5) "
 
 [git_status]
-style = "fg:black bg:bright-green"
-format = "[](fg:bright-green)[$all_status$ahead_behind]($style)[](fg:bright-green) "
-stashed = " "
-modified = " "
-deleted = " "
-staged = " "
-untracked = " "
+style = "fg:ink_color2 bg:color2"
+format = "[](fg:color2)[$all_status$ahead_behind]($style)[](fg:color2) "
+stashed = " "
+modified = " "
+deleted = " "
+staged = " "
+untracked = " "
 
 # ─────────────────────────────────────────────
-# Right side (langs / tools / time)
+# Right side
 # ─────────────────────────────────────────────
 
 [python]
 symbol = "󰌠"
-style = "fg:black bg:bright-magenta"
-format = "[](fg:bright-magenta)[$symbol $version]($style)[](fg:bright-magenta) "
+style = "fg:ink_color3 bg:color3"
+format = "[](fg:color3)[$symbol $version]($style)[](fg:color3) "
 pyenv_prefix = "venv"
 disabled = false
 
 [nodejs]
 symbol = "󰎙"
-style = "fg:black bg:bright-green"
-format = "[](fg:bright-green)[$symbol $version]($style)[](fg:bright-green) "
-disabled = true  # auf true lassen, wenn du es selten brauchst
+style = "fg:ink_color2 bg:color2"
+format = "[](fg:color2)[$symbol $version]($style)[](fg:color2) "
+disabled = true
 
 [rust]
-symbol = ""
-style = "fg:black bg:bright-red"
-format = "[](fg:bright-red)[$symbol $version]($style)[](fg:bright-red) "
+symbol = ""
+style = "fg:ink_color5 bg:color5"
+format = "[](fg:color5)[$symbol $version]($style)[](fg:color5) "
 disabled = true
 
 [time]
 disabled = false
 time_format = "%H:%M"
-style = "fg:black bg:bright-black"
-format = "[](fg:bright-black)[ $time]($style)[](fg:bright-black) "
+style = "fg:ink_color1 bg:color1"
+format = "[](fg:color1)[ $time]($style)[](fg:color1) "
 
 # ─────────────────────────────────────────────
-# Prompt-Symbol
+# Prompt symbol
 # ─────────────────────────────────────────────
 
 [character]
-success_symbol = "[❯](bold bright-green)"
-error_symbol   = "[❯](bold bright-red)"
-vicmd_symbol   = "[❮](bold bright-yellow)"
+success_symbol = "[❯](bold color6)"
+error_symbol   = "[❯](bold color5)"
+vicmd_symbol   = "[❮](bold color3)"
 format = "$symbol "

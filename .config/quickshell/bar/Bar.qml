@@ -85,7 +85,7 @@ PanelWindow {
                 border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
                 border.width: 1
                 Behavior on implicitWidth { NumberAnimation { duration: Theme.durHover; easing.type: Easing.OutQuad } }
-                Workspaces { id: workspacesRow; anchors.centerIn: parent }
+                Workspaces { id: workspacesRow; anchors.centerIn: parent; output: root.screen ? root.screen.name : "" }
             }
 
             // ── Center pill: window title ────────────────────────
@@ -163,11 +163,11 @@ PanelWindow {
                     Item {
                         implicitWidth: wifiIconRow.implicitWidth
                         implicitHeight: wifiIconRow.implicitHeight
-                        HoverHandler { onHoveredChanged: if (hovered) { ControlState.rightPanel = "wifi"; root.pinnedOpen = false } }
+                        HoverHandler { onHoveredChanged: if (hovered) { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "wifi"; root.pinnedOpen = false } }
                         MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 if (root.pinnedOpen && ControlState.rightPanel === "wifi") { root.pinnedOpen = false; ControlState.rightPanel = "none" }
-                                else { ControlState.rightPanel = "wifi"; root.pinnedOpen = true }
+                                else { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "wifi"; root.pinnedOpen = true }
                             }
                         }
                         Row {
@@ -195,11 +195,11 @@ PanelWindow {
                     Item {
                         implicitWidth: btIconText.implicitWidth
                         implicitHeight: btIconText.implicitHeight
-                        HoverHandler { onHoveredChanged: if (hovered) { ControlState.rightPanel = "bluetooth"; root.pinnedOpen = false } }
+                        HoverHandler { onHoveredChanged: if (hovered) { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "bluetooth"; root.pinnedOpen = false } }
                         MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 if (root.pinnedOpen && ControlState.rightPanel === "bluetooth") { root.pinnedOpen = false; ControlState.rightPanel = "none" }
-                                else { ControlState.rightPanel = "bluetooth"; root.pinnedOpen = true }
+                                else { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "bluetooth"; root.pinnedOpen = true }
                             }
                         }
                         Text {
@@ -231,7 +231,7 @@ PanelWindow {
                         id: audioCluster
                         implicitWidth: audioRow.implicitWidth
                         implicitHeight: audioRow.implicitHeight
-                        HoverHandler { onHoveredChanged: if (hovered) { ControlState.rightPanel = "audio"; root.pinnedOpen = false } }
+                        HoverHandler { onHoveredChanged: if (hovered) { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "audio"; root.pinnedOpen = false } }
                         Row { id: audioRow; spacing: Theme.spacingTight
                             Text {
                                 text: !AudioState.sinkReady ? "󰕿" : AudioState.muted ? "󰖁" : AudioState.volume > 0.5 ? "󰕾" : "󰖀"
@@ -248,7 +248,7 @@ PanelWindow {
                         MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 if (root.pinnedOpen && ControlState.rightPanel === "audio") { root.pinnedOpen = false; ControlState.rightPanel = "none" }
-                                else { ControlState.rightPanel = "audio"; root.pinnedOpen = true }
+                                else { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "audio"; root.pinnedOpen = true }
                             }
                             onWheel: ev => {
                                 const delta = ev.angleDelta.y > 0 ? 0.05 : -0.05
@@ -264,11 +264,11 @@ PanelWindow {
                         id: batteryCluster
                         implicitWidth: batRow.implicitWidth
                         implicitHeight: batRow.implicitHeight
-                        HoverHandler { onHoveredChanged: if (hovered) { ControlState.rightPanel = "battery"; root.pinnedOpen = false } }
+                        HoverHandler { onHoveredChanged: if (hovered) { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "battery"; root.pinnedOpen = false } }
                         MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 if (root.pinnedOpen && ControlState.rightPanel === "battery") { root.pinnedOpen = false; ControlState.rightPanel = "none" }
-                                else { ControlState.rightPanel = "battery"; root.pinnedOpen = true }
+                                else { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "battery"; root.pinnedOpen = true }
                             }
                         }
                         property var bat: {
@@ -278,7 +278,25 @@ PanelWindow {
                             const dd = UPower.displayDevice
                             return (dd && dd.ready && dd.percentage > 0.01) ? dd : null
                         }
+                        // Bypass = on AC but not charging (battery at threshold, AC powers system directly).
+                        // UPower's state property is unreliable here (reports Charging even when sysfs says Not charging),
+                        // so read /sys/class/power_supply/BAT0/status directly.
+                        property string batStatus: ""
+                        property bool bypass: batteryCluster.batStatus === "Not charging"
+                        FileView {
+                            path: "/sys/class/power_supply/BAT0/status"
+                            watchChanges: true
+                            onFileChanged: reload()
+                            onLoaded: batteryCluster.batStatus = text().trim()
+                        }
                         Row { id: batRow; spacing: Theme.spacingTight
+                            Text {
+                                visible: batteryCluster.bypass
+                                text: "󰒃"
+                                color: Colors.accent
+                                font.pixelSize: Theme.fontLarge; font.family: Theme.fontFamily
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
                             Text {
                                 text: !batteryCluster.bat ? "󰂑" : batteryCluster.bat.state === 1 ? "󰂋" : batteryCluster.bat.percentage < 0.25 ? "󰁻" : "󰁽"
                                 color: batteryCluster.bat?.state === 1 ? Colors.success : batteryCluster.bat?.percentage < 0.20 ? Colors.error : Colors.text
@@ -298,11 +316,11 @@ PanelWindow {
                     Item {
                         implicitWidth: clockRow.implicitWidth
                         implicitHeight: clockRow.implicitHeight
-                        HoverHandler { onHoveredChanged: if (hovered) { ControlState.rightPanel = "clock"; root.pinnedOpen = false } }
+                        HoverHandler { onHoveredChanged: if (hovered) { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "clock"; root.pinnedOpen = false } }
                         MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 if (root.pinnedOpen && ControlState.rightPanel === "clock") { root.pinnedOpen = false; ControlState.rightPanel = "none" }
-                                else { ControlState.rightPanel = "clock"; root.pinnedOpen = true }
+                                else { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "clock"; root.pinnedOpen = true }
                             }
                         }
                         Clock { id: clockRow }
@@ -333,11 +351,11 @@ PanelWindow {
                     Item {
                         implicitWidth: bellRow.implicitWidth + 4
                         implicitHeight: bellRow.implicitHeight
-                        HoverHandler { onHoveredChanged: if (hovered) { ControlState.rightPanel = "notif"; root.pinnedOpen = false } }
+                        HoverHandler { onHoveredChanged: if (hovered) { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "notif"; root.pinnedOpen = false } }
                         MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 if (root.pinnedOpen && ControlState.rightPanel === "notif") { root.pinnedOpen = false; ControlState.rightPanel = "none" }
-                                else { ControlState.rightPanel = "notif"; root.pinnedOpen = true }
+                                else { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "notif"; root.pinnedOpen = true }
                             }
                         }
                         Row { id: bellRow; spacing: Theme.spacingTight

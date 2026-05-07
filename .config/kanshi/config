@@ -1,17 +1,28 @@
-# kanshi monitor profiles — replaces hyprdynamicmonitors for niri
-# Run `niri msg outputs` to verify exact output descriptions/names
-# and adjust the strings below if needed.
+# kanshi monitor profiles — switched by ~/.config/scripts/kanshi-lid-watcher.sh
+# Auto-match by output presence; lid-watcher overrides via `kanshictl switch`.
+# Modes omitted = use compositor preferred mode.
 
-# Docked mode: lid closed, both external monitors connected
-profile docked {
-    output "Microstep Optix MAG24C REDACTED-SERIAL" mode 1920x1080@120 position -1920,0
-    output "Microstep G274QPF-QD REDACTED-SERIAL" mode 2560x1440@144 position 0,0
-    output eDP-1 disable
-    exec sh -c "pkill -SIGUSR2 waybar || waybar &"
+# Docked + lid open: all three displays active.
+# Default auto-match when both externals are connected and lid is open.
+profile docked_open {
+    output "Microstep Optix MAG24C REDACTED-SERIAL" position -1920,240
+    output "Microstep G274QPF-QD REDACTED-SERIAL" position 0,0
+    output eDP-1 scale 1.333333 position 2560,0
 }
 
-# Laptop mode: only eDP-1 connected (or docked displays not present)
-profile laptop {
-    output eDP-1 scale 1.333333
-    exec sh -c "pkill -SIGUSR2 waybar || waybar &"
+# Docked + lid closed: laptop screen disabled.
+# Triggered by lid-watcher via `kanshictl switch docked_closed`.
+profile docked_closed {
+    output "Microstep Optix MAG24C REDACTED-SERIAL" position -1920,240
+    output "Microstep G274QPF-QD REDACTED-SERIAL" position 0,0
+    output eDP-1 disable
+}
+
+# Laptop only: just eDP-1.
+profile laptop_open {
+    output eDP-1 scale 1.333333 position 0,0
+}
+
+# Catch-all so kanshi never fails to apply a profile.
+profile fallback {
 }

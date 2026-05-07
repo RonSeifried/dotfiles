@@ -30,7 +30,7 @@ output "eDP-1" {
 
 layout {
     gaps 5
-    background-color "#24222B" // pywal-overview
+    background-color "#00A5A8" // pywal-overview
 
     center-focused-column "on-overflow"
 
@@ -50,8 +50,8 @@ layout {
     border {
         width 3
         // pywal colors — updated by pywal-niri-colors.sh
-        active-color "#528DC5" // pywal-active
-        inactive-color "#24222B" // pywal-inactive
+        active-color "#4BD8DB" // pywal-active
+        inactive-color "#00A5A8" // pywal-inactive
     }
 
     shadow {
@@ -64,6 +64,17 @@ layout {
 
     struts {
         // leave empty — waybar uses layer-shell so no manual strut needed
+    }
+}
+
+overview {
+    // backdrop color = darkened avg of current wallpaper (set by pywal-niri-colors.sh)
+    backdrop-color "#00A5A8" // pywal-overview-backdrop
+    workspace-shadow {
+        softness 40
+        spread 8
+        offset x=0 y=12
+        color "#00000099"
     }
 }
 
@@ -110,7 +121,7 @@ recent-windows {
     debounce-ms 750
     open-delay-ms 150
     highlight {
-        active-color "#99999999"
+        active-color "#4BD8DB99" // pywal-recent-highlight
         corner-radius 8
         padding 30
     }
@@ -132,6 +143,10 @@ prefer-no-csd
 
 spawn-at-startup "qs"
 spawn-at-startup "kanshi"
+
+// Lid-aware kanshi profile switcher (manages systemd-inhibit so logind
+// only suspends when no external monitors are present).
+spawn-sh-at-startup "~/.config/scripts/kanshi-lid-watcher.sh"
 
 // Restore wallust/pywal colors (also regenerates Colors.qml for quickshell)
 spawn-sh-at-startup "wal -R"
@@ -283,7 +298,6 @@ binds {
     Mod+E       hotkey-overlay-title="File manager (yazi)"  { spawn "kitty" "--class=floating" "-e" "yazi"; }
     Mod+Shift+T hotkey-overlay-title="Task manager"         { spawn "kitty" "--class=floating" "-e" "taskwarrior-tui"; }
     Mod+A       hotkey-overlay-title="AI assistant"         { spawn-sh "~/.config/scripts/rofi/ai/askai.sh"; }
-    Mod+P       hotkey-overlay-title="Package installer"    { spawn-sh "~/.config/scripts/rofi/install-launcher.sh"; }
     Mod+G       hotkey-overlay-title="Wallpaper menu"       { spawn-sh "qs ipc call wallpaper toggle"; }
     Mod+Shift+S hotkey-overlay-title="Next wallpaper"       { spawn-sh "~/.config/scripts/rofi/wallpaper_switcher.sh --next"; }
     Mod+Shift+G hotkey-overlay-title="Random wallpaper"     { spawn-sh "~/.config/scripts/rofi/wallpaper_switcher.sh --random"; }

@@ -5,10 +5,16 @@ import Quickshell
 
 
 RowLayout {
+    id: root
     spacing: 4
 
+    // Show only workspaces belonging to this bar's screen.
+    property string output: ""
+
     Repeater {
-        model: NiriState.workspaces
+        model: root.output
+            ? NiriState.workspaces.filter(w => w.output === root.output)
+            : NiriState.workspaces
 
         delegate: Rectangle {
             required property var modelData

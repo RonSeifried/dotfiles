@@ -8,8 +8,18 @@ Singleton {
 
     property var workspaces: []
     property int activeWorkspaceId: -1
+    property string focusedOutput: ""
     property string focusedWindowTitle: ""
     property var allWindows: []
+
+    function _applyWorkspaces(ws) {
+        root.workspaces = ws.sort((a, b) => a.idx - b.idx)
+        const active = ws.find(w => w.is_focused)
+        if (active) {
+            root.activeWorkspaceId = active.id
+            if (active.output) root.focusedOutput = active.output
+        }
+    }
 
     // Initial workspace query
     Process {
@@ -20,9 +30,7 @@ Singleton {
             onRead: line => {
                 try {
                     const ws = JSON.parse(line)
-                    root.workspaces = ws.sort((a, b) => a.idx - b.idx)
-                    const active = ws.find(w => w.is_focused)
-                    if (active) root.activeWorkspaceId = active.id
+                    root._applyWorkspaces(ws)
                 } catch (e) {}
             }
         }
@@ -58,13 +66,14 @@ Singleton {
                     const type = Object.keys(ev)[0]
 
                     if (type === "WorkspacesChanged") {
-                        const ws = ev.WorkspacesChanged.workspaces
-                        root.workspaces = ws.sort((a, b) => a.idx - b.idx)
-                        const active = ws.find(w => w.is_focused)
-                        if (active) root.activeWorkspaceId = active.id
+                        root._applyWorkspaces(ev.WorkspacesChanged.workspaces)
                     } else if (type === "WorkspaceActivated") {
-                        if (ev.WorkspaceActivated.focused)
-                            root.activeWorkspaceId = ev.WorkspaceActivated.id
+                        if (ev.WorkspaceActivated.focused) {
+                            const wid = ev.WorkspaceActivated.id
+                            root.activeWorkspaceId = wid
+                            const w = root.workspaces.find(x => x.id === wid)
+                            if (w && w.output) root.focusedOutput = w.output
+                        }
                     } else if (type === "WindowsChanged") {
                         root.allWindows = ev.WindowsChanged.windows || []
                         const f = root.allWindows.find(w => w.is_focused)
