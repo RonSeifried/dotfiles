@@ -1,3 +1,4 @@
 singleton LockTheme 1.0 LockTheme.qml
+singleton LockColors 1.0 LockColors.qml
 LockContext 1.0 LockContext.qml
 LockSurface 1.0 LockSurface.qml

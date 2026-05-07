@@ -10,7 +10,7 @@ Rectangle {
     id: root
     required property LockContext context
 
-    color: "#1a1410"
+    color: LockColors.background
 
     // Fade in on appear for smooth lock activation
     opacity: 0
@@ -47,8 +47,8 @@ Rectangle {
     // Subtle dark overlay for readability
     Rectangle {
         anchors.fill: parent
-        color: "#000000"
-        opacity: 0.25
+        color: LockColors.background
+        opacity: LockColors.overlayAlpha
     }
 
     // Clock
@@ -66,7 +66,7 @@ Rectangle {
             font.family: LockTheme.fontFamily
             font.pointSize: LockTheme.fontClock
             font.weight: Font.Light
-            color: "#E5D7CE"
+            color: LockColors.text
             text: {
                 const h = date.getHours().toString().padStart(2, '0')
                 const m = date.getMinutes().toString().padStart(2, '0')
@@ -84,7 +84,7 @@ Rectangle {
             anchors.horizontalCenter: parent.horizontalCenter
             font.family: LockTheme.fontFamily
             font.pointSize: LockTheme.fontDate
-            color: "#BEABC8"
+            color: LockColors.textMuted
             text: Qt.formatDate(clock.date, "dddd, d. MMMM yyyy")
         }
     }
@@ -101,7 +101,7 @@ Rectangle {
             Layout.preferredHeight: LockTheme.inputHeight
             radius: LockTheme.radiusPill
             color: Qt.rgba(0, 0, 0, 0.55)
-            border.color: passwordBox.activeFocus ? "#DB6FA6" : Qt.rgba(1, 1, 1, 0.18)
+            border.color: passwordBox.activeFocus ? LockColors.accent : Qt.rgba(1, 1, 1, 0.18)
             border.width: LockTheme.inputBorder
 
             TextField {
@@ -110,8 +110,8 @@ Rectangle {
                 anchors.leftMargin: 18
                 anchors.rightMargin: 18
                 background: null
-                color: "#E5D7CE"
-                placeholderText: "Passwort"
+                color: LockColors.text
+                placeholderText: "Password"
                 placeholderTextColor: Qt.rgba(1, 1, 1, 0.4)
                 font.family: LockTheme.fontFamily
                 font.pointSize: LockTheme.fontInput
@@ -137,8 +137,8 @@ Rectangle {
         Label {
             Layout.alignment: Qt.AlignHCenter
             visible: root.context.showFailure
-            text: "Falsches Passwort"
-            color: "#DB6FA6"
+            text: "Wrong password"
+            color: LockColors.error
             font.family: LockTheme.fontFamily
             font.pointSize: LockTheme.fontStatus
         }
@@ -146,8 +146,8 @@ Rectangle {
         Label {
             Layout.alignment: Qt.AlignHCenter
             visible: root.context.unlockInProgress
-            text: "Prüfe …"
-            color: "#BEABC8"
+            text: "Checking…"
+            color: LockColors.textMuted
             font.family: LockTheme.fontFamily
             font.pointSize: LockTheme.fontStatus
         }
