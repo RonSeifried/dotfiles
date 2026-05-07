@@ -51,6 +51,14 @@ Rectangle {
         opacity: LockColors.overlayAlpha
     }
 
+    // Battery — top-right corner, hidden if no battery present
+    BatteryWidget {
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.topMargin: LockTheme.batteryMargin
+        anchors.rightMargin: LockTheme.batteryMargin
+    }
+
     // Clock — vertically centered, offset above mid
     Clock {
         anchors.horizontalCenter: parent.horizontalCenter
