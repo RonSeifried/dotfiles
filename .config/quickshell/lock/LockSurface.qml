@@ -51,42 +51,11 @@ Rectangle {
         opacity: LockColors.overlayAlpha
     }
 
-    // Clock
-    Column {
+    // Clock — vertically centered, offset above mid
+    Clock {
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: parent.top
-        anchors.topMargin: parent.height * 0.18
-        spacing: LockTheme.spacingNormal
-
-        Label {
-            id: clock
-            property var date: new Date()
-            anchors.horizontalCenter: parent.horizontalCenter
-            renderType: Text.NativeRendering
-            font.family: LockTheme.fontFamily
-            font.pointSize: LockTheme.fontClock
-            font.weight: Font.Light
-            color: LockColors.text
-            text: {
-                const h = date.getHours().toString().padStart(2, '0')
-                const m = date.getMinutes().toString().padStart(2, '0')
-                return `${h}:${m}`
-            }
-            Timer {
-                running: true
-                repeat: true
-                interval: 1000
-                onTriggered: clock.date = new Date()
-            }
-        }
-
-        Label {
-            anchors.horizontalCenter: parent.horizontalCenter
-            font.family: LockTheme.fontFamily
-            font.pointSize: LockTheme.fontDate
-            color: LockColors.textMuted
-            text: Qt.formatDate(clock.date, "dddd, d. MMMM yyyy")
-        }
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenterOffset: parent.height * LockTheme.clockOffsetY
     }
 
     // Password input
