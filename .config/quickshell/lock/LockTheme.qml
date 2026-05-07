@@ -29,4 +29,15 @@ QtObject {
     readonly property int inputWidth:  360
     readonly property int inputHeight: 48
     readonly property int inputBorder: 2
+
+    // ── New tokens (lockscreen redesign) ─────────────────────────
+    readonly property int fontPercent:       11
+    readonly property int batteryPillHeight: 28
+    readonly property int batteryMargin:     16
+    readonly property int shakeAmplitude:    8
+    readonly property int durShake:          420
+    readonly property int durColor:          380
+    readonly property real clockOffsetY:     -0.10   // fraction of parent height
+    readonly property real inputOffsetY:      0.05
+    readonly property real overlayAlpha:      0.35
 }
