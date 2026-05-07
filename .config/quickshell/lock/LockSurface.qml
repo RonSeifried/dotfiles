@@ -66,67 +66,11 @@ Rectangle {
         anchors.verticalCenterOffset: parent.height * LockTheme.clockOffsetY
     }
 
-    // Password input
-    ColumnLayout {
+    // Password input — vertically centered, offset below mid
+    PasswordPill {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
-        anchors.verticalCenterOffset: parent.height * 0.15
-        spacing: LockTheme.spacingLarge
-
-        Rectangle {
-            Layout.preferredWidth: LockTheme.inputWidth
-            Layout.preferredHeight: LockTheme.inputHeight
-            radius: LockTheme.radiusPill
-            color: Qt.rgba(0, 0, 0, 0.55)
-            border.color: passwordBox.activeFocus ? LockColors.accent : Qt.rgba(1, 1, 1, 0.18)
-            border.width: LockTheme.inputBorder
-
-            TextField {
-                id: passwordBox
-                anchors.fill: parent
-                anchors.leftMargin: 18
-                anchors.rightMargin: 18
-                background: null
-                color: LockColors.text
-                placeholderText: "Password"
-                placeholderTextColor: Qt.rgba(1, 1, 1, 0.4)
-                font.family: LockTheme.fontFamily
-                font.pointSize: LockTheme.fontInput
-                verticalAlignment: TextInput.AlignVCenter
-                focus: true
-                enabled: !root.context.unlockInProgress
-                echoMode: TextInput.Password
-                inputMethodHints: Qt.ImhSensitiveData
-
-                onTextChanged: root.context.currentText = text
-                onAccepted: root.context.tryUnlock()
-
-                Connections {
-                    target: root.context
-                    function onCurrentTextChanged() {
-                        if (passwordBox.text !== root.context.currentText)
-                            passwordBox.text = root.context.currentText
-                    }
-                }
-            }
-        }
-
-        Label {
-            Layout.alignment: Qt.AlignHCenter
-            visible: root.context.showFailure
-            text: "Wrong password"
-            color: LockColors.error
-            font.family: LockTheme.fontFamily
-            font.pointSize: LockTheme.fontStatus
-        }
-
-        Label {
-            Layout.alignment: Qt.AlignHCenter
-            visible: root.context.unlockInProgress
-            text: "Checking…"
-            color: LockColors.textMuted
-            font.family: LockTheme.fontFamily
-            font.pointSize: LockTheme.fontStatus
-        }
+        anchors.verticalCenterOffset: parent.height * LockTheme.inputOffsetY
+        context: root.context
     }
 }

@@ -39,8 +39,7 @@ ShellRoot {
         target: "lock"
 
         function lock() {
-            lockContext.currentText = ""
-            lockContext.showFailure = false
+            lockContext.resetForLock()
             sessionLock.locked = true
         }
 

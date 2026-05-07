@@ -4,3 +4,4 @@ LockContext 1.0 LockContext.qml
 LockSurface 1.0 LockSurface.qml
 Clock 1.0 widgets/Clock.qml
 BatteryWidget 1.0 widgets/BatteryWidget.qml
+PasswordPill 1.0 widgets/PasswordPill.qml
