@@ -9,6 +9,7 @@ import "."
 Rectangle {
     id: root
     required property LockContext context
+    required property string screenName
 
     color: LockColors.background
 
@@ -23,7 +24,12 @@ Rectangle {
     Image {
         id: wallpaper
         anchors.fill: parent
-        source: "file://" + Quickshell.env("HOME") + "/.cache/current_wallpaper"
+        source: "file:///tmp/qs-lock-" + root.screenName + ".png"
+        onStatusChanged: {
+            if (status === Image.Error) {
+                source = "file://" + Quickshell.env("HOME") + "/.cache/current_wallpaper"
+            }
+        }
         fillMode: Image.PreserveAspectCrop
         smooth: true
         asynchronous: true
