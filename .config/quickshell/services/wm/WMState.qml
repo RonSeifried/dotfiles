@@ -3,15 +3,25 @@ import Quickshell
 import QtQuick
 import Quickshell.Io
 
+// WM-agnostic state surface. Today: niri-backend only.
+// Future: alternate backends (hyprland/sway) implement the same property+function
+// shape so consumers stay unchanged when an additional WM is added.
 Singleton {
     id: root
 
+    // ── Public interface (WM-agnostic) ───────────────────────────
     property var workspaces: []
     property int activeWorkspaceId: -1
     property string focusedOutput: ""
     property string focusedWindowTitle: ""
     property var allWindows: []
 
+    function focusWorkspace(id) {
+        focusProc.command = ["niri", "msg", "action", "focus-workspace-by-id", String(id)]
+        focusProc.running = true
+    }
+
+    // ── Niri backend (private impl) ──────────────────────────────
     function _applyWorkspaces(ws) {
         root.workspaces = ws.sort((a, b) => a.idx - b.idx)
         const active = ws.find(w => w.is_focused)
@@ -21,7 +31,6 @@ Singleton {
         }
     }
 
-    // Initial workspace query
     Process {
         id: initWs
         command: ["niri", "msg", "--json", "workspaces"]
@@ -36,7 +45,6 @@ Singleton {
         }
     }
 
-    // Initial focused-window query; re-run when a window closes
     Process {
         id: initWin
         command: ["niri", "msg", "--json", "windows"]
@@ -53,7 +61,6 @@ Singleton {
         }
     }
 
-    // Live event stream — auto-restarts on exit
     Process {
         id: eventStream
         command: ["niri", "msg", "--json", "event-stream"]
@@ -82,7 +89,6 @@ Singleton {
                         const win = ev.WindowOpenedOrChanged.window
                         if (win.is_focused)
                             root.focusedWindowTitle = win.title || win.app_id || ""
-                        // upsert window in allWindows
                         const idx = root.allWindows.findIndex(w => w.id === win.id)
                         const next = root.allWindows.slice()
                         if (idx >= 0) next[idx] = win; else next.push(win)
@@ -101,13 +107,7 @@ Singleton {
         }
     }
 
-    // One-shot process for programmatic workspace focus
     Process {
         id: focusProc
-    }
-
-    function focusWorkspace(id) {
-        focusProc.command = ["niri", "msg", "action", "focus-workspace-by-id", String(id)]
-        focusProc.running = true
     }
 }

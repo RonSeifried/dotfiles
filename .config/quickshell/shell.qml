@@ -19,7 +19,7 @@ ShellRoot {
     // Effective screen for popups (launcher, menus, OSD).
     // Bar-set override > niri keyboard/mouse focused output > first screen (boot fallback).
     readonly property string targetScreen: ControlState.activeScreen
-        || NiriState.focusedOutput
+        || WMState.focusedOutput
         || (Quickshell.screens.length > 0 ? Quickshell.screens[0].name : "")
 
     // ── Bar — one per screen ────────────────────────────────────

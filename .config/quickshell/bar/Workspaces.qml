@@ -13,12 +13,12 @@ RowLayout {
 
     Repeater {
         model: root.output
-            ? NiriState.workspaces.filter(w => w.output === root.output)
-            : NiriState.workspaces
+            ? WMState.workspaces.filter(w => w.output === root.output)
+            : WMState.workspaces
 
         delegate: Rectangle {
             required property var modelData
-            property bool isActive: modelData.id === NiriState.activeWorkspaceId
+            property bool isActive: modelData.id === WMState.activeWorkspaceId
             property bool hasWindows: modelData.windows_count > 0
             property bool isUrgent: modelData.is_urgent === true
 
@@ -84,7 +84,7 @@ RowLayout {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: NiriState.focusWorkspace(parent.modelData.id)
+                onClicked: WMState.focusWorkspace(parent.modelData.id)
             }
         }
     }

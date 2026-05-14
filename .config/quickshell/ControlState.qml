@@ -2,7 +2,7 @@ pragma Singleton
 import Quickshell
 
 Singleton {
-    // Empty = fall back to NiriState.focusedOutput (mouse/keyboard focused screen).
+    // Empty = fall back to WMState.focusedOutput (mouse/keyboard focused screen).
     // Bar interactions set this to their own screen so popups pin to the bar that was clicked.
     property string activeScreen: ""
 

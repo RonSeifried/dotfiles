@@ -1,6 +1,6 @@
 singleton Colors 1.0 Colors.qml
 singleton Theme 1.0 Theme.qml
-singleton NiriState 1.0 NiriState.qml
+singleton WMState 1.0 services/wm/WMState.qml
 singleton ControlState 1.0 ControlState.qml
 singleton AudioState 1.0 services/audio/AudioState.qml
 singleton NetUtils 1.0 services/network/NetUtils.qml

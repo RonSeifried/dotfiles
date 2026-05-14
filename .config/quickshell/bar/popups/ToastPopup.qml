@@ -27,7 +27,7 @@ PopupWindow {
         target: NotifState
         function onToastRequested(notif) {
             if (root.bar && root.bar.screen
-                && root.bar.screen.name === NiriState.focusedOutput) {
+                && root.bar.screen.name === WMState.focusedOutput) {
                 root.showToast(notif)
             }
         }

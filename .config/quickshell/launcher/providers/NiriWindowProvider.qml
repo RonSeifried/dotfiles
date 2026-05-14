@@ -43,7 +43,7 @@ Item {
     }
 
     function search(query) {
-        const wins = NiriState.allWindows || []
+        const wins = WMState.allWindows || []
         if (!query) return wins.slice(0, 8).map(w => _toResult(w, 200))
         const q = query.toLowerCase()
         const out = []
