@@ -1,53 +1,55 @@
 pragma Singleton
 import QtQuick
+import Quickshell
 
-QtObject {
-    // ── Sizes ────────────────────────────────────────────────────
-    readonly property int barHeight:        36
-    readonly property int barMargin:        8
-    readonly property int barTopMargin:     6
-    readonly property int barExclusiveZone: 42
-    readonly property int pillHeight:       28
+// Back-compat forwarder. Real metrics/fonts live in services/theme/ThemeClient.
+Singleton {
+    // Sizes
+    readonly property int barHeight:        ThemeClient.metrics.barHeight
+    readonly property int barMargin:        ThemeClient.metrics.barMargin
+    readonly property int barTopMargin:     ThemeClient.metrics.barTopMargin
+    readonly property int barExclusiveZone: ThemeClient.metrics.barExclusiveZone
+    readonly property int pillHeight:       ThemeClient.metrics.pillHeight
 
-    // ── Radii ────────────────────────────────────────────────────
-    readonly property int radiusPill:    999
-    readonly property int radiusLarge:   14
-    readonly property int radiusMedium:  12
-    readonly property int radiusSmall:   8
-    readonly property int radiusTiny:    6
+    // Radii
+    readonly property int radiusPill:    ThemeClient.metrics.radiusPill
+    readonly property int radiusLarge:   ThemeClient.metrics.radiusLarge
+    readonly property int radiusMedium:  ThemeClient.metrics.radiusMedium
+    readonly property int radiusSmall:   ThemeClient.metrics.radiusSmall
+    readonly property int radiusTiny:    ThemeClient.metrics.radiusTiny
 
-    // ── Spacing ──────────────────────────────────────────────────
-    readonly property int spacingTight:  4
-    readonly property int spacingSmall:  6
-    readonly property int spacingNormal: 8
-    readonly property int spacingLarge:  12
+    // Spacing
+    readonly property int spacingTight:  ThemeClient.metrics.spacingTight
+    readonly property int spacingSmall:  ThemeClient.metrics.spacingSmall
+    readonly property int spacingNormal: ThemeClient.metrics.spacingNormal
+    readonly property int spacingLarge:  ThemeClient.metrics.spacingLarge
 
-    // ── Font ─────────────────────────────────────────────────────
-    readonly property string fontFamily: "JetBrainsMono Nerd Font"
-    readonly property int fontTiny:   9
-    readonly property int fontSmall:  10
-    readonly property int fontNormal: 11
-    readonly property int fontMedium: 12
-    readonly property int fontLarge:  13
+    // Font
+    readonly property string fontFamily: ThemeClient.fonts.family
+    readonly property int fontTiny:   ThemeClient.fonts.tiny
+    readonly property int fontSmall:  ThemeClient.fonts.small
+    readonly property int fontNormal: ThemeClient.fonts.normal
+    readonly property int fontMedium: ThemeClient.fonts.medium
+    readonly property int fontLarge:  ThemeClient.fonts.large
 
-    // ── Animation durations ──────────────────────────────────────
-    readonly property int durFast:     120
-    readonly property int durNormal:   180
-    readonly property int durSlide:    220
-    readonly property int durHover:    150
-    readonly property int durColor:    380
+    // Animation durations
+    readonly property int durFast:   ThemeClient.metrics.durFast
+    readonly property int durNormal: ThemeClient.metrics.durNormal
+    readonly property int durSlide:  ThemeClient.metrics.durSlide
+    readonly property int durHover:  ThemeClient.metrics.durHover
+    readonly property int durColor:  ThemeClient.metrics.durColor
 
-    // ── Panel ────────────────────────────────────────────────────
-    readonly property int panelPadding: 10
-    readonly property int popupGap:     4
+    // Panel
+    readonly property int panelPadding: ThemeClient.metrics.panelPadding
+    readonly property int popupGap:     ThemeClient.metrics.popupGap
 
-    // ── Launcher ─────────────────────────────────────────────────
-    readonly property int launcherWidth:      440
-    readonly property int launcherMaxHeight:  480
-    readonly property int launcherTopMargin:  100
-    readonly property int searchBarHeight:    40
-    readonly property int appItemHeight:      38
-    readonly property int resultItemHeight:   46
-    readonly property int appIconSize:        22
-    readonly property int hintBarHeight:      22
+    // Launcher
+    readonly property int launcherWidth:     ThemeClient.metrics.launcherWidth
+    readonly property int launcherMaxHeight: ThemeClient.metrics.launcherMaxHeight
+    readonly property int launcherTopMargin: ThemeClient.metrics.launcherTopMargin
+    readonly property int searchBarHeight:   ThemeClient.metrics.searchBarHeight
+    readonly property int appItemHeight:     ThemeClient.metrics.appItemHeight
+    readonly property int resultItemHeight:  ThemeClient.metrics.resultItemHeight
+    readonly property int appIconSize:       ThemeClient.metrics.appIconSize
+    readonly property int hintBarHeight:     ThemeClient.metrics.hintBarHeight
 }

@@ -48,8 +48,5 @@ TODO.md
 
 /.config/starship/starship.toml
 
-# Wallust-generated quickshell colors
-.config/quickshell/Colors.qml
-
 # Per-host niri override (optional include, kept out of VCS)
 .config/niri/includes/host.kdl

@@ -1,0 +1,2 @@
+singleton LocalThemeProvider 1.0 LocalThemeProvider.qml
+singleton ThemeClient 1.0 ThemeClient.qml
