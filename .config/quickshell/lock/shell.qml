@@ -6,18 +6,6 @@ import Quickshell.Wayland
 ShellRoot {
     id: shell
 
-    // Pre-warm image cache: hidden Image loads wallpaper at qs startup
-    // so LockSurface renders instantly on activation.
-    Image {
-        id: preloader
-        source: "file://" + Quickshell.env("HOME") + "/.cache/current_wallpaper"
-        cache: true
-        asynchronous: false
-        visible: false
-        width: 1
-        height: 1
-    }
-
     LockContext {
         id: lockContext
         onUnlocked: sessionLock.locked = false
@@ -29,38 +17,16 @@ ShellRoot {
 
         WlSessionLockSurface {
             id: surface
+            color: "transparent"
+            // Native compositor blur via ext-background-effect-v1 (qs 0.3 + niri 26.04).
+            // Niri blurs whatever it renders behind the session-lock surface; LockSurface
+            // sits on top with a dim overlay for contrast.
+            BackgroundEffect.blurRegion: Region { item: surface.contentItem }
+
             LockSurface {
                 anchors.fill: parent
                 context: lockContext
-                screenName: surface.screen.name
             }
-        }
-    }
-
-    Process {
-        id: grimProc
-        // Captures one PNG per niri output → /tmp/qs-lock-<output>.png
-        // jq is part of the dotfiles toolchain (used by pywal scripts).
-        // Single sh -c so we can iterate outputs synchronously before locking.
-        command: ["sh", "-c",
-            "for o in $(niri msg --json outputs | jq -r 'keys[]'); do " +
-            "  grim -o \"$o\" \"/tmp/qs-lock-$o.png\" || true; " +
-            "done"]
-        onExited: code => {
-            // Lock surface comes up regardless — fallback to wallpaper if grim failed.
-            sessionLock.locked = true
-        }
-    }
-
-    Process {
-        id: cleanupProc
-        command: ["sh", "-c", "rm -f /tmp/qs-lock-*.png"]
-    }
-
-    Connections {
-        target: sessionLock
-        function onLockedChanged() {
-            if (!sessionLock.locked) cleanupProc.running = true
         }
     }
 
@@ -69,14 +35,7 @@ ShellRoot {
 
         function lock() {
             lockContext.resetForLock()
-            // Async chain: grim captures all outputs → onExited sets locked=true.
-            // ~100-200ms latency, matches hyprlock behavior.
-            grimProc.running = true
-        }
-
-        function reload() {
-            preloader.source = ""
-            preloader.source = "file://" + Quickshell.env("HOME") + "/.cache/current_wallpaper"
+            sessionLock.locked = true
         }
     }
 }

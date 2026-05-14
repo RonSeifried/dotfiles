@@ -5,9 +5,13 @@ import Quickshell
 import Quickshell.Io
 
 import "bar"
+import "bar/popups"
 import "launcher"
 import "osd"
 import "menus"
+import "services/mcp"
+import "services/performance"
+import "services/polkit"
 
 ShellRoot {
     id: shellRoot
@@ -77,10 +81,50 @@ ShellRoot {
         }
     }
 
+    // ── Polkit Auth Overlay ─────────────────────────────────────
+    Variants {
+        model: Quickshell.screens
+        delegate: PolkitOverlay {
+            required property var modelData
+            screen: modelData
+            active: modelData.name === shellRoot.targetScreen
+        }
+    }
+
+    // ── MCP Manager (single floating window, not per-screen) ────
+    McpManager {
+        id: mcpManager
+        visible: false
+    }
+
+    // ── Performance Panel ───────────────────────────────────────
+    Variants {
+        model: Quickshell.screens
+        delegate: PerfPanel {
+            required property var modelData
+            screen: modelData
+            open: ControlState.perfPanelOpen && modelData.name === shellRoot.targetScreen
+        }
+    }
+
+    // PerfState collector subprocess runs only when something is consuming it.
+    // Singleton-to-singleton Binding{} can race with QML init; explicit
+    // Connections + an onComplete primer is more reliable.
+    Connections {
+        target: ControlState
+        function onPerfPillVisibleChanged() { PerfState.active = ControlState.perfPillVisible || ControlState.perfPanelOpen }
+        function onPerfPanelOpenChanged()   { PerfState.active = ControlState.perfPillVisible || ControlState.perfPanelOpen }
+    }
+    Component.onCompleted: PerfState.active = ControlState.perfPillVisible || ControlState.perfPanelOpen
+
     // ── IPC ─────────────────────────────────────────────────────
     IpcHandler {
         target: "launcher"
         function toggle() { ControlState.launcherOpen = !ControlState.launcherOpen }
+        function ai() {
+            ControlState.launcherPrefill = "ai "
+            ControlState.launcherOpen = true
+        }
     }
 
     IpcHandler {
@@ -111,6 +155,20 @@ ShellRoot {
     IpcHandler {
         target: "panel"
         function close() { ControlState.rightPanel = "none" }
+    }
+
+    IpcHandler {
+        target: "mcp"
+        function toggle() { mcpManager.visible = !mcpManager.visible }
+        function open()   { mcpManager.visible = true }
+        function close()  { mcpManager.visible = false }
+    }
+
+    IpcHandler {
+        target: "perf"
+        function togglePill()  { ControlState.perfPillVisible = !ControlState.perfPillVisible }
+        function togglePanel() { ControlState.perfPanelOpen = !ControlState.perfPanelOpen }
+        function close()       { ControlState.perfPanelOpen = false }
     }
 
     IpcHandler {

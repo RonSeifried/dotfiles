@@ -7,6 +7,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Services.UPower
 import Quickshell.Bluetooth
+import Quickshell.Networking
 import Quickshell.Services.SystemTray
 
 PanelWindow {
@@ -20,15 +21,26 @@ PanelWindow {
     anchors { top: true; left: true; right: true }
     exclusiveZone: Theme.barExclusiveZone
 
-    // Corners flat while EITHER popup is visible
-    property bool panelOpen: rightPanelPopup.popupVisible || toastPopup.toastVisible
-    property bool pinnedOpen: false
+    // Corners flat while ANY popup is visible
+    property bool panelOpen: rightPanelPopup.popupVisible || toastPopup.toastVisible || mprisPopup.popupVisible
+    // Which panel (if any) is click-pinned. "" = no pin (hover-only).
+    // Scoping by name prevents one pill's pin leaking onto another pill's panel.
+    property string pinnedPanel: ""
+    readonly property bool isPinned: pinnedPanel.length > 0
 
-    // Close on ToplevelManager focus change (click elsewhere)
+    // Close on ToplevelManager focus change (click elsewhere).
+    // Skip if user is interacting with the bar's own popups: clicking a pill
+    // or hovering its panel briefly drops the active toplevel (layer-shell
+    // focus grant), which would otherwise race the click handler and cause
+    // pin-on-click to flicker / require multiple attempts.
     Connections {
         target: ToplevelManager
         function onActiveToplevelChanged() {
-            if (!root.pinnedOpen) ControlState.rightPanel = "none"
+            if (root.isPinned) return
+            if (rightPanelPopup.keyboardActive || mprisPopup.keyboardActive) return
+            if (rightPillHover.hovered || mprisPillHover.hovered) return
+            if (rightPanelPopup.panelHovered || mprisPopup.panelHovered) return
+            ControlState.rightPanel = "none"
         }
     }
 
@@ -44,15 +56,24 @@ PanelWindow {
         id: rightPanelPopup
         bar: root
         anchorItem: rightPill
-        pinnedOpen: root.pinnedOpen
+        pinnedPanel: root.pinnedPanel
         pillHovered: rightPillHover.hovered
-        onPinnedClosed: root.pinnedOpen = false
+        onPinnedClosed: root.pinnedPanel = ""
     }
 
     ToastPopup {
         id: toastPopup
         bar: root
         anchorItem: rightPill
+    }
+
+    MprisPopup {
+        id: mprisPopup
+        bar: root
+        anchorItem: mprisPill
+        pinnedPanel: root.pinnedPanel
+        pillHovered: mprisPillHover.hovered
+        onPinnedClosed: root.pinnedPanel = ""
     }
 
     // ── Bar content ──────────────────────────────────────────────
@@ -101,15 +122,31 @@ PanelWindow {
                 }
             }
 
-            // ── MPRIS pill: shows when playing, animates in/out ──
+            // ── MPRIS pill ───────────────────────────────────────
+            // Visible while ANY player exists (not just playing) — pause must
+            // not collapse the pill. Bottom corners flatten only when the
+            // MPRIS popup is open on this screen, mirroring rightPill.
+            // Width grows to a floor when own panel open so the wider panel
+            // body aligns cleanly with the pill edges.
             Rectangle {
                 id: mprisPill
                 Layout.alignment: Qt.AlignVCenter
-                readonly property bool show: MprisState.isPlaying
-                readonly property real targetWidth: mediaContent.implicitWidth + 24
+                readonly property bool show: MprisState.hasAny
+                readonly property int panelMinWidth: 240
+                readonly property real targetWidth: ownPanelOpen
+                    ? Math.max(mediaContent.implicitWidth + 24, panelMinWidth)
+                    : mediaContent.implicitWidth + 24
+                readonly property bool ownPanelOpen: mprisPopup.popupVisible
+                    && ControlState.rightPanel === "mpris"
+                    && root.screen && root.screen.name === ControlState.activeScreen
+
                 implicitHeight: Theme.pillHeight
                 implicitWidth: show ? targetWidth : 0
-                radius: Theme.radiusPill
+                topLeftRadius: Theme.radiusPill; topRightRadius: Theme.radiusPill
+                bottomLeftRadius: ownPanelOpen ? 0 : Theme.radiusPill
+                bottomRightRadius: ownPanelOpen ? 0 : Theme.radiusPill
+                Behavior on bottomLeftRadius  { NumberAnimation { duration: 100; easing.type: Easing.OutQuad } }
+                Behavior on bottomRightRadius { NumberAnimation { duration: 100; easing.type: Easing.OutQuad } }
                 color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Colors.pillBgAlpha)
                 border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
                 border.width: 1
@@ -119,21 +156,32 @@ PanelWindow {
                 Behavior on implicitWidth { NumberAnimation { duration: Theme.durSlide; easing.type: Easing.OutCubic } }
                 Behavior on opacity { NumberAnimation { duration: Theme.durNormal; easing.type: Easing.OutCubic } }
 
+                HoverHandler { id: mprisPillHover }
+
                 MediaPlayer {
                     id: mediaContent
+                    bar: root
                     anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 12; rightMargin: 12 }
                 }
             }
+
+            // ── Perf pill: CPU% + sparkline ──────────────────────
+            // Hidden by default. Mod+H toggles ControlState.perfPillVisible.
+            // Click opens PerfPanel (top-edge slide-down).
+            PerfPill { id: perfPill; bar: root }
 
             // ── Right pill: status cluster ───────────────────────
             Rectangle {
                 id: rightPill
                 Layout.alignment: Qt.AlignVCenter
+                // Flatten only when the right-cluster popup is what's open
+                // (mpris popup opens elsewhere → don't flatten this pill).
+                readonly property bool ownPanelOpen: rightPanelPopup.popupVisible || toastPopup.toastVisible
                 implicitHeight: Theme.pillHeight
                 implicitWidth: rightRow.implicitWidth + 18
                 topLeftRadius: Theme.radiusPill; topRightRadius: Theme.radiusPill
-                bottomLeftRadius: root.panelOpen ? 0 : Theme.radiusPill
-                bottomRightRadius: root.panelOpen ? 0 : Theme.radiusPill
+                bottomLeftRadius: ownPanelOpen ? 0 : Theme.radiusPill
+                bottomRightRadius: ownPanelOpen ? 0 : Theme.radiusPill
                 Behavior on bottomLeftRadius  { NumberAnimation { duration: 100; easing.type: Easing.OutQuad } }
                 Behavior on bottomRightRadius { NumberAnimation { duration: 100; easing.type: Easing.OutQuad } }
                 color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Colors.pillBgAlpha)
@@ -153,37 +201,25 @@ PanelWindow {
                         visible: SystemTray.items.values.length > 0
                     }
 
-                    Rectangle {
-                        visible: tray.visible
-                        width: 1; height: 14; radius: 1
-                        color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.3)
-                    }
+                    BarDivider { visible: tray.visible }
 
                     // WiFi
-                    Item {
-                        implicitWidth: wifiIconRow.implicitWidth
-                        implicitHeight: wifiIconRow.implicitHeight
-                        HoverHandler { onHoveredChanged: if (hovered) { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "wifi"; root.pinnedOpen = false } }
-                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                if (root.pinnedOpen && ControlState.rightPanel === "wifi") { root.pinnedOpen = false; ControlState.rightPanel = "none" }
-                                else { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "wifi"; root.pinnedOpen = true }
-                            }
-                        }
+                    BarPillButton {
+                        panel: "wifi"; bar: root
                         Row {
-                            id: wifiIconRow; spacing: Theme.spacingTight
+                            spacing: Theme.spacingTight
                             Text {
                                 text: {
-                                    if (NetworkState.connType === "ethernet") return "󰈀"
-                                    if (!NetworkState.wifiEnabled) return "󰤯"
-                                    if (NetworkState.connType === "wifi") return NetworkState.signalIcon(NetworkState.signal)
+                                    if (NetUtils.wiredConnected) return "󰈀"
+                                    if (!Networking.wifiEnabled) return "󰤯"
+                                    if (NetUtils.activeWifi) return NetUtils.signalIcon(NetUtils.activeWifi.signalStrength)
                                     return "󰤭"
                                 }
-                                color: NetworkState.connType !== "none" ? Colors.text : Colors.textMuted
+                                color: (NetUtils.wiredConnected || NetUtils.activeWifi) ? Colors.text : Colors.textMuted
                                 font.pixelSize: Theme.fontLarge; font.family: Theme.fontFamily
                             }
                             Text {
-                                visible: NetworkState.anyVpnActive
+                                visible: VpnState.anyVpnActive
                                 text: "󰦝"
                                 color: Colors.success
                                 font.pixelSize: Theme.fontMedium; font.family: Theme.fontFamily
@@ -192,18 +228,9 @@ PanelWindow {
                     }
 
                     // Bluetooth
-                    Item {
-                        implicitWidth: btIconText.implicitWidth
-                        implicitHeight: btIconText.implicitHeight
-                        HoverHandler { onHoveredChanged: if (hovered) { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "bluetooth"; root.pinnedOpen = false } }
-                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                if (root.pinnedOpen && ControlState.rightPanel === "bluetooth") { root.pinnedOpen = false; ControlState.rightPanel = "none" }
-                                else { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "bluetooth"; root.pinnedOpen = true }
-                            }
-                        }
+                    BarPillButton {
+                        panel: "bluetooth"; bar: root
                         Text {
-                            id: btIconText
                             text: {
                                 const a = Bluetooth.defaultAdapter
                                 if (!a || !a.enabled) return "󰂲"
@@ -224,15 +251,19 @@ PanelWindow {
                         }
                     }
 
-                    Rectangle { width: 1; height: 14; radius: 1; color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.3) }
+                    BarDivider {}
 
-                    // Audio
-                    Item {
+                    // Audio (scroll-wheel adjusts volume)
+                    BarPillButton {
                         id: audioCluster
-                        implicitWidth: audioRow.implicitWidth
-                        implicitHeight: audioRow.implicitHeight
-                        HoverHandler { onHoveredChanged: if (hovered) { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "audio"; root.pinnedOpen = false } }
-                        Row { id: audioRow; spacing: Theme.spacingTight
+                        panel: "audio"; bar: root
+                        onWheelEvent: ev => {
+                            const delta = ev.angleDelta.y > 0 ? 0.05 : -0.05
+                            AudioState.setVolume(AudioState.volume + delta)
+                        }
+
+                        Row {
+                            spacing: Theme.spacingTight
                             Text {
                                 text: !AudioState.sinkReady ? "󰕿" : AudioState.muted ? "󰖁" : AudioState.volume > 0.5 ? "󰕾" : "󰖀"
                                 color: AudioState.muted ? Colors.textMuted : Colors.text
@@ -245,32 +276,15 @@ PanelWindow {
                                 font.pixelSize: Theme.fontMedium; font.family: Theme.fontFamily
                             }
                         }
-                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                if (root.pinnedOpen && ControlState.rightPanel === "audio") { root.pinnedOpen = false; ControlState.rightPanel = "none" }
-                                else { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "audio"; root.pinnedOpen = true }
-                            }
-                            onWheel: ev => {
-                                const delta = ev.angleDelta.y > 0 ? 0.05 : -0.05
-                                AudioState.setVolume(AudioState.volume + delta)
-                            }
-                        }
                     }
 
-                    Rectangle { width: 1; height: 14; radius: 1; color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.3) }
+                    BarDivider {}
 
                     // Battery
-                    Item {
+                    BarPillButton {
                         id: batteryCluster
-                        implicitWidth: batRow.implicitWidth
-                        implicitHeight: batRow.implicitHeight
-                        HoverHandler { onHoveredChanged: if (hovered) { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "battery"; root.pinnedOpen = false } }
-                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                if (root.pinnedOpen && ControlState.rightPanel === "battery") { root.pinnedOpen = false; ControlState.rightPanel = "none" }
-                                else { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "battery"; root.pinnedOpen = true }
-                            }
-                        }
+                        panel: "battery"; bar: root
+
                         property var bat: {
                             for (const d of UPower.devices.values) {
                                 if (d.isLaptopBattery && d.ready && d.percentage > 0.01) return d
@@ -280,16 +294,17 @@ PanelWindow {
                         }
                         // Bypass = on AC but not charging (battery at threshold, AC powers system directly).
                         // UPower's state property is unreliable here (reports Charging even when sysfs says Not charging),
-                        // so read /sys/class/power_supply/BAT0/status directly.
+                        // so read sysfs status directly. Path derived from UPower nativePath to support BAT1/etc.
                         property string batStatus: ""
                         property bool bypass: batteryCluster.batStatus === "Not charging"
                         FileView {
-                            path: "/sys/class/power_supply/BAT0/status"
+                            path: batteryCluster.bat ? "/sys/class/power_supply/" + batteryCluster.bat.nativePath + "/status" : ""
                             watchChanges: true
                             onFileChanged: reload()
                             onLoaded: batteryCluster.batStatus = text().trim()
                         }
-                        Row { id: batRow; spacing: Theme.spacingTight
+                        Row {
+                            spacing: Theme.spacingTight
                             Text {
                                 visible: batteryCluster.bypass
                                 text: "󰒃"
@@ -310,25 +325,17 @@ PanelWindow {
                         }
                     }
 
-                    Rectangle { width: 1; height: 14; radius: 1; color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.3) }
+                    BarDivider {}
 
                     // Clock
-                    Item {
-                        implicitWidth: clockRow.implicitWidth
-                        implicitHeight: clockRow.implicitHeight
-                        HoverHandler { onHoveredChanged: if (hovered) { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "clock"; root.pinnedOpen = false } }
-                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                if (root.pinnedOpen && ControlState.rightPanel === "clock") { root.pinnedOpen = false; ControlState.rightPanel = "none" }
-                                else { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "clock"; root.pinnedOpen = true }
-                            }
-                        }
-                        Clock { id: clockRow }
+                    BarPillButton {
+                        panel: "clock"; bar: root
+                        Clock {}
                     }
 
-                    Rectangle { width: 1; height: 14; radius: 1; color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.3) }
+                    BarDivider {}
 
-                    // Idle inhibitor (caffeine)
+                    // Idle inhibitor (caffeine) — toggle, no panel
                     Item {
                         implicitWidth: caffeineIcon.implicitWidth
                         implicitHeight: caffeineIcon.implicitHeight
@@ -345,24 +352,18 @@ PanelWindow {
                         }
                     }
 
-                    Rectangle { width: 1; height: 14; radius: 1; color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.3) }
+                    BarDivider {}
 
                     // Notification bell
-                    Item {
-                        implicitWidth: bellRow.implicitWidth + 4
-                        implicitHeight: bellRow.implicitHeight
-                        HoverHandler { onHoveredChanged: if (hovered) { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "notif"; root.pinnedOpen = false } }
-                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                if (root.pinnedOpen && ControlState.rightPanel === "notif") { root.pinnedOpen = false; ControlState.rightPanel = "none" }
-                                else { ControlState.activeScreen = root.screen.name; ControlState.rightPanel = "notif"; root.pinnedOpen = true }
-                            }
-                        }
-                        Row { id: bellRow; spacing: Theme.spacingTight
+                    BarPillButton {
+                        panel: "notif"; bar: root
+                        horizontalPadding: 2
+                        Row {
+                            spacing: Theme.spacingTight
                             Text {
                                 text: ControlState.rightPanel === "notif" ? "󰂞" : NotifState.unreadCount > 0 ? "󰂚" : "󰂜"
                                 color: Colors.text
-                                font.pixelSize: 14; font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontLarge; font.family: Theme.fontFamily
                             }
                             Rectangle {
                                 visible: NotifState.unreadCount > 0

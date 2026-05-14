@@ -8,7 +8,7 @@ Row {
     Text {
         text: Qt.formatDateTime(clock.date, "HH:mm")
         color: Colors.text
-        font.pixelSize: 12; font.bold: true
-        font.family: "JetBrainsMono Nerd Font"
+        font.pixelSize: Theme.fontMedium; font.bold: true
+        font.family: Theme.fontFamily
     }
 }

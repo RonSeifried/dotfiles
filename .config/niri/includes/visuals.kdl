@@ -1,0 +1,48 @@
+// Animations, blur, env, screenshot path, hotkey overlay, CSD policy.
+
+environment {
+    ELECTRON_OZONE_PLATFORM_HINT "wayland"
+    XCURSOR_SIZE "32"
+    QT_QPA_PLATFORM "wayland"
+}
+
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+
+blur {
+    passes 3
+    offset 3
+    noise 0.02
+    saturation 1.5
+}
+
+animations {
+    window-open {
+        spring damping-ratio=0.85 stiffness=700 epsilon=0.0001
+    }
+    window-close {
+        spring damping-ratio=0.85 stiffness=700 epsilon=0.0001
+    }
+    window-movement {
+        spring damping-ratio=0.85 stiffness=700 epsilon=0.0001
+    }
+    window-resize {
+        spring damping-ratio=0.85 stiffness=700 epsilon=0.0001
+    }
+    workspace-switch {
+        spring damping-ratio=0.85 stiffness=700 epsilon=0.0001
+    }
+    horizontal-view-movement {
+        spring damping-ratio=0.85 stiffness=700 epsilon=0.0001
+    }
+    overview-open-close {
+        spring damping-ratio=0.85 stiffness=700 epsilon=0.0001
+    }
+}
+
+hotkey-overlay {
+    // skip-at-startup
+    hide-not-bound
+}
+
+// Ask apps to drop client-side decorations -> niri draws borders cleanly
+prefer-no-csd

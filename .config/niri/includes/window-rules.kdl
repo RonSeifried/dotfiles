@@ -1,0 +1,74 @@
+// Window rules: corner radius, blur, floating apps, dialogs.
+
+// Rounded corners + blur on all windows
+window-rule {
+    geometry-corner-radius 12
+    clip-to-geometry true
+    background-effect {
+        blur true
+        noise 0.05
+    }
+}
+
+window-rule {
+    match is-floating=false
+    tiled-state true
+}
+
+// Firefox / Zen PiP
+window-rule {
+    match app-id=r#"firefox$"# title=r#"^Picture-in-Picture$"#
+    open-floating true
+}
+window-rule {
+    match app-id=r#"zen-browser$"# title=r#"^Picture.in.Picture$"#
+    open-floating true
+}
+
+// Generic PiP title match
+window-rule {
+    match title=r#"^Picture.in.Picture$"#
+    open-floating true
+}
+
+// Floating utils — match terminals launched with --class=floating
+window-rule {
+    match app-id=r#"^floating$"#
+    open-floating true
+}
+
+// Installer terminal (yay-in-kitty spawned from launcher p-mode)
+window-rule {
+    match app-id=r#"^installer"#
+    open-floating true
+}
+
+// MCP management terminal
+window-rule {
+    match app-id=r#"^mcp-management$"#
+    open-floating true
+}
+
+// MCP gateway terminal
+window-rule {
+    match app-id=r#"^mcp-gateway$"#
+    open-floating true
+}
+
+// MCP Manager — Quickshell floating window (matched by title; qs xdg app-id is shared)
+window-rule {
+    match title=r#"^MCP Manager$"#
+    open-floating true
+}
+
+// File picker dialogs
+window-rule {
+    match title=r#"^(Open File|Save File|Choose Files?|Select File|Select Folder|Save As)"#
+    open-floating true
+}
+
+// WezTerm initial configure workaround (from niri defaults)
+window-rule {
+    match app-id=r#"^org\.wezfurlong\.wezterm$"#
+    default-column-width {}
+}

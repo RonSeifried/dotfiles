@@ -159,7 +159,7 @@ Started by niri on login:
 - **swayidle** — screen lock + DPMS (240s off, 300s lock)
 - **cliphist** — clipboard history
 - **gnome-keyring** — SSH/secrets keyring
-- **lxqt-policykit-agent** — privilege escalation dialogs
+- **quickshell polkit agent** — privilege escalation dialogs (built into shell, services/polkit/)
 
 ## Monitor Profiles (kanshi)
 

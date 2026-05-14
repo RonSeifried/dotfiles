@@ -3,12 +3,13 @@ import "providers"
 
 // Aggregates providers, parses prefix, merges + sorts.
 // Mode prefixes:
-//   "= expr"  → calc only
-//   "> name"  → system actions only (empty prefix lists all)
-//   "? text"  → web only
-//   "w name"  → niri windows only
-//   "f name"  → file search via fd (async, debounced)
-//   "p name"  → package search (pacman + AUR)
+//   "= expr"   → calc only
+//   "> name"   → system actions only (empty prefix lists all)
+//   "? text"   → web only
+//   "w name"   → niri windows only
+//   "f name"   → file search via fd (async, debounced)
+//   "p name"   → package search (pacman + AUR)
+//   "ai text"  → AI assistant (Gemini streaming) — Enter submits, history persists
 // No prefix → apps + windows + system (matches) + calc (auto if numeric) + web fallback.
 Item {
     id: root
@@ -16,8 +17,10 @@ Item {
 
     property string query: ""
     property var results: []
-    property string mode: "default"   // "default" | "calc" | "system" | "web" | "window" | "files" | "pkg"
+    property string mode: "default"   // "default" | "calc" | "system" | "web" | "window" | "files" | "pkg" | "ai"
     property string modeHint: ""
+
+    readonly property alias ai: aiP
 
     AppsProvider       { id: appsP }
     CalcProvider       { id: calcP }
@@ -26,6 +29,7 @@ Item {
     WebProvider        { id: webP }
     FilesProvider      { id: filesP }
     PkgProvider        { id: pkgP }
+    AiProvider         { id: aiP }
 
     // Recompute when pkg lists finish loading mid-session.
     Connections {
@@ -65,6 +69,7 @@ Item {
         if (q.startsWith("="))                       return { mode: "calc",   rest: q.slice(1).trim(), hint: "calculator" }
         if (q.startsWith(">"))                       return { mode: "system", rest: q.slice(1).trim(), hint: "actions"    }
         if (q.startsWith("?"))                       return { mode: "web",    rest: q.slice(1).trim(), hint: "web search" }
+        if (q.startsWith("ai ") || q === "ai")       return { mode: "ai",     rest: q.slice(2).trim(), hint: "ask AI"     }
         if (q.startsWith("w ") || q === "w")         return { mode: "window", rest: q.slice(1).trim(), hint: "windows"    }
         if (q.startsWith("f ") || q === "f")         return { mode: "files",  rest: q.slice(1).trim(), hint: "files"      }
         if (q.startsWith("p ") || q === "p")         return { mode: "pkg",    rest: q.slice(1).trim(), hint: "packages"   }
@@ -111,6 +116,9 @@ Item {
             out = winP.search(parsed.rest)
         } else if (parsed.mode === "pkg") {
             out = pkgP.search(parsed.rest)
+        } else if (parsed.mode === "ai") {
+            // AI-mode renders via AiView, not ResultList. Results stay empty.
+            out = []
         } else if (parsed.mode === "files") {
             filesP.query = parsed.rest
             if (!parsed.rest) {
@@ -146,4 +154,13 @@ Item {
         }
         results = out
     }
+
+    // ── AI helpers exposed to Launcher ─────────────────────────
+    function submitAi() {
+        const parsed = _parseMode((query || "").trim())
+        if (parsed.mode !== "ai") return
+        aiP.ask(parsed.rest)
+    }
+    function resetAi() { aiP.reset() }
+    function cancelAi() { aiP.cancel() }
 }

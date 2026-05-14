@@ -22,8 +22,10 @@ Column {
 
     // ── Charge thresholds (sysfs) ────────────────────────────────
     // Requires system/udev/99-charge-threshold.rules installed for write access.
-    readonly property string thresholdEndPath:   "/sys/class/power_supply/BAT0/charge_control_end_threshold"
-    readonly property string thresholdStartPath: "/sys/class/power_supply/BAT0/charge_control_start_threshold"
+    // Path derived from UPower nativePath so BAT1/etc work, not just BAT0.
+    readonly property string batBase: "/sys/class/power_supply/" + (bat?.nativePath ?? "BAT0")
+    readonly property string thresholdEndPath:   batBase + "/charge_control_end_threshold"
+    readonly property string thresholdStartPath: batBase + "/charge_control_start_threshold"
     property int thresholdEnd:   80
     property int thresholdStart: 75
     property bool thresholdAvailable: false

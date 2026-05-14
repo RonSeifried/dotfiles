@@ -93,7 +93,6 @@ wallust run wallpaper.jpg
    ├──▶ Niri borders         (pywal-niri-colors.sh → niri msg)
    ├──▶ Starship prompt      (starship-color-gen.sh)
    ├──▶ Yazi theme           (theme.toml)
-   ├──▶ Rofi RASI            (colors-rofi-dark.rasi — remaining flows)
    └──▶ Zen Browser          (zen-wal-refresh.sh)
 ```
 
@@ -102,10 +101,9 @@ map to which UI elements.
 
 ### AI + MCP Integration
 
-`Super+A` opens an AI assistant via Rofi. `Super+M` manages MCP servers with a custom Python
-helper and Rofi menu. Scripts live in `.config/scripts/rofi/ai/` and
-`.config/scripts/rofi/mcp.sh`. These flows are scheduled for migration to Quickshell panels — see
-`TODO.md`.
+`Super+A` opens the AI assistant inside the Quickshell launcher (`ai ` mode — Gemini SSE
+streaming, multi-turn history). `Super+M` opens the MCP Manager floating window — full
+catalog/servers/clients/tools/secrets/gateway UI implemented in Quickshell over `docker mcp`.
 
 ### Dynamic Monitor Profiles (kanshi)
 
@@ -125,7 +123,7 @@ not tracked in this repo.
 | Shell | ZSH + [Oh My ZSH](https://ohmyz.sh/) + [Starship](https://starship.rs/) |
 | Editor | [Neovim](https://neovim.io/) (LazyVim) |
 | Code Editor (GUI) | [Zed](https://zed.dev/) |
-| Launcher / AI / MCP | [Rofi](https://github.com/davatorium/rofi) (Wayland fork) |
+| Launcher / AI / MCP | Quickshell launcher + MCP Manager (custom QML) |
 | Color Theming | [Wallust](https://codeberg.org/explosion-mental/wallust) (pywal-compatible) |
 | Wallpaper | [awww](https://github.com/LGFae/awww) / swaybg fallback |
 | Idle daemon | [swayidle](https://github.com/swaywm/swayidle) |
@@ -157,7 +155,7 @@ not tracked in this repo.
 | `Super + E` | File Manager (Yazi — floating) |
 | `Super + Shift + E` | File Manager (Nautilus) |
 | `Super + Shift + T` | Taskwarrior (floating) |
-| `Super + Space` | App Launcher (Rofi) |
+| `Super + Space` | App Launcher (Quickshell) |
 
 ### Menus / Tools
 
@@ -168,9 +166,9 @@ not tracked in this repo.
 | `Super + Shift + G` | Random Wallpaper |
 | `Super + Shift + L` | Power Menu (Quickshell) |
 | `Super + V` | Clipboard History |
-| `Super + A` | AI Assistant (Rofi) |
-| `Super + P` | Package Installer (Rofi) |
-| `Super + M` | MCP Server Manager (Rofi) |
+| `Super + A` | AI Assistant (Quickshell launcher `ai ` mode) |
+| `Super + M` | MCP Server Manager (Quickshell floating window) |
+| `Super + Y` | Pick color (niri pick-color → wl-copy + toast) |
 
 ### System
 
@@ -228,11 +226,11 @@ not tracked in this repo.
 
 **pacman:**
 ```bash
-sudo pacman -S niri kitty rofi-wayland neovim yazi zsh starship tmux jq \
+sudo pacman -S niri kitty neovim yazi zsh starship tmux jq \
   swaybg swayidle kanshi nautilus gum fzf plocate \
   brightnessctl playerctl wl-clipboard cliphist wl-clip-persist \
   grim slurp \
-  bluez bluez-utils networkmanager gnome-keyring lxqt-policykit \
+  bluez bluez-utils networkmanager gnome-keyring \
   fastfetch lazygit btop
 ```
 
@@ -277,7 +275,7 @@ chsh -s $(which zsh)
 wallust run /path/to/wallpaper.jpg
 ```
 
-This generates color schemes for niri borders, Quickshell, Kitty, Starship, Yazi and Rofi —
+This generates color schemes for niri borders, Quickshell, Kitty, Starship and Yazi —
 automatically.
 
 ### 5. Monitor config (machine-specific, not tracked)
@@ -325,17 +323,12 @@ dotfiles/
 │   ├── fastfetch/                   # System info display
 │   ├── kitty/                       # Terminal
 │   ├── nvim/                        # Neovim (LazyVim)
-│   ├── rofi/                        # Launcher + remaining AI/MCP/installer themes
 │   ├── scripts/
 │   │   ├── pywal-niri-colors.sh     # niri border color refresh hook
 │   │   ├── qs-osd.sh                # OSD IPC trigger (bound from niri)
-│   │   ├── rofi/                    # Remaining rofi flows
-│   │   │   ├── ai/                  # AI assistant (askai.sh)
-│   │   │   ├── mcp.sh               # MCP server manager
-│   │   │   ├── install-launcher.sh  # Package installer
-│   │   │   ├── list-installer.sh
-│   │   │   └── wallpaper_switcher.sh # Backend for qs wallpaper picker
-│   │   └── installer/               # Package installer helpers
+│   │   ├── wallpaper_switcher.sh    # Backend for qs wallpaper picker (apply/next/prev/random)
+│   │   ├── pick-color.sh            # niri pick-color → wl-copy + toast
+│   │   └── installer/               # Package installer helpers (yay-in-kitty)
 │   ├── starship/                    # Shell prompt + wallust palette
 │   ├── tmux/                        # Terminal multiplexer
 │   ├── wallust/
@@ -361,5 +354,4 @@ dotfiles/
   variables — edit these to customize color behavior without changing any app config.
 - Generated files (Quickshell `Colors.qml`, Yazi theme) are excluded from stow — they are created
   on first `wallust run`.
-- This setup is mid-migration from Hyprland → niri/Quickshell. See `TODO.md` for open work
-  (battery threshold panel, niri overview blur, lockscreen redesign, full rofi → qs port).
+- This setup is mid-migration from Hyprland → niri/Quickshell. See `TODO.md` for open work.

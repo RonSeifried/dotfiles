@@ -60,7 +60,7 @@ PanelWindow {
         root.currentWallpaper = path
         applying = true
         pulseAnim.restart()
-        applyProc.command = [Quickshell.env("HOME") + "/.config/scripts/rofi/wallpaper_switcher.sh", "--apply", path]
+        applyProc.command = [Quickshell.env("HOME") + "/.config/scripts/wallpaper_switcher.sh", "--apply", path]
         applyProc.running = true
     }
 

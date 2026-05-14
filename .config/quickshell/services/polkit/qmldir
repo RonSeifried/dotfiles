@@ -1,0 +1,2 @@
+singleton PolkitState 1.0 PolkitState.qml
+PolkitOverlay 1.0 PolkitOverlay.qml

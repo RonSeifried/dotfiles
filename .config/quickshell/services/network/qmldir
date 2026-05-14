@@ -1,0 +1,2 @@
+singleton NetUtils 1.0 NetUtils.qml
+singleton VpnState 1.0 VpnState.qml

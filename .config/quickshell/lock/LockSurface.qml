@@ -1,17 +1,13 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import "."
 
-Rectangle {
+Item {
     id: root
     required property LockContext context
-    required property string screenName
-
-    color: LockColors.background
 
     // Fade in on appear for smooth lock activation
     opacity: 0
@@ -20,37 +16,10 @@ Rectangle {
         NumberAnimation { duration: LockTheme.durSlide; easing.type: Easing.OutCubic }
     }
 
-    // Wallpaper source (hidden — blurred copy is rendered below)
-    Image {
-        id: wallpaper
-        anchors.fill: parent
-        source: "file:///tmp/qs-lock-" + root.screenName + ".png"
-        onStatusChanged: {
-            if (status === Image.Error) {
-                source = "file://" + Quickshell.env("HOME") + "/.cache/current_wallpaper"
-            }
-        }
-        fillMode: Image.PreserveAspectCrop
-        smooth: true
-        asynchronous: true
-        cache: true
-        visible: false
-    }
-
-    // Blurred wallpaper
-    MultiEffect {
-        anchors.fill: wallpaper
-        source: wallpaper
-        autoPaddingEnabled: false
-        blurEnabled: true
-        blur: 1.0
-        blurMax: 64
-        blurMultiplier: 1.5
-        brightness: -0.15
-        saturation: -0.1
-    }
-
-    // Subtle dark overlay for readability
+    // Dim/tint overlay on top of compositor-blurred backdrop.
+    // Background blur itself comes from ext-background-effect-v1 set on the
+    // WlSessionLockSurface in shell.qml — niri blurs whatever it renders behind
+    // the lock surface (wallpaper layer / backdrop-color).
     Rectangle {
         anchors.fill: parent
         color: LockColors.background

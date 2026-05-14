@@ -19,11 +19,29 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
+    // Native compositor blur (ext-background-effect-v1). launcherRect has
+    // anchors-driven position + scale anim — Region.item binds via mapToScene,
+    // scale-during-open is brief enough that polish-phase update is fine.
+    BackgroundEffect.blurRegion: Region {
+        item: launcherRect
+        radius: Theme.radiusLarge
+    }
+
     onOpenChanged: {
         if (open) {
-            searchInput.text = ""
+            const pre = ControlState.launcherPrefill
+            if (pre && pre.length > 0) {
+                searchInput.text = pre
+                ControlState.launcherPrefill = ""
+                searchInput.cursorPosition = searchInput.text.length
+            } else {
+                searchInput.text = ""
+            }
             searchInput.forceActiveFocus()
             openAnim.start()
+        } else {
+            // Abort in-flight stream on close; history persists for next open.
+            engine.cancelAi()
         }
     }
 
@@ -33,6 +51,17 @@ PanelWindow {
     }
 
     function close() { closeAnim.start() }
+
+    function _submitOrActivate() {
+        if (engine.mode === "ai") {
+            // Submit + clear input. Stay open. Response streams in AiView.
+            engine.submitAi()
+            searchInput.text = "ai "
+            searchInput.cursorPosition = searchInput.text.length
+        } else {
+            resultList.activateCurrent()
+        }
+    }
 
     SearchEngine { id: engine; query: searchInput.text }
 
@@ -60,6 +89,7 @@ PanelWindow {
             case "window": return "󰖯"
             case "files":  return ""
             case "pkg":    return ""
+            case "ai":     return "󰚩"
             default:       return ""
         }
     }
@@ -71,18 +101,21 @@ PanelWindow {
             case "window": return "Focus window…"
             case "files":  return "Find files…"
             case "pkg":    return "Install package…  pacman + AUR"
-            default:       return "Search apps, type =  >  ?  w  f  p …"
+            case "ai":     return "Ask AI…  Enter sends, Esc closes"
+            default:       return "Search apps, type =  >  ?  w  f  p  ai …"
         }
     }
 
     Rectangle {
         id: launcherRect
         width: Theme.launcherWidth
-        height: Math.min(
-            searchBar.height + resultList.implicitHeight + hintBar.height
-                + Theme.panelPadding * 2 + Theme.spacingNormal * 2,
-            Theme.launcherMaxHeight
-        )
+        height: engine.mode === "ai"
+            ? Theme.launcherMaxHeight
+            : Math.min(
+                searchBar.height + resultList.implicitHeight + hintBar.height
+                    + Theme.panelPadding * 2 + Theme.spacingNormal * 2,
+                Theme.launcherMaxHeight
+              )
         anchors { horizontalCenter: parent.horizontalCenter; top: parent.top; topMargin: Theme.launcherTopMargin }
         radius: Theme.radiusLarge
         color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Colors.popupBgAlpha)
@@ -151,10 +184,10 @@ PanelWindow {
                             clip: true
 
                             Keys.onEscapePressed: root.close()
-                            Keys.onUpPressed: resultList.listViewAlias.decrementCurrentIndex()
-                            Keys.onDownPressed: resultList.listViewAlias.incrementCurrentIndex()
-                            Keys.onReturnPressed: resultList.activateCurrent()
-                            Keys.onEnterPressed: resultList.activateCurrent()
+                            Keys.onUpPressed: { if (engine.mode !== "ai") resultList.listViewAlias.decrementCurrentIndex() }
+                            Keys.onDownPressed: { if (engine.mode !== "ai") resultList.listViewAlias.incrementCurrentIndex() }
+                            Keys.onReturnPressed: root._submitOrActivate()
+                            Keys.onEnterPressed:  root._submitOrActivate()
                         }
                     }
 
@@ -175,17 +208,26 @@ PanelWindow {
                 }
             }
 
-            // ── Results ──────────────────────────────────────────
+            // ── Results / AI conversation ────────────────────────
             ResultList {
                 id: resultList
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                visible: engine.mode !== "ai"
                 results: engine.results
 
                 onActivated: r => {
                     if (!r) return
                     if (!r.keepOpen) root.close()
                 }
+            }
+
+            AiView {
+                id: aiView
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                visible: engine.mode === "ai"
+                aiProvider: engine.ai
             }
 
             // ── Hint bar ─────────────────────────────────────────
@@ -219,7 +261,7 @@ PanelWindow {
                     Item { Layout.fillWidth: true }
 
                     Text {
-                        text: "= calc · > action · w window · f file · p pkg · ? web"
+                        text: "= calc · > action · w win · f file · p pkg · ? web · ai chat"
                         color: Colors.textMuted
                         font.pixelSize: Theme.fontTiny + 1
                         font.family: Theme.fontFamily
@@ -235,7 +277,7 @@ PanelWindow {
                     }
 
                     Text {
-                        text: "↑↓ ↵ esc"
+                        text: engine.mode === "ai" ? "↵ send · esc close" : "↑↓ ↵ esc"
                         color: Colors.textMuted
                         font.pixelSize: Theme.fontTiny + 1
                         font.family: Theme.fontFamily

@@ -27,6 +27,17 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
+    // Native compositor blur (ext-background-effect-v1). Tracks slide-in via
+    // explicit x-binding to slideTransform.x (qs doesn't poll transforms).
+    BackgroundEffect.blurRegion: Region {
+        x: osdRect.x + slideTransform.x
+        y: osdRect.y
+        width: osdRect.width
+        height: osdRect.height
+        topLeftRadius: Theme.radiusLarge
+        bottomLeftRadius: Theme.radiusLarge
+    }
+
     Connections {
         target: ControlState
         function onOsdVolumeRequested(v, m) { if (root.active) root.showVolume(v, m) }

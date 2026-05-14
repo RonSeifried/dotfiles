@@ -19,8 +19,13 @@ Item {
         execProc.running = true
     }
 
+    readonly property string _home: Quickshell.env("HOME") || ""
+    readonly property string _scripts: _home + "/.config/scripts"
+    readonly property string _wallCache: _home + "/.cache/current_wallpaper"
+    readonly property string _lockShell: _home + "/.config/quickshell/lock"
+
     readonly property var _actions: [
-        { title: "Lock Screen",        subtitle: "Lock the session",       glyph: "󰌾", action: () => _run("qs -p ~/.config/quickshell/lock ipc call lock lock") },
+        { title: "Lock Screen",        subtitle: "Lock the session",       glyph: "󰌾", action: () => _run("qs -p " + _lockShell + " ipc call lock lock") },
         { title: "Suspend",            subtitle: "Sleep system",            glyph: "󰒲", action: () => _run("systemctl suspend") },
         { title: "Reboot",             subtitle: "Restart system",          glyph: "󰜉", action: () => _run("systemctl reboot") },
         { title: "Shutdown",           subtitle: "Power off",               glyph: "󰐥", action: () => _run("systemctl poweroff") },
@@ -31,9 +36,11 @@ Item {
         { title: "Toggle Caffeine",    subtitle: "Inhibit idle/sleep",      glyph: "󰛊", action: () => ControlState.idleInhibited = !ControlState.idleInhibited },
         { title: "Toggle Notifications", subtitle: "Show notification panel", glyph: "󰂚", action: () => ControlState.togglePanel("notif") },
         { title: "Niri Overview",      subtitle: "Open workspace overview", glyph: "󰕮", action: () => _run("niri msg action toggle-overview") },
-        { title: "Reload Colors",      subtitle: "Re-run wallust palette",  glyph: "󰏘", action: () => _run("wallust run \"$(cat ~/.cache/current_wallpaper 2>/dev/null || echo)\" 2>/dev/null") },
-        { title: "Update System",      subtitle: "pacman + AUR via yay",    glyph: "󰚰", action: () => _run("kitty --class installer-pkg -e ~/.config/scripts/installer/system-update.sh") },
-        { title: "Remove Package",     subtitle: "fzf picker, multi-select", glyph: "󰮈", action: () => _run("kitty --class installer-pkg -e ~/.config/scripts/installer/pkg-remove.sh") }
+        { title: "Pick Color",         subtitle: "Sample a pixel → clipboard", glyph: "󰈋", action: () => _run(_scripts + "/pick-color.sh") },
+        { title: "Ask AI",             subtitle: "Open Spotlight ai-mode",   glyph: "󰚩", action: () => _run("qs ipc call launcher ai") },
+        { title: "Reload Colors",      subtitle: "Re-run wallust palette",  glyph: "󰏘", action: () => _run("wallust run \"$(cat " + _wallCache + " 2>/dev/null || echo)\" 2>/dev/null") },
+        { title: "Update System",      subtitle: "pacman + AUR via yay",    glyph: "󰚰", action: () => _run("kitty --class installer-pkg -e " + _scripts + "/installer/system-update.sh") },
+        { title: "Remove Package",     subtitle: "fzf picker, multi-select", glyph: "󰮈", action: () => _run("kitty --class installer-pkg -e " + _scripts + "/installer/pkg-remove.sh") }
     ]
 
     function _scoreAction(a, q) {

@@ -1,0 +1,81 @@
+// Tiling layout, overview backdrop, recent-windows highlight.
+// Color markers (// pywal-*) are patched live by scripts/pywal-niri-colors.sh —
+// keep marker text intact when editing.
+
+layout {
+    gaps 5
+    background-color "#40968E" // pywal-overview
+
+    center-focused-column "on-overflow"
+
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+
+    default-column-width { proportion 0.5; }
+
+    // Disable focus-ring, use border instead (like Hyprland)
+    focus-ring {
+        off
+    }
+
+    border {
+        on
+        width 3
+        // pywal colors — updated by pywal-niri-colors.sh
+        active-color "#63B8AF" // pywal-active
+        inactive-color "#40968E" // pywal-inactive
+    }
+
+    shadow {
+        on
+        softness 20
+        spread 5
+        offset x=0 y=5
+        color "#00000066"
+    }
+
+    struts {
+        // leave empty — quickshell bar uses layer-shell so no manual strut needed
+    }
+}
+
+overview {
+    // backdrop color = darkened avg of current wallpaper (set by pywal-niri-colors.sh)
+    backdrop-color "#40968E" // pywal-overview-backdrop
+    workspace-shadow {
+        softness 40
+        spread 8
+        offset x=0 y=12
+        color "#00000099"
+    }
+}
+
+recent-windows {
+    debounce-ms 750
+    open-delay-ms 150
+    highlight {
+        // active = accent + α60 (Colors.accent overlay match)
+        active-color "#63B8AF99" // pywal-recent-highlight
+        // urgent = color1 + α80 (matches Colors.error semantic, more attention than active)
+        urgent-color "#0E3037cc" // pywal-recent-urgent
+        // radius matches Theme.radiusLarge (14) for QS-card consistency
+        corner-radius 14
+        padding 30
+    }
+    previews {
+        max-scale 0.5
+        max-height 480
+    }
+    binds {
+        Alt+Tab         { next-window; }
+        Alt+Shift+Tab   { previous-window; }
+        Alt+grave       { next-window     filter="app-id"; }
+        Alt+Shift+grave { previous-window filter="app-id"; }
+
+        Mod+Tab         { next-window; }
+        Mod+Shift+Tab   { previous-window; }
+    }
+}

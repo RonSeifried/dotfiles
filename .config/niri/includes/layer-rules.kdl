@@ -1,0 +1,2 @@
+// Layer-shell surfaces. Quickshell uses ext-background-effect for native blur,
+// so no client-side layer-rule is required for qs panels.

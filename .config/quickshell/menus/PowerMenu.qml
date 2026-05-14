@@ -38,6 +38,18 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
+    // Native compositor blur (ext-background-effect-v1). x-binding follows
+    // the slide-in Translate transform so blur tracks the menu in-flight —
+    // qs doesn't re-poll mapToScene per frame, so explicit binds are needed.
+    BackgroundEffect.blurRegion: Region {
+        x: menuRect.x + slideTransform.x
+        y: menuRect.y
+        width: menuRect.width
+        height: menuRect.height
+        topLeftRadius: Theme.radiusLarge
+        bottomLeftRadius: Theme.radiusLarge
+    }
+
     onOpenChanged: {
         if (open) {
             cancelHold()

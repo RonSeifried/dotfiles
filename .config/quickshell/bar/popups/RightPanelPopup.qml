@@ -2,6 +2,7 @@ import QtQuick
 import "../.."
 import "../panels"
 import Quickshell
+import Quickshell.Wayland
 
 PopupWindow {
     id: root
@@ -9,8 +10,23 @@ PopupWindow {
     // ── Required properties ─────────────────────────────────────
     property var bar              // the PanelWindow this popup attaches to
     property Item anchorItem      // pill rectangle for x/width
-    property bool pinnedOpen: false
+    // Name of the currently click-pinned panel ("" = none). Pin applies only
+    // when it matches the panel value this popup is currently rendering, so
+    // hovering across pills won't extend a pin onto an unrelated panel.
+    property string pinnedPanel: ""
     property bool pillHovered: false
+
+    readonly property bool isPinned: pinnedPanel.length > 0
+        && pinnedPanel === ControlState.rightPanel
+        && _isHandled
+
+    // True while a TextInput (or any item exposing a blinking cursor) inside
+    // the popup has keyboard focus. Prevents hover-out from closing the panel
+    // mid-typing (e.g. WifiPanel password entry).
+    readonly property bool keyboardActive: !!(activeFocusItem
+        && activeFocusItem.cursorVisible === true)
+    // Mouse over panel surface — used by bar to gate ToplevelManager close.
+    readonly property bool panelHovered: panelPopupHover.hovered
 
     signal pinnedClosed()         // emitted when user clicks outside
 
@@ -22,6 +38,18 @@ PopupWindow {
     implicitWidth: anchorItem ? anchorItem.width : 0
     implicitHeight: panelOuter.implicitHeight
 
+    // Native compositor blur (ext-background-effect-v1, qs 0.3 + niri 26.04).
+    // Tracks the panel's vertical slide animation via explicit y-binding;
+    // qs polish-phase update only fires on PendingRegion changes.
+    BackgroundEffect.blurRegion: Region {
+        x: panelOuter.x
+        y: panelOuter.y
+        width: panelOuter.width
+        height: panelOuter.implicitHeight
+        bottomLeftRadius: Theme.radiusMedium
+        bottomRightRadius: Theme.radiusMedium
+    }
+
     anchor.window: bar
     anchor.rect.x: anchorItem ? anchorItem.x : 0
     anchor.rect.y: bar ? bar.implicitHeight - 4 : 0
@@ -32,11 +60,14 @@ PopupWindow {
     // Multi-monitor: only react if my bar's screen is the active one.
     readonly property bool _onActiveScreen: bar && bar.screen
         && bar.screen.name === ControlState.activeScreen
+    // Panels handled by this (right-cluster) popup. "mpris" belongs to MprisPopup.
+    readonly property var _handled: ["notif","audio","battery","wifi","bluetooth","clock"]
+    readonly property bool _isHandled: _handled.indexOf(ControlState.rightPanel) !== -1
 
     Connections {
         target: ControlState
         function onRightPanelChanged() {
-            if (ControlState.rightPanel !== "none" && root._onActiveScreen) {
+            if (root._isHandled && root._onActiveScreen) {
                 if (!root.popupVisible) {
                     root.popupVisible = true
                     panelOuter.y = -panelOuter.implicitHeight
@@ -44,7 +75,7 @@ PopupWindow {
                 }
                 // switching panels: Loader swaps content, no re-anim
             } else {
-                // closing globally OR another screen's bar took over → retract this popup.
+                // closing globally, another popup took over, or another screen → retract.
                 if (root.popupVisible) {
                     cornerDelay.stop()
                     panelSlideUp.start()
@@ -76,12 +107,15 @@ PopupWindow {
     }
 
     // ── Auto-close when no hover ─────────────────────────────────
+    // Auto-close timer. Short delay for hover-only; longer grace when pinned
+    // so user can step away briefly without losing the panel.
     Timer {
         id: closeTimer
-        interval: 220
+        interval: root.isPinned ? 4000 : 220
         onTriggered: {
-            if (!root.pinnedOpen && !root.pillHovered && !panelPopupHover.hovered)
-                ControlState.rightPanel = "none"
+            if (root.pillHovered || panelPopupHover.hovered || root.keyboardActive) return
+            if (root.isPinned) root.pinnedClosed()  // bar clears pinnedPanel
+            ControlState.rightPanel = "none"
         }
     }
 
@@ -98,12 +132,6 @@ PopupWindow {
         }
     }
 
-    // ── Click-outside dismiss ────────────────────────────────────
-    MouseArea {
-        anchors.fill: parent
-        onClicked: { root.pinnedClosed(); ControlState.rightPanel = "none" }
-    }
-
     // ── Panel surface ────────────────────────────────────────────
     Rectangle {
         id: panelOuter
@@ -116,28 +144,29 @@ PopupWindow {
         border.width: 0
         clip: true
 
-        // Side + bottom borders (no top → seamless join with pill)
+        // Side + bottom borders (no top → seamless join with pill).
+        // Margins match radiusMedium so the 1px line meets the corner curve tangentially.
         Rectangle {
             anchors.left: parent.left; anchors.top: parent.top
-            anchors.bottom: parent.bottom; anchors.bottomMargin: 11
+            anchors.bottom: parent.bottom; anchors.bottomMargin: Theme.radiusMedium
             width: 1
             color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
         }
         Rectangle {
             anchors.right: parent.right; anchors.top: parent.top
-            anchors.bottom: parent.bottom; anchors.bottomMargin: 11
+            anchors.bottom: parent.bottom; anchors.bottomMargin: Theme.radiusMedium
             width: 1
             color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
         }
         Rectangle {
             anchors.left: parent.left; anchors.right: parent.right
             anchors.bottom: parent.bottom
-            anchors.leftMargin: 11; anchors.rightMargin: 11
+            anchors.leftMargin: Theme.radiusMedium; anchors.rightMargin: Theme.radiusMedium
             height: 1
             color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
         }
 
-        // Consume clicks (don't bubble to dismiss layer)
+        // Consume clicks so they don't bubble to whatever is below the popup window.
         MouseArea { anchors.fill: parent }
 
         // Escape key

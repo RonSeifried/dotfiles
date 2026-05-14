@@ -8,10 +8,10 @@ Text {
 
     text: title || "Desktop"
     color: title ? Colors.text : Colors.textMuted
-    font.pixelSize: 12
-    font.family: "JetBrainsMono Nerd Font"
+    font.pixelSize: Theme.fontMedium
+    font.family: Theme.fontFamily
     elide: Text.ElideRight
     maximumLineCount: 1
 
-    Behavior on color { ColorAnimation { duration: 150 } }
+    Behavior on color { ColorAnimation { duration: Theme.durHover } }
 }

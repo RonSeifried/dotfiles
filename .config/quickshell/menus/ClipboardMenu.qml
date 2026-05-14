@@ -21,6 +21,12 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
+    // Native compositor blur (ext-background-effect-v1).
+    BackgroundEffect.blurRegion: Region {
+        item: clipRect
+        radius: 14
+    }
+
     onOpenChanged: {
         if (open) {
             clipSearch.text = ""

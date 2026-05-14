@@ -7,12 +7,19 @@ Singleton {
     property string activeScreen: ""
 
     property bool launcherOpen: false
+    // Prefill text consumed once by Launcher on next open (e.g. "ai " for Mod+A).
+    property string launcherPrefill: ""
     property bool powerMenuOpen: false
     property bool clipboardOpen: false
     property bool wallpaperPickerOpen: false
     property bool idleInhibited: false
 
-    // "none" | "notif" | "audio" | "battery"
+    // Performance HUD — pill in bar (toggle with Mod+H), panel slides down
+    // from screen top when the pill is clicked.
+    property bool perfPillVisible: false
+    property bool perfPanelOpen: false
+
+    // "none" | "notif" | "audio" | "battery" | "wifi" | "bluetooth" | "clock" | "mpris"
     property string rightPanel: "none"
 
     property real osdVolume: 0
