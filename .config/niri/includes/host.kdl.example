@@ -1,0 +1,27 @@
+// host.kdl.example — template for machine-specific niri overrides.
+//
+// install.sh copies this to host.kdl (gitignored) on first run. Edit host.kdl
+// with THIS machine's monitor outputs — they are intentionally NOT shared
+// across machines. Everything else in includes/ is shared.
+//
+// Find your output names with:  niri msg outputs
+// kanshi still controls position/scale/mode at runtime; the blocks here set
+// per-output layout overrides that survive kanshi profile switches.
+
+// Example — laptop internal panel:
+output "eDP-1" {
+    scale 1.333333
+}
+
+// Example — desktop monitor with custom gaps:
+output "Microstep Optix MAG24C REDACTED-SERIAL" {
+    layout {
+        gaps 8
+    }
+}
+
+output "Microstep G274QPF-QD REDACTED-SERIAL" {
+    layout {
+        gaps 8
+    }
+}

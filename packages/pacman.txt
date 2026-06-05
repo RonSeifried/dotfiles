@@ -1,0 +1,44 @@
+# Arch official repos — installed via: pacman -S --needed
+# One package per line. Lines starting with # and blank lines are ignored.
+
+# Compositor + shell core
+niri
+stow
+
+# Terminal + CLI tools
+kitty
+neovim
+yazi
+zsh
+starship
+tmux
+jq
+
+# Wayland session bits
+swaybg
+swayidle
+kanshi
+nautilus
+gum
+fzf
+plocate
+
+# Media / hardware control
+brightnessctl
+playerctl
+wl-clipboard
+cliphist
+wl-clip-persist
+grim
+slurp
+
+# System services
+bluez
+bluez-utils
+networkmanager
+gnome-keyring
+
+# Misc utilities
+fastfetch
+lazygit
+btop

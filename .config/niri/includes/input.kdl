@@ -22,22 +22,6 @@ input {
     focus-follows-mouse max-scroll-amount="0%"
 }
 
-// Static fallback output — kanshi overrides this dynamically
-output "eDP-1" {
-    scale 1.333333
-}
-
-// Per-output layout overrides (niri 25.11+). Inherits global `layout {}`,
-// overrides selected keys. Kanshi controls position/scale/mode — layout-block
-// here is independent and survives profile switches.
-output "Microstep Optix MAG24C REDACTED-SERIAL" {
-    layout {
-        gaps 8
-    }
-}
-
-output "Microstep G274QPF-QD REDACTED-SERIAL" {
-    layout {
-        gaps 8
-    }
-}
+// Monitor `output { … }` blocks are machine-specific and live in the
+// (untracked) includes/host.kdl — see host.kdl.example. kanshi overrides
+// position/scale/mode at runtime regardless.

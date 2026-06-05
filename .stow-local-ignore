@@ -17,4 +17,25 @@
 ^\.config/hypr/modules/hyprland-pywal\.conf$
 
 # Screenshots – not part of home config
-^screenshots/
+# (stow full-matches each pattern against full path OR basename — no trailing slash)
+^screenshots$
+
+# Repo tooling, docs & meta – NOT home config (must never land in $HOME)
+^install\.sh$
+^packages$
+^docs$
+^system$
+^README\.md$
+^LICENSE$
+^design\.md$
+^TODO\.md$
+^\.askai-env\.example$
+
+# Agent state dirs – real dirs in $HOME, never clobber via stow
+^\.claude$
+^\.superpowers$
+^\.cache$
+
+# Per-machine template files – the real host.kdl is seeded by install.sh
+# (full-match basename, so prefix .* is required)
+.*\.example
