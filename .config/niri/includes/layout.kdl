@@ -1,10 +1,12 @@
 // Tiling layout, overview backdrop, recent-windows highlight.
-// Color markers (// pywal-*) are patched live by scripts/pywal-niri-colors.sh —
-// keep marker text intact when editing.
+// The color values below are STATIC FALLBACKS (used before the first
+// `wallust run`). Live wallpaper colors come from the generated, machine-local
+// includes/colors.kdl (scripts/pywal-niri-colors.sh), which niri deep-merges on
+// top of these — so this file is never rewritten on a wallpaper change.
 
 layout {
     gaps 5
-    background-color "#40968E" // pywal-overview
+    background-color "#2a2a2a"
 
     center-focused-column "on-overflow"
 
@@ -24,9 +26,8 @@ layout {
     border {
         on
         width 3
-        // pywal colors — updated by pywal-niri-colors.sh
-        active-color "#63B8AF" // pywal-active
-        inactive-color "#40968E" // pywal-inactive
+        active-color "#7e9cd8"
+        inactive-color "#444444"
     }
 
     shadow {
@@ -43,8 +44,7 @@ layout {
 }
 
 overview {
-    // backdrop color = darkened avg of current wallpaper (set by pywal-niri-colors.sh)
-    backdrop-color "#40968E" // pywal-overview-backdrop
+    backdrop-color "#2a2a2a"
     workspace-shadow {
         softness 40
         spread 8
@@ -58,9 +58,9 @@ recent-windows {
     open-delay-ms 150
     highlight {
         // active = accent + α60 (Colors.accent overlay match)
-        active-color "#63B8AF99" // pywal-recent-highlight
+        active-color "#7e9cd899"
         // urgent = color1 + α80 (matches Colors.error semantic, more attention than active)
-        urgent-color "#0E3037cc" // pywal-recent-urgent
+        urgent-color "#c34a4acc"
         // radius matches Theme.radiusLarge (14) for QS-card consistency
         corner-radius 14
         padding 30

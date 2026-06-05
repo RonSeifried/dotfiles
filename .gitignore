@@ -50,3 +50,5 @@ TODO.md
 
 # Per-host niri override (optional include, kept out of VCS)
 .config/niri/includes/host.kdl
+# Generated wallpaper colors (scripts/pywal-niri-colors.sh) — machine-local
+.config/niri/includes/colors.kdl

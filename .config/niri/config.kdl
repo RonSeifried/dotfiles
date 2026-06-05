@@ -14,4 +14,8 @@ include "includes/window-rules.kdl"
 include "includes/layer-rules.kdl"
 include "includes/keybinds.kdl"
 
+// Generated wallpaper colors (scripts/pywal-niri-colors.sh) — overrides the
+// static fallbacks in layout.kdl. Machine-local, not tracked.
+include optional=true "includes/colors.kdl"
+
 include optional=true "includes/host.kdl"
