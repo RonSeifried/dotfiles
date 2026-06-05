@@ -27,7 +27,7 @@ Column {
         font.family: LockTheme.fontFamily
         font.pointSize: LockTheme.fontDate
         color: LockColors.textMuted
-        text: Qt.formatDate(root.date, "dddd, d MMMM yyyy", Qt.locale("en_US"))
+        text: Qt.locale("en_US").toString(root.date, "dddd, d MMMM yyyy")
     }
 
     Timer {

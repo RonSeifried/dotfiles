@@ -18,15 +18,17 @@ ShellRoot {
         WlSessionLockSurface {
             id: surface
             color: "transparent"
-            // Native compositor blur via ext-background-effect-v1 (qs 0.3 + niri 26.04).
-            // Niri blurs whatever it renders behind the session-lock surface; LockSurface
-            // sits on top with a dim overlay for contrast.
-            BackgroundEffect.blurRegion: Region { item: surface.contentItem }
 
             LockSurface {
+                id: lockSurfaceItem
                 anchors.fill: parent
                 context: lockContext
             }
+
+            // Native compositor blur via ext-background-effect-v1 (qs 0.3 + niri 26.04).
+            // Anchor the Region to the inner item (created with surface) so the
+            // Region has a valid Item reference at instantiation time.
+            BackgroundEffect.blurRegion: Region { item: lockSurfaceItem }
         }
     }
 
