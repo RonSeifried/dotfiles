@@ -77,6 +77,18 @@ install_omz_plugins() {
     done < <(read_list "$REPO_DIR/packages/omz-plugins.txt")
 }
 
+# Optional personal apps (browser, editor, office, TUIs) — NOT shell deps.
+install_optional() {
+    local list="$REPO_DIR/packages/optional.txt"
+    [[ -f "$list" ]] || return
+    if ! command -v yay &>/dev/null; then warn "yay missing — skipping optional apps"; return; fi
+    info "Installing optional apps…"
+    mapfile -t opt < <(read_list "$list")
+    [[ ${#opt[@]} -eq 0 ]] && { ok "no optional apps listed"; return; }
+    yay -S --needed --noconfirm "${opt[@]}"
+    ok "optional apps installed"
+}
+
 # ── 2. Link configs into $HOME via stow (per-file, location-free) ────────────
 # Uses GNU stow under the hood so the repo can live at any path. Per-file
 # symlinks (--no-folding) mean machine-local / generated files inside shared
@@ -148,6 +160,7 @@ EOF
 main() {
     info "Bootstrapping from: $REPO_DIR"
     if ask "Install dependencies (pacman + AUR + omz plugins)?"; then install_deps; else warn "skipping dependency install"; fi
+    if ask "Install optional personal apps (browser, editor, office, TUIs)?"; then install_optional; else warn "skipping optional apps"; fi
     seed_host_config
     link_configs
     post_setup

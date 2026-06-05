@@ -1,0 +1,14 @@
+# Optional personal apps — NOT shell/niri dependencies.
+# Launched via niri keybinds but the shell works without them. install.sh
+# prompts before installing these. Mixed official + AUR (installed via yay).
+# One per line. Trim freely per machine.
+
+zen-browser-bin     # browser (Super+B)
+zed                 # GUI editor (Super+C)
+obsidian            # notes (Super+N)
+libreoffice-fresh   # office (Super+Shift+N)
+nautilus            # GUI file manager (Super+Shift+E)
+taskwarrior-tui     # task TUI (Super+Shift+T) — pulls 'task'
+lazygit             # git TUI
+btop                # system monitor
+# webcord            # Discord (Super+D) — referenced but uninstalled; uncomment to use

@@ -1,10 +1,8 @@
-# AUR — installed via: yay -S --needed
-# One package per line. Lines starting with # and blank lines are ignored.
+# AUR dependencies — installed via: yay -S --needed
+# Genuine AUR-only packages. One per line.
+# NOTE: quickshell and awww are in the OFFICIAL repos (see pacman.txt) — they
+# were wrongly listed here as quickshell-git / awww-bin before.
 
-quickshell-git      # the shell itself (Qt/QML)
-awww-bin            # wallpaper daemon (used by scripts/wallpaper_switcher.sh)
-wallust            # wallpaper -> color palette generator
-oh-my-zsh-git       # zsh framework
-zsh-you-should-use  # alias reminder plugin (also cloned into omz custom below)
-zen-browser-bin
-taskwarrior-tui
+wallust             # wallpaper -> palette generator (resolves to wallust-git)
+oh-my-zsh-git       # zsh framework (sourced by .zshrc)
+zsh-you-should-use  # alias reminder plugin
