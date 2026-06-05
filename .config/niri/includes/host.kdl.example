@@ -13,14 +13,8 @@ output "eDP-1" {
     scale 1.333333
 }
 
-// Example — desktop monitor with custom gaps:
-output "Microstep Optix MAG24C REDACTED-SERIAL" {
-    layout {
-        gaps 8
-    }
-}
-
-output "Microstep G274QPF-QD REDACTED-SERIAL" {
+// Example — external monitor with custom gaps (use your own output name):
+output "DP-1" {
     layout {
         gaps 8
     }
