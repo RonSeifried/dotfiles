@@ -178,14 +178,6 @@ PopupWindow {
                         on: ControlState.idleInhibited
                         onClicked: ControlState.idleInhibited = !ControlState.idleInhibited
                     }
-                    GlassTile {
-                        width: parent.cellW
-                        icon: "󰌵"
-                        label: "Night Light"
-                        sub: NightState.active ? (NightState.temp + "K") : "Off"
-                        on: NightState.active
-                        onClicked: NightState.toggle()
-                    }
                 }
 
                 Column {
