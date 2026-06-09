@@ -26,12 +26,14 @@ PopupWindow {
     BackgroundEffect.blurRegion: Region {
         x: panelOuter.x; y: panelOuter.y
         width: panelOuter.width; height: panelOuter.implicitHeight
+        topLeftRadius: Theme.radiusLarge; topRightRadius: Theme.radiusLarge
         bottomLeftRadius: Theme.radiusLarge; bottomRightRadius: Theme.radiusLarge
     }
 
+    // Floating panel: right-aligned to the cluster, a gap below the bar.
     anchor.window: bar
     anchor.rect.x: anchorItem ? anchorItem.x + anchorItem.width - 360 : 0
-    anchor.rect.y: bar ? bar.implicitHeight - 4 : 0
+    anchor.rect.y: bar ? bar.implicitHeight + 6 : 0
     anchor.rect.width: 360
     anchor.rect.height: 0
 
@@ -40,20 +42,31 @@ PopupWindow {
         function onControlCenterOpenChanged() {
             if (ControlState.controlCenterOpen && root._onActiveScreen) {
                 root.popupVisible = true
-                panelOuter.y = -panelOuter.implicitHeight
-                slideDown.start()
+                panelOuter.y = -12
+                panelOuter.opacity = 0
+                appearAnim.start()
             } else if (root.popupVisible) {
-                slideUp.start()
+                disappearAnim.start()
             }
         }
     }
 
-    NumberAnimation { id: slideDown; target: panelOuter; property: "y"; to: 0
-        duration: Theme.durSlide; easing.type: Easing.OutCubic }
+    // Floating drop-in: short slide + fade (not a bar-attached unroll).
+    ParallelAnimation {
+        id: appearAnim
+        NumberAnimation { target: panelOuter; property: "y"; to: 0
+            duration: Theme.durNormal; easing.type: Easing.OutCubic }
+        NumberAnimation { target: panelOuter; property: "opacity"; to: 1
+            duration: Theme.durNormal; easing.type: Easing.OutCubic }
+    }
     SequentialAnimation {
-        id: slideUp
-        NumberAnimation { target: panelOuter; property: "y"
-            to: -panelOuter.implicitHeight; duration: Theme.durNormal; easing.type: Easing.InCubic }
+        id: disappearAnim
+        ParallelAnimation {
+            NumberAnimation { target: panelOuter; property: "y"; to: -12
+                duration: Theme.durFast; easing.type: Easing.InCubic }
+            NumberAnimation { target: panelOuter; property: "opacity"; to: 0
+                duration: Theme.durFast; easing.type: Easing.InCubic }
+        }
         ScriptAction { script: root.popupVisible = false }
     }
 
@@ -62,16 +75,14 @@ PopupWindow {
         y: 0
         width: 360
         implicitHeight: body.implicitHeight + 2 * Theme.panelPadding
-        topLeftRadius: 0; topRightRadius: 0
-        bottomLeftRadius: Theme.radiusLarge; bottomRightRadius: Theme.radiusLarge
+        radius: Theme.radiusLarge
         color: "transparent"
         clip: true
 
+        // Floating glass: fully rounded, full border (all four corners traced).
         GlassSurface {
             anchors.fill: parent
-            level: "e2"; radius: Theme.radiusLarge
-            topLeftRadius: 0; topRightRadius: 0
-            edges: ["left", "right", "bottom"]
+            level: "e3"; radius: Theme.radiusLarge
         }
 
         MouseArea { anchors.fill: parent }

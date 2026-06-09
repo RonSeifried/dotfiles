@@ -88,6 +88,23 @@ Item {
     // with per-corner radii in this Qt build. The top edge is intentionally not
     // stroked — it carries the white highlight instead (or is omitted for
     // pill-joined surfaces). 0.5px inset keeps the 1px stroke inside the bounds.
+    // SVG outline at 0.5px inset (keeps the 1px stroke inside the bounds).
+    // Top present → CLOSED rounded rect tracing all four corners. Top omitted
+    // (pill-join) → OPEN path (left + bottom corners + right), top left bare so
+    // the surface meets the pill. Quadratic corners (Q) avoid arc-direction bugs.
+    readonly property string _pathData: {
+        const x0 = 0.5, y0 = 0.5, x1 = width - 0.5, y1 = height - 0.5
+        const tl = topLeftRadius, tr = topRightRadius, bl = bottomLeftRadius, br = bottomRightRadius
+        const sides =
+            `L ${x1},${y1 - br} Q ${x1},${y1} ${x1 - br},${y1} ` +   // right + BR
+            `L ${x0 + bl},${y1} Q ${x0},${y1} ${x0},${y1 - bl} `     // bottom + BL
+        if (_omitTop)
+            return `M ${x0},${y0} L ${x0},${y1 - bl} Q ${x0},${y1} ${x0 + bl},${y1} ` +
+                   `L ${x1 - br},${y1} Q ${x1},${y1} ${x1},${y1 - br} L ${x1},${y0}`
+        return `M ${x0 + tl},${y0} L ${x1 - tr},${y0} Q ${x1},${y0} ${x1},${y0 + tr} ` +
+               sides + `L ${x0},${y0 + tl} Q ${x0},${y0} ${x0 + tl},${y0} Z`
+    }
+
     Shape {
         anchors.fill: parent
         preferredRendererType: Shape.CurveRenderer
@@ -97,13 +114,7 @@ Item {
             fillColor: "transparent"
             capStyle: ShapePath.FlatCap
             joinStyle: ShapePath.RoundJoin
-            startX: 0.5
-            startY: root.topLeftRadius
-            PathLine { x: 0.5; y: root.height - root.bottomLeftRadius }
-            PathQuad { controlX: 0.5; controlY: root.height - 0.5; x: root.bottomLeftRadius; y: root.height - 0.5 }
-            PathLine { x: root.width - root.bottomRightRadius; y: root.height - 0.5 }
-            PathQuad { controlX: root.width - 0.5; controlY: root.height - 0.5; x: root.width - 0.5; y: root.height - root.bottomRightRadius }
-            PathLine { x: root.width - 0.5; y: root.topRightRadius }
+            PathSvg { path: root._pathData }
         }
     }
 
