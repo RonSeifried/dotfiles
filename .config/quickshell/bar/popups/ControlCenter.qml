@@ -80,109 +80,180 @@ PopupWindow {
             Keys.onEscapePressed: ControlState.closeControlCenter()
         }
 
-        Column {
+        Item {
             id: body
             anchors { left: parent.left; right: parent.right; top: parent.top; margins: Theme.panelPadding }
-            spacing: Theme.spacingLarge
+            readonly property bool detail: ControlState.ccSection !== ""
+            implicitHeight: detail ? detailLayer.implicitHeight : mainLayer.implicitHeight
+            Behavior on implicitHeight { NumberAnimation { duration: Theme.durNormal; easing.type: Easing.OutCubic } }
 
-            Grid {
+            Column {
+                id: mainLayer
                 width: parent.width
-                columns: 2
-                columnSpacing: Theme.spacingNormal
-                rowSpacing: Theme.spacingNormal
-                readonly property real cellW: (width - Theme.spacingNormal) / 2
+                spacing: Theme.spacingLarge
+                opacity: body.detail ? 0 : 1
+                x: body.detail ? -20 : 0
+                visible: opacity > 0.01
+                Behavior on opacity { NumberAnimation { duration: Theme.durNormal; easing.type: Easing.OutCubic } }
+                Behavior on x { NumberAnimation { duration: Theme.durNormal; easing.type: Easing.OutCubic } }
 
-                GlassTile {
-                    width: parent.cellW
-                    icon: Networking.wifiEnabled ? "󰖩" : "󰖪"
-                    label: "Wi-Fi"
-                    sub: Networking.wifiEnabled ? (NetUtils.activeWifi ? NetUtils.activeWifi.name : "On") : "Off"
-                    on: Networking.wifiEnabled
-                    onClicked: Networking.wifiEnabled = !Networking.wifiEnabled
-                }
-                GlassTile {
-                    width: parent.cellW
-                    icon: "󰂯"
-                    label: "Bluetooth"
-                    on: !!(Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled)
-                    sub: {
-                        if (!Bluetooth.defaultAdapter || !Bluetooth.defaultAdapter.enabled) return "Off"
-                        for (const d of Bluetooth.devices.values) if (d.connected) return d.name
-                        return "On"
+                Grid {
+                    width: parent.width
+                    columns: 2
+                    columnSpacing: Theme.spacingNormal
+                    rowSpacing: Theme.spacingNormal
+                    readonly property real cellW: (width - Theme.spacingNormal) / 2
+
+                    GlassTile {
+                        width: parent.cellW
+                        icon: Networking.wifiEnabled ? "󰖩" : "󰖪"
+                        label: "Wi-Fi"
+                        sub: Networking.wifiEnabled ? (NetUtils.activeWifi ? NetUtils.activeWifi.name : "On") : "Off"
+                        on: Networking.wifiEnabled
+                        onClicked: Networking.wifiEnabled = !Networking.wifiEnabled
+
+                        Text {
+                            text: "›"
+                            color: Colors.textMuted
+                            font.pixelSize: Theme.fontMedium; font.family: Theme.fontFamily
+                            anchors { top: parent.top; right: parent.right; margins: Theme.spacingSmall }
+                            MouseArea {
+                                anchors.fill: parent; anchors.margins: -6
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: ControlState.ccSection = "wifi"
+                            }
+                        }
                     }
-                    onClicked: if (Bluetooth.defaultAdapter) Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter.enabled
+                    GlassTile {
+                        width: parent.cellW
+                        icon: "󰂯"
+                        label: "Bluetooth"
+                        on: !!(Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled)
+                        sub: {
+                            if (!Bluetooth.defaultAdapter || !Bluetooth.defaultAdapter.enabled) return "Off"
+                            for (const d of Bluetooth.devices.values) if (d.connected) return d.name
+                            return "On"
+                        }
+                        onClicked: if (Bluetooth.defaultAdapter) Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter.enabled
+
+                        Text {
+                            text: "›"
+                            color: Colors.textMuted
+                            font.pixelSize: Theme.fontMedium; font.family: Theme.fontFamily
+                            anchors { top: parent.top; right: parent.right; margins: Theme.spacingSmall }
+                            MouseArea {
+                                anchors.fill: parent; anchors.margins: -6
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: ControlState.ccSection = "bluetooth"
+                            }
+                        }
+                    }
+                    GlassTile {
+                        width: parent.cellW
+                        icon: NotifState.dnd ? "󰂛" : "󰂚"
+                        label: "Do Not Disturb"
+                        on: NotifState.dnd
+                        onClicked: NotifState.dnd = !NotifState.dnd
+                    }
+                    GlassTile {
+                        width: parent.cellW
+                        icon: ControlState.idleInhibited ? "󰛊" : "󰒲"
+                        label: "Caffeine"
+                        on: ControlState.idleInhibited
+                        onClicked: ControlState.idleInhibited = !ControlState.idleInhibited
+                    }
                 }
-                GlassTile {
-                    width: parent.cellW
-                    icon: NotifState.dnd ? "󰂛" : "󰂚"
-                    label: "Do Not Disturb"
-                    on: NotifState.dnd
-                    onClicked: NotifState.dnd = !NotifState.dnd
+
+                Column {
+                    width: parent.width
+                    spacing: Theme.spacingNormal
+
+                    Row {
+                        width: parent.width; spacing: Theme.spacingNormal
+                        Text {
+                            text: AudioState.muted ? "󰖁" : "󰕾"; color: Colors.text
+                            font.pixelSize: 16; font.family: Theme.fontFamily
+                            anchors.verticalCenter: parent.verticalCenter
+                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: AudioState.toggleMute() }
+                        }
+                        GlassSlider {
+                            width: parent.width - 28
+                            anchors.verticalCenter: parent.verticalCenter
+                            value: AudioState.volume; max: 1.0; active: !AudioState.muted
+                            onMoved: v => AudioState.setVolume(v)
+                        }
+                    }
+                    Row {
+                        width: parent.width; spacing: Theme.spacingNormal
+                        Text {
+                            text: AudioState.micMuted ? "󰍭" : "󰍬"; color: Colors.text
+                            font.pixelSize: 16; font.family: Theme.fontFamily
+                            anchors.verticalCenter: parent.verticalCenter
+                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: AudioState.toggleMicMute() }
+                        }
+                        GlassSlider {
+                            width: parent.width - 28
+                            anchors.verticalCenter: parent.verticalCenter
+                            value: AudioState.micVolume; max: 1.0; active: !AudioState.micMuted
+                            onMoved: v => AudioState.setMicVolume(v)
+                        }
+                    }
+                    Row {
+                        width: parent.width; spacing: Theme.spacingNormal
+                        visible: BrightnessState.available
+                        Text {
+                            text: "󰃟"; color: Colors.text
+                            font.pixelSize: 16; font.family: Theme.fontFamily
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        GlassSlider {
+                            width: parent.width - 28
+                            anchors.verticalCenter: parent.verticalCenter
+                            value: BrightnessState.value; max: 1.0
+                            onMoved: v => BrightnessState.set(v)
+                        }
+                    }
                 }
-                GlassTile {
-                    width: parent.cellW
-                    icon: ControlState.idleInhibited ? "󰛊" : "󰒲"
-                    label: "Caffeine"
-                    on: ControlState.idleInhibited
-                    onClicked: ControlState.idleInhibited = !ControlState.idleInhibited
+
+                GlassCard {
+                    width: parent.width
+                    visible: MprisState.hasAny
+                    MprisPanel { anchors { left: parent.left; right: parent.right } }
                 }
             }
 
             Column {
+                id: detailLayer
                 width: parent.width
                 spacing: Theme.spacingNormal
+                opacity: body.detail ? 1 : 0
+                x: body.detail ? 0 : 20
+                visible: opacity > 0.01
+                Behavior on opacity { NumberAnimation { duration: Theme.durNormal; easing.type: Easing.OutCubic } }
+                Behavior on x { NumberAnimation { duration: Theme.durNormal; easing.type: Easing.OutCubic } }
 
                 Row {
-                    width: parent.width; spacing: Theme.spacingNormal
+                    width: parent.width; spacing: Theme.spacingSmall
                     Text {
-                        text: AudioState.muted ? "󰖁" : "󰕾"; color: Colors.text
-                        font.pixelSize: 16; font.family: Theme.fontFamily
-                        anchors.verticalCenter: parent.verticalCenter
-                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: AudioState.toggleMute() }
+                        text: "‹"; color: Colors.accent; font.pixelSize: 18; font.family: Theme.fontFamily
+                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                            onClicked: ControlState.ccSection = "" }
                     }
-                    GlassSlider {
-                        width: parent.width - 28
-                        anchors.verticalCenter: parent.verticalCenter
-                        value: AudioState.volume; max: 1.0; active: !AudioState.muted
-                        onMoved: v => AudioState.setVolume(v)
+                    Text {
+                        text: ControlState.ccSection === "wifi" ? "Wi-Fi" : "Bluetooth"
+                        color: Colors.text; font.pixelSize: Theme.fontMedium; font.bold: true
+                        font.family: Theme.fontFamily; anchors.verticalCenter: parent.verticalCenter
                     }
                 }
-                Row {
-                    width: parent.width; spacing: Theme.spacingNormal
-                    Text {
-                        text: AudioState.micMuted ? "󰍭" : "󰍬"; color: Colors.text
-                        font.pixelSize: 16; font.family: Theme.fontFamily
-                        anchors.verticalCenter: parent.verticalCenter
-                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: AudioState.toggleMicMute() }
-                    }
-                    GlassSlider {
-                        width: parent.width - 28
-                        anchors.verticalCenter: parent.verticalCenter
-                        value: AudioState.micVolume; max: 1.0; active: !AudioState.micMuted
-                        onMoved: v => AudioState.setMicVolume(v)
-                    }
-                }
-                Row {
-                    width: parent.width; spacing: Theme.spacingNormal
-                    visible: BrightnessState.available
-                    Text {
-                        text: "󰃟"; color: Colors.text
-                        font.pixelSize: 16; font.family: Theme.fontFamily
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                    GlassSlider {
-                        width: parent.width - 28
-                        anchors.verticalCenter: parent.verticalCenter
-                        value: BrightnessState.value; max: 1.0
-                        onMoved: v => BrightnessState.set(v)
-                    }
-                }
-            }
 
-            GlassCard {
-                width: parent.width
-                visible: MprisState.hasAny
-                MprisPanel { anchors { left: parent.left; right: parent.right } }
+                Loader {
+                    width: parent.width
+                    active: body.detail
+                    sourceComponent: ControlState.ccSection === "wifi" ? wifiComp
+                        : ControlState.ccSection === "bluetooth" ? btComp : null
+                }
+                Component { id: wifiComp; WifiPanel {} }
+                Component { id: btComp; BluetoothPanel {} }
             }
         }
     }
