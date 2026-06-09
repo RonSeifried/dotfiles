@@ -1,6 +1,7 @@
 import QtQuick
 import "../.."
 import "../panels"
+import "../../components"
 import Quickshell
 import Quickshell.Wayland
 
@@ -140,30 +141,19 @@ PopupWindow {
         implicitHeight: panelContent.implicitHeight + 16
         topLeftRadius: 0; topRightRadius: 0
         bottomLeftRadius: Theme.radiusMedium; bottomRightRadius: Theme.radiusMedium
-        color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Colors.popupBgAlpha)
-        border.width: 0
+        color: "transparent"
         clip: true
 
-        // Side + bottom borders (no top → seamless join with pill).
-        // Margins match radiusMedium so the 1px line meets the corner curve tangentially.
-        Rectangle {
-            anchors.left: parent.left; anchors.top: parent.top
-            anchors.bottom: parent.bottom; anchors.bottomMargin: Theme.radiusMedium
-            width: 1
-            color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
-        }
-        Rectangle {
-            anchors.right: parent.right; anchors.top: parent.top
-            anchors.bottom: parent.bottom; anchors.bottomMargin: Theme.radiusMedium
-            width: 1
-            color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
-        }
-        Rectangle {
-            anchors.left: parent.left; anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            anchors.leftMargin: Theme.radiusMedium; anchors.rightMargin: Theme.radiusMedium
-            height: 1
-            color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
+        // Glass material: square top (joins the bar pill seamlessly), rounded
+        // bottom; no top highlight line (edges omit "top").
+        GlassSurface {
+            anchors.fill: parent
+            tier: "regular"
+            level: "e2"
+            radius: Theme.radiusMedium
+            topLeftRadius: 0
+            topRightRadius: 0
+            edges: ["left", "right", "bottom"]
         }
 
         // Consume clicks so they don't bubble to whatever is below the popup window.
