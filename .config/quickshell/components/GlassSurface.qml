@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Shapes
 import ".."
 
 // Liquid-glass base material. Tint over bgVariant + white top-edge highlight
@@ -81,7 +82,32 @@ Item {
     }
 
     // ── edges (top layer — drawn over content so they stay crisp) ─
-    // Top-edge highlight (the "light from above").
+    // Accent hairline tracing left side → bottom corners → right side, following
+    // the rounded corners. A Shape stroke is used because straight inset
+    // Rectangles can't trace the corner arc and Rectangle.border does not render
+    // with per-corner radii in this Qt build. The top edge is intentionally not
+    // stroked — it carries the white highlight instead (or is omitted for
+    // pill-joined surfaces). 0.5px inset keeps the 1px stroke inside the bounds.
+    Shape {
+        anchors.fill: parent
+        preferredRendererType: Shape.CurveRenderer
+        ShapePath {
+            strokeColor: root._borderColor
+            strokeWidth: 1
+            fillColor: "transparent"
+            capStyle: ShapePath.FlatCap
+            joinStyle: ShapePath.RoundJoin
+            startX: 0.5
+            startY: root.topLeftRadius
+            PathLine { x: 0.5; y: root.height - root.bottomLeftRadius }
+            PathQuad { controlX: 0.5; controlY: root.height - 0.5; x: root.bottomLeftRadius; y: root.height - 0.5 }
+            PathLine { x: root.width - root.bottomRightRadius; y: root.height - 0.5 }
+            PathQuad { controlX: root.width - 0.5; controlY: root.height - 0.5; x: root.width - 0.5; y: root.height - root.bottomRightRadius }
+            PathLine { x: root.width - 0.5; y: root.topRightRadius }
+        }
+    }
+
+    // Top-edge white highlight (the "light from above").
     Rectangle {
         visible: root.edges.indexOf("top") !== -1
         anchors { left: parent.left; right: parent.right; top: parent.top }
@@ -89,30 +115,6 @@ Item {
         anchors.rightMargin: root.topRightRadius
         height: 1
         color: Qt.rgba(1, 1, 1, root._highlightAlpha)
-    }
-    // Left
-    Rectangle {
-        visible: root.edges.indexOf("left") !== -1
-        anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
-        anchors.topMargin: root.topLeftRadius; anchors.bottomMargin: root.bottomLeftRadius
-        width: 1
-        color: root._borderColor
-    }
-    // Right
-    Rectangle {
-        visible: root.edges.indexOf("right") !== -1
-        anchors { right: parent.right; top: parent.top; bottom: parent.bottom }
-        anchors.topMargin: root.topRightRadius; anchors.bottomMargin: root.bottomRightRadius
-        width: 1
-        color: root._borderColor
-    }
-    // Bottom
-    Rectangle {
-        visible: root.edges.indexOf("bottom") !== -1
-        anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
-        anchors.leftMargin: root.bottomLeftRadius; anchors.rightMargin: root.bottomRightRadius
-        height: 1
-        color: root._borderColor
     }
 
     HoverHandler { id: _hover; enabled: root.interactive }
