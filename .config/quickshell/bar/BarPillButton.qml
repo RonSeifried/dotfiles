@@ -26,6 +26,11 @@ Item {
     default property alias contentChildren: contentRow.data
     property real horizontalPadding: 0
 
+    // When true, the pill does NOT drive ControlState.rightPanel on hover/click;
+    // hovering does nothing and clicking emits activated() instead.
+    property bool clickOnly: false
+    signal activated()
+
     // Wheel passthrough — connect to handle scroll on the pill (e.g. audio volume).
     signal wheelEvent(var event)
 
@@ -41,8 +46,10 @@ Item {
 
     HoverHandler {
         onHoveredChanged: if (hovered) {
-            ControlState.activeScreen = root.bar.screen.name
-            ControlState.rightPanel = root.panel
+            if (!root.clickOnly) {
+                ControlState.activeScreen = root.bar.screen.name
+                ControlState.rightPanel = root.panel
+            }
         }
     }
 
@@ -50,6 +57,7 @@ Item {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
         onClicked: {
+            if (root.clickOnly) { root.activated(); return }
             if (root.bar.pinnedPanel === root.panel) {
                 root.bar.pinnedPanel = ""
                 ControlState.rightPanel = "none"

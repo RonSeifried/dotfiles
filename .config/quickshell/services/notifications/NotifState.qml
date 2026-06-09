@@ -10,6 +10,9 @@ Singleton {
     property int unreadCount: 0
     property var notifications: []
 
+    // Do Not Disturb. Suppresses on-screen popups; history/unread still recorded.
+    property bool dnd: false
+
     signal toastRequested(var notif)
 
     // Reset unread badge when the notification panel opens.
@@ -42,7 +45,7 @@ Singleton {
             }
             root.notifications = [...root.notifications, entry]
             if (ControlState.rightPanel !== "notif") root.unreadCount++
-            root.toastRequested(entry)
+            if (!root.dnd) root.toastRequested(entry)
         }
     }
 

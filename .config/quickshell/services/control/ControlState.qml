@@ -22,6 +22,19 @@ Singleton {
     // "none" | "notif" | "audio" | "battery" | "wifi" | "bluetooth" | "clock" | "mpris"
     property string rightPanel: "none"
 
+    // Control Center. ccSection: "" = main grid, "wifi"/"bluetooth" = detail morph.
+    property bool controlCenterOpen: false
+    property string ccSection: ""
+
+    function openControlCenter(section) {
+        ccSection = section ? section : ""
+        controlCenterOpen = true
+    }
+    function closeControlCenter() {
+        controlCenterOpen = false
+        ccSection = ""
+    }
+
     property real osdVolume: 0
     property real osdBrightness: 0
     property bool osdMuted: false
