@@ -17,6 +17,9 @@ PopupWindow {
     readonly property bool _onActiveScreen: bar && bar.screen
         && bar.screen.name === ControlState.activeScreen
     property bool popupVisible: false
+    // True while the cursor is over the panel — the bar checks this so moving
+    // toward the floating panel (across the gap) doesn't close it.
+    readonly property bool panelHovered: ccHover.hovered
 
     visible: popupVisible
     color: "transparent"
@@ -78,6 +81,8 @@ PopupWindow {
         radius: Theme.radiusLarge
         color: "transparent"
         clip: true
+
+        HoverHandler { id: ccHover }
 
         // Floating glass: fully rounded, full border (all four corners traced).
         GlassSurface {
@@ -172,6 +177,14 @@ PopupWindow {
                         label: "Caffeine"
                         on: ControlState.idleInhibited
                         onClicked: ControlState.idleInhibited = !ControlState.idleInhibited
+                    }
+                    GlassTile {
+                        width: parent.cellW
+                        icon: "󰌵"
+                        label: "Night Light"
+                        sub: NightState.active ? (NightState.temp + "K") : "Off"
+                        on: NightState.active
+                        onClicked: NightState.toggle()
                     }
                 }
 

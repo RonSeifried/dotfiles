@@ -40,6 +40,7 @@ PanelWindow {
             if (rightPanelPopup.keyboardActive || mprisPopup.keyboardActive) return
             if (rightPillHover.hovered || mprisPillHover.hovered) return
             if (rightPanelPopup.panelHovered || mprisPopup.panelHovered) return
+            if (controlCenter.panelHovered) return
             ControlState.rightPanel = "none"
             if (ControlState.controlCenterOpen)
                 ControlState.closeControlCenter()
