@@ -24,6 +24,7 @@
 ^install\.sh$
 ^packages$
 ^docs$
+^tests$
 ^system$
 ^README\.md$
 ^LICENSE$
