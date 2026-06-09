@@ -81,38 +81,32 @@ Item {
     }
 
     // ── edges (top layer — drawn over content so they stay crisp) ─
-    // Top-edge highlight (the "light from above").
+    readonly property bool _omitTop: edges.indexOf("top") === -1
+
+    // Accent hairline. A single bordered rect so the line follows the rounded
+    // corners exactly (straight inset lines leave the corner arcs bare). When
+    // the top edge is omitted (surface joins a bar pill), the top is pushed
+    // above the bounds so a clipping parent removes the top line, leaving the
+    // sides + bottom edge + bottom corner arcs.
     Rectangle {
-        visible: root.edges.indexOf("top") !== -1
+        anchors.fill: parent
+        anchors.topMargin: root._omitTop ? -root.radius : 0
+        color: "transparent"
+        border.width: 1
+        border.color: root._borderColor
+        topLeftRadius: root.topLeftRadius; topRightRadius: root.topRightRadius
+        bottomLeftRadius: root.bottomLeftRadius; bottomRightRadius: root.bottomRightRadius
+    }
+
+    // Top-edge white highlight (the "light from above"); only when the top
+    // edge is present, drawn over the accent border's straight top run.
+    Rectangle {
+        visible: !root._omitTop
         anchors { left: parent.left; right: parent.right; top: parent.top }
         anchors.leftMargin: root.topLeftRadius
         anchors.rightMargin: root.topRightRadius
         height: 1
         color: Qt.rgba(1, 1, 1, root._highlightAlpha)
-    }
-    // Left
-    Rectangle {
-        visible: root.edges.indexOf("left") !== -1
-        anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
-        anchors.topMargin: root.topLeftRadius; anchors.bottomMargin: root.bottomLeftRadius
-        width: 1
-        color: root._borderColor
-    }
-    // Right
-    Rectangle {
-        visible: root.edges.indexOf("right") !== -1
-        anchors { right: parent.right; top: parent.top; bottom: parent.bottom }
-        anchors.topMargin: root.topRightRadius; anchors.bottomMargin: root.bottomRightRadius
-        width: 1
-        color: root._borderColor
-    }
-    // Bottom
-    Rectangle {
-        visible: root.edges.indexOf("bottom") !== -1
-        anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
-        anchors.leftMargin: root.bottomLeftRadius; anchors.rightMargin: root.bottomRightRadius
-        height: 1
-        color: root._borderColor
     }
 
     HoverHandler { id: _hover; enabled: root.interactive }
