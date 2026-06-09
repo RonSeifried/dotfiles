@@ -9,3 +9,4 @@ singleton NetUtils 1.0 services/network/NetUtils.qml
 singleton VpnState 1.0 services/network/VpnState.qml
 singleton NotifState 1.0 services/notifications/NotifState.qml
 singleton MprisState 1.0 services/mpris/MprisState.qml
+singleton BrightnessState 1.0 services/brightness/BrightnessState.qml
