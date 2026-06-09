@@ -42,6 +42,12 @@ Singleton {
     // Panel
     readonly property int panelPadding: ThemeClient.metrics.panelPadding
     readonly property int popupGap:     ThemeClient.metrics.popupGap
+    readonly property int spacingXL: ThemeClient.metrics.spacingXL
+    readonly property real hoverBrightness: ThemeClient.metrics.hoverBrightness
+    readonly property real pressScale:      ThemeClient.metrics.pressScale
+
+    // Elevation tiers (see services/theme/ThemeClient elevation group)
+    readonly property var elevation: ThemeClient.elevation
 
     // Launcher
     readonly property int launcherWidth:     ThemeClient.metrics.launcherWidth

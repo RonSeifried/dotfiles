@@ -81,6 +81,11 @@ Singleton {
         readonly property int spacingSmall:  6
         readonly property int spacingNormal: 8
         readonly property int spacingLarge:  12
+        readonly property int spacingXL: 16
+
+        // Interaction feedback (see Animation Grammar)
+        readonly property real hoverBrightness: 0.12   // lighten delta on hover
+        readonly property real pressScale:      0.97   // scale on press
 
         // Animation durations
         readonly property int durFast:     120
@@ -102,5 +107,24 @@ Singleton {
         readonly property int resultItemHeight:   46
         readonly property int appIconSize:        22
         readonly property int hintBarHeight:      22
+    }
+
+    // ── elevation ────────────────────────────────────────────────
+    // Glass surface tiers. Each = (tint over bgVariant, white top-edge
+    // highlight, accent hairline border). Replaces the old scattered
+    // pill*/popup* surface alphas. Tune live.
+    readonly property QtObject elevation: QtObject {
+        // e1 — flush/low: bar pills, inline chips
+        readonly property real e1TintAlpha:      0.68
+        readonly property real e1HighlightAlpha: 0.06
+        readonly property real e1BorderAlpha:    0.55
+        // e2 — raised: popups, cards
+        readonly property real e2TintAlpha:      0.74
+        readonly property real e2HighlightAlpha: 0.08
+        readonly property real e2BorderAlpha:    0.45
+        // e3 — floating: launcher, modal overlays
+        readonly property real e3TintAlpha:      0.80
+        readonly property real e3HighlightAlpha: 0.10
+        readonly property real e3BorderAlpha:    0.40
     }
 }
