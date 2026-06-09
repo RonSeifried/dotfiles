@@ -83,8 +83,8 @@ PanelWindow {
         anchors.verticalCenter: parent.verticalCenter
         width: root.panelWidth
         height: root.panelHeight
-        color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Colors.popupBgAlpha)
-        border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
+        color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e2TintAlpha)
+        border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
         border.width: 1
 
         // Two rounded corners on left, straight on right (slide-in edge)
@@ -137,7 +137,7 @@ PanelWindow {
                     color: root.muted ? Colors.textMuted : Colors.accent
 
                     Behavior on height {
-                        NumberAnimation { duration: Theme.durHover; easing.type: Easing.OutQuad }
+                        NumberAnimation { duration: Theme.durFast; easing.type: Easing.OutQuad }
                     }
                     Behavior on color { ColorAnimation { duration: Theme.durFast } }
                 }

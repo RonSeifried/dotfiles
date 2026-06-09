@@ -215,7 +215,7 @@ PanelWindow {
             height: root.panelHeight
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
-            color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Colors.popupBgAlpha)
+            color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e2TintAlpha)
             clip: true
 
             // Top corners rounded, bottom flush with screen edge
@@ -225,7 +225,7 @@ PanelWindow {
             bottomRightRadius: 0
 
             // Soft accent border (matches bar pill style)
-            border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
+            border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
             border.width: 1
 
             transform: Translate { id: slideTransform; y: root.hiddenOffset }
@@ -249,8 +249,8 @@ PanelWindow {
                         height: Theme.pillHeight
                         anchors.verticalCenter: parent.verticalCenter
                         radius: Theme.radiusPill
-                        color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Colors.pillBgAlpha)
-                        border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
+                        color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e1TintAlpha)
+                        border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
                         border.width: 1
                         width: titleRow.implicitWidth + 22
 
@@ -283,12 +283,12 @@ PanelWindow {
                         width: panel.width - 28 - titleRow.implicitWidth - 22 - countPill.width - applyBadge.width - Theme.spacingNormal * (applyBadge.visible ? 4 : 3)
                         anchors.verticalCenter: parent.verticalCenter
                         radius: Theme.radiusPill
-                        color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Colors.pillBgAlpha * 0.65)
+                        color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e1TintAlpha * 0.65)
                         border.color: searchInput.activeFocus
                             ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.75)
-                            : Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha * 0.7)
+                            : Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha * 0.7)
                         border.width: 1
-                        Behavior on border.color { ColorAnimation { duration: Theme.durHover } }
+                        Behavior on border.color { ColorAnimation { duration: Theme.durFast } }
 
                         Row {
                             anchors {
@@ -304,7 +304,7 @@ PanelWindow {
                                 font.pixelSize: Theme.fontMedium
                                 font.family: Theme.fontFamily
                                 anchors.verticalCenter: parent.verticalCenter
-                                Behavior on color { ColorAnimation { duration: Theme.durHover } }
+                                Behavior on color { ColorAnimation { duration: Theme.durFast } }
                             }
                             Item {
                                 width: parent.width - 24
@@ -320,7 +320,7 @@ PanelWindow {
                                     visible: searchInput.text.length === 0
                                     verticalAlignment: Text.AlignVCenter
                                     opacity: searchInput.activeFocus ? 0.55 : 0.85
-                                    Behavior on opacity { NumberAnimation { duration: Theme.durHover } }
+                                    Behavior on opacity { NumberAnimation { duration: Theme.durFast } }
                                 }
                                 TextInput {
                                     id: searchInput
@@ -357,8 +357,8 @@ PanelWindow {
                         width: countText.implicitWidth + 18
                         anchors.verticalCenter: parent.verticalCenter
                         radius: Theme.radiusPill
-                        color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Colors.pillBgAlpha * 0.65)
-                        border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha * 0.7)
+                        color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e1TintAlpha * 0.65)
+                        border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha * 0.7)
                         border.width: 1
                         Text {
                             id: countText
@@ -497,7 +497,7 @@ PanelWindow {
                                 color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.35)
                                 border.color: cell.isCenter
                                     ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.95)
-                                    : Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha * 0.4)
+                                    : Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha * 0.4)
                                 border.width: cell.isCenter ? 2 : 1
                                 clip: true
 
@@ -588,8 +588,8 @@ PanelWindow {
                     height: Theme.pillHeight - 4
                     width: hintsRow.implicitWidth + 24
                     radius: Theme.radiusPill
-                    color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Colors.pillBgAlpha * 0.6)
-                    border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha * 0.6)
+                    color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e1TintAlpha * 0.6)
+                    border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha * 0.6)
                     border.width: 1
 
                     Row {

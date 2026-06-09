@@ -217,8 +217,8 @@ PanelWindow {
             height: contentColumn.implicitHeight + Theme.panelPadding * 2
 
             transform: Translate { id: slideTransform; x: root.hiddenOffset }
-            color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Colors.popupBgAlpha)
-            border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
+            color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e2TintAlpha)
+            border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
             border.width: 1
 
             // Two rounded corners on left, straight on right (slide-in edge)
@@ -259,7 +259,7 @@ PanelWindow {
                             ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillHoverAlpha)
                             : "transparent"
                         border.color: selected
-                            ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
+                            ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
                             : "transparent"
                         border.width: 1
 

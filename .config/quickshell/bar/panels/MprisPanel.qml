@@ -200,7 +200,7 @@ Column {
                     ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.22)
                     : Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, 0.55)
                 border.color: isActive
-                    ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
+                    ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
                     : Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.dividerAlpha)
                 border.width: 1
 

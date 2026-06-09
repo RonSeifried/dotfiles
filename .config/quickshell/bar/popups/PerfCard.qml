@@ -24,7 +24,7 @@ Rectangle {
 
     radius: Theme.radiusMedium
     color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.18)
-    border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha * 0.6)
+    border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha * 0.6)
     border.width: 1
     clip: true
 

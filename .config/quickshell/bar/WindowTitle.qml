@@ -13,5 +13,5 @@ Text {
     elide: Text.ElideRight
     maximumLineCount: 1
 
-    Behavior on color { ColorAnimation { duration: Theme.durHover } }
+    Behavior on color { ColorAnimation { duration: Theme.durFast } }
 }

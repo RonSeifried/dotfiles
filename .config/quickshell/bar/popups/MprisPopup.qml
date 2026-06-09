@@ -140,7 +140,7 @@ PopupWindow {
         implicitHeight: panelContent.implicitHeight + 2 * Theme.panelPadding
         topLeftRadius: 0; topRightRadius: 0
         bottomLeftRadius: Theme.radiusMedium; bottomRightRadius: Theme.radiusMedium
-        color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Colors.popupBgAlpha)
+        color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e2TintAlpha)
         border.width: 0
         clip: true
 
@@ -148,20 +148,20 @@ PopupWindow {
             anchors.left: parent.left; anchors.top: parent.top
             anchors.bottom: parent.bottom; anchors.bottomMargin: Theme.radiusMedium
             width: 1
-            color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
+            color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
         }
         Rectangle {
             anchors.right: parent.right; anchors.top: parent.top
             anchors.bottom: parent.bottom; anchors.bottomMargin: Theme.radiusMedium
             width: 1
-            color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
+            color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
         }
         Rectangle {
             anchors.left: parent.left; anchors.right: parent.right
             anchors.bottom: parent.bottom
             anchors.leftMargin: Theme.radiusMedium; anchors.rightMargin: Theme.radiusMedium
             height: 1
-            color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
+            color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
         }
 
         MouseArea { anchors.fill: parent }

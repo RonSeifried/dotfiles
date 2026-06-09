@@ -102,8 +102,8 @@ PanelWindow {
             implicitHeight: contentCol.implicitHeight + Theme.panelPadding * 2
 
             transform: Translate { id: slideTransform; y: root.hiddenOffsetY }
-            color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Colors.popupBgAlpha)
-            border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
+            color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e2TintAlpha)
+            border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
             border.width: 1
 
             topLeftRadius: 0
@@ -213,7 +213,7 @@ PanelWindow {
                         Layout.preferredHeight: tempsCol.implicitHeight + Theme.panelPadding * 2
                         radius: Theme.radiusMedium
                         color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.18)
-                        border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha * 0.6)
+                        border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha * 0.6)
                         border.width: 1
 
                         ColumnLayout {

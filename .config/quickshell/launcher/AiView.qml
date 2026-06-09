@@ -97,8 +97,8 @@ Item {
                         : Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.55)
                     border.width: 1
                     border.color: modelData.role === "user"
-                        ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha * 0.5)
-                        : Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha * 0.25)
+                        ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha * 0.5)
+                        : Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha * 0.25)
 
                     Text {
                         id: histBody
@@ -124,7 +124,7 @@ Item {
                 radius: Theme.radiusMedium
                 color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.55)
                 border.width: 1
-                border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha * 0.4)
+                border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha * 0.4)
 
                 Text {
                     id: streamBody

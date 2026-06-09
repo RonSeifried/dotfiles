@@ -35,24 +35,24 @@ Singleton {
     property color color14: _palette.color14 ? _palette.color14 : "#8ec07c"
     property color color15: _palette.color15 ? _palette.color15 : "#ebdbb2"
 
-    // durColor pulled by constant (380) to avoid circular Theme.qml dependency.
-    // ThemeClient.metrics.durColor is the authoritative value — keep in sync.
-    Behavior on color0  { enabled: root._animate; ColorAnimation { duration: 380; easing.type: Easing.OutCubic } }
-    Behavior on color1  { enabled: root._animate; ColorAnimation { duration: 380; easing.type: Easing.OutCubic } }
-    Behavior on color2  { enabled: root._animate; ColorAnimation { duration: 380; easing.type: Easing.OutCubic } }
-    Behavior on color3  { enabled: root._animate; ColorAnimation { duration: 380; easing.type: Easing.OutCubic } }
-    Behavior on color4  { enabled: root._animate; ColorAnimation { duration: 380; easing.type: Easing.OutCubic } }
-    Behavior on color5  { enabled: root._animate; ColorAnimation { duration: 380; easing.type: Easing.OutCubic } }
-    Behavior on color6  { enabled: root._animate; ColorAnimation { duration: 380; easing.type: Easing.OutCubic } }
-    Behavior on color7  { enabled: root._animate; ColorAnimation { duration: 380; easing.type: Easing.OutCubic } }
-    Behavior on color8  { enabled: root._animate; ColorAnimation { duration: 380; easing.type: Easing.OutCubic } }
-    Behavior on color9  { enabled: root._animate; ColorAnimation { duration: 380; easing.type: Easing.OutCubic } }
-    Behavior on color10 { enabled: root._animate; ColorAnimation { duration: 380; easing.type: Easing.OutCubic } }
-    Behavior on color11 { enabled: root._animate; ColorAnimation { duration: 380; easing.type: Easing.OutCubic } }
-    Behavior on color12 { enabled: root._animate; ColorAnimation { duration: 380; easing.type: Easing.OutCubic } }
-    Behavior on color13 { enabled: root._animate; ColorAnimation { duration: 380; easing.type: Easing.OutCubic } }
-    Behavior on color14 { enabled: root._animate; ColorAnimation { duration: 380; easing.type: Easing.OutCubic } }
-    Behavior on color15 { enabled: root._animate; ColorAnimation { duration: 380; easing.type: Easing.OutCubic } }
+    // Palette cross-fade. Hardcoded constant (matches Theme.durNormal = 180) to
+    // avoid a circular Theme.qml dependency — keep in sync with durNormal.
+    Behavior on color0  { enabled: root._animate; ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
+    Behavior on color1  { enabled: root._animate; ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
+    Behavior on color2  { enabled: root._animate; ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
+    Behavior on color3  { enabled: root._animate; ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
+    Behavior on color4  { enabled: root._animate; ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
+    Behavior on color5  { enabled: root._animate; ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
+    Behavior on color6  { enabled: root._animate; ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
+    Behavior on color7  { enabled: root._animate; ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
+    Behavior on color8  { enabled: root._animate; ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
+    Behavior on color9  { enabled: root._animate; ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
+    Behavior on color10 { enabled: root._animate; ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
+    Behavior on color11 { enabled: root._animate; ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
+    Behavior on color12 { enabled: root._animate; ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
+    Behavior on color13 { enabled: root._animate; ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
+    Behavior on color14 { enabled: root._animate; ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
+    Behavior on color15 { enabled: root._animate; ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
 
     // ── WCAG contrast helpers (public — used by ThemeClient) ─────
     function lum(c) {

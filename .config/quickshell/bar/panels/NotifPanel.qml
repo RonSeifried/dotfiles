@@ -74,7 +74,7 @@ Column {
                             border.width: 1
                             border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.3)
 
-                            Behavior on color { ColorAnimation { duration: Theme.durHover } }
+                            Behavior on color { ColorAnimation { duration: Theme.durFast } }
 
                             Text {
                                 id: actionLabel

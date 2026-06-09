@@ -102,10 +102,10 @@ PanelWindow {
                 implicitHeight: Theme.pillHeight
                 implicitWidth: workspacesRow.implicitWidth + 18
                 radius: Theme.radiusPill
-                color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Colors.pillBgAlpha)
-                border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
+                color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e1TintAlpha)
+                border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
                 border.width: 1
-                Behavior on implicitWidth { NumberAnimation { duration: Theme.durHover; easing.type: Easing.OutQuad } }
+                Behavior on implicitWidth { NumberAnimation { duration: Theme.durFast; easing.type: Easing.OutQuad } }
                 Workspaces { id: workspacesRow; anchors.centerIn: parent; output: root.screen ? root.screen.name : "" }
             }
 
@@ -113,8 +113,8 @@ PanelWindow {
             Rectangle {
                 Layout.fillWidth: true; Layout.alignment: Qt.AlignVCenter
                 implicitHeight: Theme.pillHeight; radius: Theme.radiusPill
-                color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Colors.pillBgAlpha * 0.6)
-                border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha * 0.7)
+                color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e1TintAlpha * 0.6)
+                border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha * 0.7)
                 border.width: 1
 
                 WindowTitle {
@@ -147,8 +147,8 @@ PanelWindow {
                 bottomRightRadius: ownPanelOpen ? 0 : Theme.radiusPill
                 Behavior on bottomLeftRadius  { NumberAnimation { duration: 100; easing.type: Easing.OutQuad } }
                 Behavior on bottomRightRadius { NumberAnimation { duration: 100; easing.type: Easing.OutQuad } }
-                color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Colors.pillBgAlpha)
-                border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
+                color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e1TintAlpha)
+                border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
                 border.width: 1
                 opacity: show ? 1 : 0
                 clip: true
@@ -184,8 +184,8 @@ PanelWindow {
                 bottomRightRadius: ownPanelOpen ? 0 : Theme.radiusPill
                 Behavior on bottomLeftRadius  { NumberAnimation { duration: 100; easing.type: Easing.OutQuad } }
                 Behavior on bottomRightRadius { NumberAnimation { duration: 100; easing.type: Easing.OutQuad } }
-                color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Colors.pillBgAlpha)
-                border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
+                color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e1TintAlpha)
+                border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
                 border.width: 1
 
                 HoverHandler { id: rightPillHover }
@@ -348,7 +348,7 @@ PanelWindow {
                             text: ControlState.idleInhibited ? "󰛊" : "󰒲"
                             color: ControlState.idleInhibited ? Colors.accent : Colors.textMuted
                             font.pixelSize: Theme.fontLarge; font.family: Theme.fontFamily
-                            Behavior on color { ColorAnimation { duration: Theme.durHover } }
+                            Behavior on color { ColorAnimation { duration: Theme.durFast } }
                         }
                     }
 

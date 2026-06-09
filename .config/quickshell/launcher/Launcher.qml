@@ -118,8 +118,8 @@ PanelWindow {
               )
         anchors { horizontalCenter: parent.horizontalCenter; top: parent.top; topMargin: Theme.launcherTopMargin }
         radius: Theme.radiusLarge
-        color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Colors.popupBgAlpha)
-        border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
+        color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e2TintAlpha)
+        border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
         border.width: 1
         clip: true
 
@@ -140,7 +140,7 @@ PanelWindow {
                 height: Theme.searchBarHeight
                 radius: Theme.radiusPill
                 color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.7)
-                border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha)
+                border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
                 border.width: 1
 
                 RowLayout {

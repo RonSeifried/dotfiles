@@ -36,8 +36,6 @@ Singleton {
     readonly property int durFast:   ThemeClient.metrics.durFast
     readonly property int durNormal: ThemeClient.metrics.durNormal
     readonly property int durSlide:  ThemeClient.metrics.durSlide
-    readonly property int durHover:  ThemeClient.metrics.durHover
-    readonly property int durColor:  ThemeClient.metrics.durColor
 
     // Panel
     readonly property int panelPadding: ThemeClient.metrics.panelPadding

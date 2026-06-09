@@ -36,11 +36,8 @@ Singleton {
     readonly property color warning:   ThemeClient.colors.warning
     readonly property color error:     ThemeClient.colors.error
 
-    // Opacity helpers
-    readonly property real pillBgAlpha:     ThemeClient.colors.pillBgAlpha
-    readonly property real pillBorderAlpha: ThemeClient.colors.pillBorderAlpha
+    // Opacity helpers (surface tints now via Theme.elevation tiers)
     readonly property real pillHoverAlpha:  ThemeClient.colors.pillHoverAlpha
-    readonly property real popupBgAlpha:    ThemeClient.colors.popupBgAlpha
     readonly property real dividerAlpha:    ThemeClient.colors.dividerAlpha
     readonly property real sliderTrackAlpha:ThemeClient.colors.sliderTrackAlpha
 }

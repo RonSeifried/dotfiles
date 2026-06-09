@@ -127,7 +127,7 @@ PanelWindow {
             opacity: 0
             scale: 0.94
 
-            Behavior on border.color { ColorAnimation { duration: Theme.durColor } }
+            Behavior on border.color { ColorAnimation { duration: Theme.durNormal } }
 
             MouseArea { anchors.fill: parent }
 
@@ -136,7 +136,7 @@ PanelWindow {
                 anchors { left: parent.left; right: parent.right; top: parent.top }
                 height: 3
                 color: root.errored ? Colors.error : Colors.accent
-                Behavior on color { ColorAnimation { duration: Theme.durColor } }
+                Behavior on color { ColorAnimation { duration: Theme.durNormal } }
             }
 
             SequentialAnimation {
@@ -181,8 +181,8 @@ PanelWindow {
                             root.errored ? Colors.error.b : Colors.accent.b,
                             0.55)
 
-                        Behavior on color { ColorAnimation { duration: Theme.durColor } }
-                        Behavior on border.color { ColorAnimation { duration: Theme.durColor } }
+                        Behavior on color { ColorAnimation { duration: Theme.durNormal } }
+                        Behavior on border.color { ColorAnimation { duration: Theme.durNormal } }
 
                         Text {
                             anchors.centerIn: parent
@@ -190,7 +190,7 @@ PanelWindow {
                             color: root.errored ? Colors.error : Colors.accent
                             font.family: Theme.fontFamily
                             font.pixelSize: 26
-                            Behavior on color { ColorAnimation { duration: Theme.durColor } }
+                            Behavior on color { ColorAnimation { duration: Theme.durNormal } }
                         }
                     }
 
@@ -256,7 +256,7 @@ PanelWindow {
                     font.family: Theme.fontFamily
                     font.pointSize: Theme.fontSmall
                     wrapMode: Text.WordWrap
-                    Behavior on color { ColorAnimation { duration: Theme.durColor } }
+                    Behavior on color { ColorAnimation { duration: Theme.durNormal } }
                 }
 
                 // ── Password pill ───────────────────────────────────
@@ -271,7 +271,7 @@ PanelWindow {
                         if (passwordField.activeFocus) return Colors.accent
                         return Qt.rgba(Colors.text.r, Colors.text.g, Colors.text.b, 0.18)
                     }
-                    Behavior on border.color { ColorAnimation { duration: Theme.durColor } }
+                    Behavior on border.color { ColorAnimation { duration: Theme.durNormal } }
 
                     Text {
                         anchors {

@@ -130,7 +130,7 @@ Item {
                     Layout.preferredWidth: badgeText.implicitWidth + 12
                     radius: Theme.radiusPill
                     color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.18)
-                    border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillBorderAlpha * 0.7)
+                    border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha * 0.7)
                     border.width: 1
 
                     Text {

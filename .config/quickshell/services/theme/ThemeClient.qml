@@ -41,11 +41,8 @@ Singleton {
         readonly property color color14: LocalThemeProvider.color14
         readonly property color color15: LocalThemeProvider.color15
 
-        // Opacity helpers — surface tuning across the shell
-        readonly property real pillBgAlpha:     0.68
-        readonly property real pillBorderAlpha: 0.55
+        // Content-accent / state alphas (surface tints now live in `elevation`).
         readonly property real pillHoverAlpha:  0.22
-        readonly property real popupBgAlpha:    0.74
         readonly property real dividerAlpha:    0.22
         readonly property real sliderTrackAlpha:0.20
     }
@@ -91,8 +88,6 @@ Singleton {
         readonly property int durFast:     120
         readonly property int durNormal:   180
         readonly property int durSlide:    220
-        readonly property int durHover:    150
-        readonly property int durColor:    380
 
         // Panel
         readonly property int panelPadding: 10
