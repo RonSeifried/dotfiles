@@ -11,7 +11,7 @@ Item {
     property bool active: true          // false → muted look (textMuted fill)
     signal moved(real value)
 
-    implicitHeight: 6
+    implicitHeight: 8
     implicitWidth: 120
 
     readonly property real _frac: SliderMath.frac(value, max)

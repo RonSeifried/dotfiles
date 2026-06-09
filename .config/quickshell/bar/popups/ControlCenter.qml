@@ -90,7 +90,7 @@ PopupWindow {
             Column {
                 id: mainLayer
                 width: parent.width
-                spacing: Theme.spacingLarge
+                spacing: Theme.spacingNormal
                 opacity: body.detail ? 0 : 1
                 x: body.detail ? -20 : 0
                 visible: opacity > 0.01
@@ -100,9 +100,9 @@ PopupWindow {
                 Grid {
                     width: parent.width
                     columns: 2
-                    columnSpacing: Theme.spacingNormal
-                    rowSpacing: Theme.spacingNormal
-                    readonly property real cellW: (width - Theme.spacingNormal) / 2
+                    columnSpacing: Theme.spacingSmall
+                    rowSpacing: Theme.spacingSmall
+                    readonly property real cellW: (width - Theme.spacingSmall) / 2
 
                     GlassTile {
                         width: parent.cellW
