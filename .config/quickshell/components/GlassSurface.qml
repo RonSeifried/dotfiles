@@ -20,6 +20,13 @@ Item {
     // "e2" raised (popups/cards), "e3" floating (launcher/modal).
     property string level: "e2"
     property int radius: Theme.radiusMedium
+    // Per-corner radii default to `radius`. Override individually for surfaces
+    // that join another element — e.g. a popup hanging off a bar pill sets the
+    // top corners to 0 so it meets the pill squarely.
+    property int topLeftRadius: radius
+    property int topRightRadius: radius
+    property int bottomLeftRadius: radius
+    property int bottomRightRadius: radius
     property bool interactive: false
     // Edge control. "top" toggles the white highlight line; "left"/"right"/
     // "bottom" toggle accent hairlines. Popups joined to a pill omit "top".
@@ -53,12 +60,14 @@ Item {
     Rectangle {
         id: fill
         anchors.fill: parent
-        radius: root.radius
+        topLeftRadius: root.topLeftRadius; topRightRadius: root.topRightRadius
+        bottomLeftRadius: root.bottomLeftRadius; bottomRightRadius: root.bottomRightRadius
         color: Qt.rgba(root._tintColor.r, root._tintColor.g, root._tintColor.b, root._tintAlpha)
         // Hover-brightness: a white overlay at hoverBrightness alpha.
         Rectangle {
             anchors.fill: parent
-            radius: parent.radius
+            topLeftRadius: parent.topLeftRadius; topRightRadius: parent.topRightRadius
+            bottomLeftRadius: parent.bottomLeftRadius; bottomRightRadius: parent.bottomRightRadius
             color: "white"
             opacity: root.interactive && _hover.hovered ? Theme.hoverBrightness : 0.0
             Behavior on opacity { NumberAnimation { duration: Theme.durFast; easing.type: Easing.OutCubic } }
@@ -76,8 +85,8 @@ Item {
     Rectangle {
         visible: root.edges.indexOf("top") !== -1
         anchors { left: parent.left; right: parent.right; top: parent.top }
-        anchors.leftMargin: root.radius
-        anchors.rightMargin: root.radius
+        anchors.leftMargin: root.topLeftRadius
+        anchors.rightMargin: root.topRightRadius
         height: 1
         color: Qt.rgba(1, 1, 1, root._highlightAlpha)
     }
@@ -85,7 +94,7 @@ Item {
     Rectangle {
         visible: root.edges.indexOf("left") !== -1
         anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
-        anchors.topMargin: root.radius; anchors.bottomMargin: root.radius
+        anchors.topMargin: root.topLeftRadius; anchors.bottomMargin: root.bottomLeftRadius
         width: 1
         color: root._borderColor
     }
@@ -93,7 +102,7 @@ Item {
     Rectangle {
         visible: root.edges.indexOf("right") !== -1
         anchors { right: parent.right; top: parent.top; bottom: parent.bottom }
-        anchors.topMargin: root.radius; anchors.bottomMargin: root.radius
+        anchors.topMargin: root.topRightRadius; anchors.bottomMargin: root.bottomRightRadius
         width: 1
         color: root._borderColor
     }
@@ -101,7 +110,7 @@ Item {
     Rectangle {
         visible: root.edges.indexOf("bottom") !== -1
         anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
-        anchors.leftMargin: root.radius; anchors.rightMargin: root.radius
+        anchors.leftMargin: root.bottomLeftRadius; anchors.rightMargin: root.bottomRightRadius
         height: 1
         color: root._borderColor
     }
