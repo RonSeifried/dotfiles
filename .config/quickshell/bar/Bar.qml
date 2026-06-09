@@ -22,7 +22,7 @@ PanelWindow {
     exclusiveZone: Theme.barExclusiveZone
 
     // Corners flat while ANY popup is visible
-    property bool panelOpen: rightPanelPopup.popupVisible || toastPopup.toastVisible || mprisPopup.popupVisible
+    property bool panelOpen: rightPanelPopup.popupVisible || toastPopup.toastVisible || mprisPopup.popupVisible || controlCenter.popupVisible
     // Which panel (if any) is click-pinned. "" = no pin (hover-only).
     // Scoping by name prevents one pill's pin leaking onto another pill's panel.
     property string pinnedPanel: ""
@@ -41,6 +41,8 @@ PanelWindow {
             if (rightPillHover.hovered || mprisPillHover.hovered) return
             if (rightPanelPopup.panelHovered || mprisPopup.panelHovered) return
             ControlState.rightPanel = "none"
+            if (ControlState.controlCenterOpen)
+                ControlState.closeControlCenter()
         }
     }
 
@@ -74,6 +76,12 @@ PanelWindow {
         pinnedPanel: root.pinnedPanel
         pillHovered: mprisPillHover.hovered
         onPinnedClosed: root.pinnedPanel = ""
+    }
+
+    ControlCenter {
+        id: controlCenter
+        bar: root
+        anchorItem: rightPill
     }
 
     // ── Bar content ──────────────────────────────────────────────
@@ -206,6 +214,8 @@ PanelWindow {
                     // WiFi
                     BarPillButton {
                         panel: "wifi"; bar: root
+                        clickOnly: true
+                        onActivated: { ControlState.activeScreen = root.screen.name; ControlState.openControlCenter("wifi") }
                         Row {
                             spacing: Theme.spacingTight
                             Text {
@@ -230,6 +240,8 @@ PanelWindow {
                     // Bluetooth
                     BarPillButton {
                         panel: "bluetooth"; bar: root
+                        clickOnly: true
+                        onActivated: { ControlState.activeScreen = root.screen.name; ControlState.openControlCenter("bluetooth") }
                         Text {
                             text: {
                                 const a = Bluetooth.defaultAdapter
@@ -257,6 +269,8 @@ PanelWindow {
                     BarPillButton {
                         id: audioCluster
                         panel: "audio"; bar: root
+                        clickOnly: true
+                        onActivated: { ControlState.activeScreen = root.screen.name; ControlState.openControlCenter("") }
                         onWheelEvent: ev => {
                             const delta = ev.angleDelta.y > 0 ? 0.05 : -0.05
                             AudioState.setVolume(AudioState.volume + delta)
@@ -284,6 +298,8 @@ PanelWindow {
                     BarPillButton {
                         id: batteryCluster
                         panel: "battery"; bar: root
+                        clickOnly: true
+                        onActivated: { ControlState.activeScreen = root.screen.name; ControlState.openControlCenter("") }
 
                         property var bat: {
                             for (const d of UPower.devices.values) {
@@ -380,6 +396,9 @@ PanelWindow {
                             }
                         }
                     }
+
+                    BarDivider {}
+                    ControlCenterButton { bar: root; Layout.alignment: Qt.AlignVCenter }
                 }
             }
         }

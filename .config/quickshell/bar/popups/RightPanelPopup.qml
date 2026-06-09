@@ -62,7 +62,7 @@ PopupWindow {
     readonly property bool _onActiveScreen: bar && bar.screen
         && bar.screen.name === ControlState.activeScreen
     // Panels handled by this (right-cluster) popup. "mpris" belongs to MprisPopup.
-    readonly property var _handled: ["notif","audio","battery","wifi","bluetooth","clock"]
+    readonly property var _handled: ["notif","clock"]
     readonly property bool _isHandled: _handled.indexOf(ControlState.rightPanel) !== -1
 
     Connections {
@@ -175,23 +175,15 @@ PopupWindow {
                 anchors { left: parent.left; right: parent.right; top: parent.top }
                 sourceComponent: {
                     switch (ControlState.rightPanel) {
-                        case "audio":     return audioComp
-                        case "battery":   return batteryComp
                         case "notif":     return notifComp
                         case "clock":     return calendarComp
-                        case "wifi":      return wifiComp
-                        case "bluetooth": return btComp
                         default:          return null
                     }
                 }
             }
 
-            Component { id: audioComp;    AudioPanel {} }
-            Component { id: batteryComp;  BatteryPanel {} }
             Component { id: notifComp;    NotifPanel {} }
             Component { id: calendarComp; CalendarPanel {} }
-            Component { id: wifiComp;     WifiPanel {} }
-            Component { id: btComp;       BluetoothPanel {} }
         }
     }
 }
