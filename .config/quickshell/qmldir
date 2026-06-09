@@ -3,7 +3,7 @@ singleton Theme 1.0 Theme.qml
 singleton LocalThemeProvider 1.0 services/theme/LocalThemeProvider.qml
 singleton ThemeClient 1.0 services/theme/ThemeClient.qml
 singleton WMState 1.0 services/wm/WMState.qml
-singleton ControlState 1.0 ControlState.qml
+singleton ControlState 1.0 services/control/ControlState.qml
 singleton AudioState 1.0 services/audio/AudioState.qml
 singleton NetUtils 1.0 services/network/NetUtils.qml
 singleton VpnState 1.0 services/network/VpnState.qml
