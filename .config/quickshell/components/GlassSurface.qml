@@ -92,6 +92,7 @@ Item {
     // Top present → CLOSED rounded rect tracing all four corners. Top omitted
     // (pill-join) → OPEN path (left + bottom corners + right), top left bare so
     // the surface meets the pill. Quadratic corners (Q) avoid arc-direction bugs.
+    readonly property bool _omitTop: edges.indexOf("top") === -1
     readonly property string _pathData: {
         const x0 = 0.5, y0 = 0.5, x1 = width - 0.5, y1 = height - 0.5
         const tl = topLeftRadius, tr = topRightRadius, bl = bottomLeftRadius, br = bottomRightRadius

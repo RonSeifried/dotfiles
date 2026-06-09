@@ -24,7 +24,13 @@ PopupWindow {
     visible: popupVisible
     color: "transparent"
     implicitWidth: 360
-    implicitHeight: panelOuter.implicitHeight
+    // Window includes the gap strip above the glass so its hover area reaches up
+    // to the bar — no dead zone between the CC button and the floating panel.
+    readonly property int ccGap: 6
+    implicitHeight: panelOuter.implicitHeight + ccGap
+
+    // Hover the whole window (gap strip + panel); the bar guards on panelHovered.
+    HoverHandler { id: ccHover }
 
     BackgroundEffect.blurRegion: Region {
         x: panelOuter.x; y: panelOuter.y
@@ -33,10 +39,11 @@ PopupWindow {
         bottomLeftRadius: Theme.radiusLarge; bottomRightRadius: Theme.radiusLarge
     }
 
-    // Floating panel: right-aligned to the cluster, a gap below the bar.
+    // Floating panel: right-aligned to the cluster. Window touches the bar; the
+    // visual gap is the transparent strip above the glass inside the window.
     anchor.window: bar
     anchor.rect.x: anchorItem ? anchorItem.x + anchorItem.width - 360 : 0
-    anchor.rect.y: bar ? bar.implicitHeight + 6 : 0
+    anchor.rect.y: bar ? bar.implicitHeight : 0
     anchor.rect.width: 360
     anchor.rect.height: 0
 
@@ -45,7 +52,7 @@ PopupWindow {
         function onControlCenterOpenChanged() {
             if (ControlState.controlCenterOpen && root._onActiveScreen) {
                 root.popupVisible = true
-                panelOuter.y = -12
+                panelOuter.y = root.ccGap - 8
                 panelOuter.opacity = 0
                 appearAnim.start()
             } else if (root.popupVisible) {
@@ -57,7 +64,7 @@ PopupWindow {
     // Floating drop-in: short slide + fade (not a bar-attached unroll).
     ParallelAnimation {
         id: appearAnim
-        NumberAnimation { target: panelOuter; property: "y"; to: 0
+        NumberAnimation { target: panelOuter; property: "y"; to: root.ccGap
             duration: Theme.durNormal; easing.type: Easing.OutCubic }
         NumberAnimation { target: panelOuter; property: "opacity"; to: 1
             duration: Theme.durNormal; easing.type: Easing.OutCubic }
@@ -65,7 +72,7 @@ PopupWindow {
     SequentialAnimation {
         id: disappearAnim
         ParallelAnimation {
-            NumberAnimation { target: panelOuter; property: "y"; to: -12
+            NumberAnimation { target: panelOuter; property: "y"; to: root.ccGap - 8
                 duration: Theme.durFast; easing.type: Easing.InCubic }
             NumberAnimation { target: panelOuter; property: "opacity"; to: 0
                 duration: Theme.durFast; easing.type: Easing.InCubic }
@@ -75,14 +82,12 @@ PopupWindow {
 
     Rectangle {
         id: panelOuter
-        y: 0
+        y: root.ccGap
         width: 360
         implicitHeight: body.implicitHeight + 2 * Theme.panelPadding
         radius: Theme.radiusLarge
         color: "transparent"
         clip: true
-
-        HoverHandler { id: ccHover }
 
         // Floating glass: fully rounded, full border (all four corners traced).
         GlassSurface {
