@@ -48,6 +48,9 @@ TODO.md
 
 /.config/starship/starship.toml
 
+# Design/brainstorm docs — kept local, repo stays clean
+docs/
+
 # Per-host niri override (optional include, kept out of VCS)
 .config/niri/includes/host.kdl
 # Generated wallpaper colors (scripts/pywal-niri-colors.sh) — machine-local
