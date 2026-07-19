@@ -25,10 +25,12 @@ ShellRoot {
                 context: lockContext
             }
 
-            // Native compositor blur via ext-background-effect-v1 (qs 0.3 + niri 26.04).
-            // Anchor the Region to the inner item (created with surface) so the
-            // Region has a valid Item reference at instantiation time.
-            BackgroundEffect.blurRegion: Region { item: lockSurfaceItem }
+            // No BackgroundEffect here: its attached type only accepts
+            // ProxyWindowBase/WindowInterface (PanelWindow etc.), not
+            // WlSessionLockSurface — attaching aborts surface creation and
+            // kills the lock daemon (qs 0.3, unchanged upstream as of 2026-07).
+            // The dim overlay lives in LockSurface; niri shows its backdrop
+            // color behind the transparent surface.
         }
     }
 

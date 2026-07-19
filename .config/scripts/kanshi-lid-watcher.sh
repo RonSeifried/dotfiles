@@ -32,7 +32,8 @@ stop_inhibit() {
 trap 'stop_inhibit' EXIT INT TERM
 
 externals_present() {
-    niri msg --json outputs 2>/dev/null | grep -qE 'G274QPF-QD|MAG24C'
+    niri msg --json outputs 2>/dev/null \
+        | jq -e 'to_entries | any(.key | test("^(eDP|LVDS|DSI)"; "i") | not)' >/dev/null 2>&1
 }
 
 lid_state() {
@@ -61,6 +62,14 @@ apply() {
 }
 
 # Wait for kanshi daemon to be ready (max ~5s).
+# A fresh install intentionally contains only the fallback profile. Dock/lid
+# switching becomes active after the user defines the three named profiles in
+# ~/.config/kanshi/config for that machine.
+for required_profile in docked_open docked_closed laptop_open; do
+    grep -qE "^profile[[:space:]]+${required_profile}[[:space:]]*\\{" \
+        "$HOME/.config/kanshi/config" 2>/dev/null || exit 0
+done
+
 for _ in 1 2 3 4 5 6 7 8 9 10; do
     kanshictl reload >/dev/null 2>&1 && break
     sleep 0.5

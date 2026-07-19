@@ -1,2 +1,9 @@
 // Layer-shell surfaces. Quickshell uses ext-background-effect for native blur,
 // so no client-side layer-rule is required for qs panels.
+
+// A second swaybg instance renders the blurred active wallpaper exclusively
+// inside Niri's overview backdrop. The normal awww surface remains untouched.
+layer-rule {
+    match namespace="^wallpaper$"
+    place-within-backdrop true
+}

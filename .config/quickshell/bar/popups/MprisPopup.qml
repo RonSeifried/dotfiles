@@ -1,12 +1,14 @@
 import QtQuick
 import "../.."
+import "../../components"
 import "../panels"
 import Quickshell
 import Quickshell.Wayland
 
-// Slide-down popup anchored to the bar's MPRIS pill. Same blur/anim machinery
-// as RightPanelPopup. Panel width = pill width so corners join seamlessly:
-// pill bottom corners flatten when open, panel top corners stay square.
+// Slide-down popup anchored to the bar's MPRIS pill — the last hover-driven
+// bar dropdown (everything else moved into the Control Center). Panel width =
+// pill width so corners join seamlessly: pill bottom corners flatten when
+// open, panel top corners stay square.
 PopupWindow {
     id: root
 
@@ -18,10 +20,10 @@ PopupWindow {
 
     readonly property bool isPinned: pinnedPanel === "mpris"
         && ControlState.rightPanel === "mpris"
-    // Keep panel open while a TextInput inside has focus (no inputs today,
-    // but mirrors RightPanelPopup so future panel additions just work).
-    readonly property bool keyboardActive: !!(activeFocusItem
-        && activeFocusItem.cursorVisible === true)
+    // The compact media panel has no text controls, so hover/pin state is the
+    // complete closing model. Keeping this explicit avoids querying focus on
+    // PopupWindow, which does not expose an activeFocusItem of its own.
+    readonly property bool keyboardActive: false
     readonly property bool panelHovered: panelPopupHover.hovered
 
     signal pinnedClosed()
@@ -32,15 +34,17 @@ PopupWindow {
     color: "transparent"
     // Floor on width so the 180px cover + padding always fits even when the
     // pill is narrower than the panel body (short titles).
-    readonly property int panelWidth: anchorItem ? Math.max(anchorItem.width, 220) : 220
+    readonly property int panelWidth: anchorItem ? Math.max(anchorItem.width, 300) : 300
     implicitWidth: panelWidth
-    implicitHeight: panelOuter.implicitHeight
+    implicitHeight: Theme.popupGap + panelOuter.implicitHeight
 
     BackgroundEffect.blurRegion: Region {
         x: panelOuter.x
         y: panelOuter.y
         width: panelOuter.width
         height: panelOuter.implicitHeight
+        topLeftRadius: Theme.radiusXL
+        topRightRadius: Theme.radiusXL
         bottomLeftRadius: Theme.radiusMedium
         bottomRightRadius: Theme.radiusMedium
     }
@@ -53,7 +57,7 @@ PopupWindow {
         const max = bar.width - panelWidth
         return Math.max(0, Math.min(raw, max))
     }
-    anchor.rect.y: bar ? bar.implicitHeight - 4 : 0
+    anchor.rect.y: bar ? bar.implicitHeight : 0
     anchor.rect.width: panelWidth
     anchor.rect.height: 0
 
@@ -65,11 +69,11 @@ PopupWindow {
         if (shouldShow) {
             if (!popupVisible) {
                 popupVisible = true
-                panelOuter.y = -panelOuter.implicitHeight
-                cornerDelay.start()
+                panelOuter.y = -8
+                panelOuter.opacity = 0
+                panelSlideDown.start()
             }
         } else if (popupVisible) {
-            cornerDelay.stop()
             panelSlideUp.start()
         }
     }
@@ -78,31 +82,25 @@ PopupWindow {
         target: ControlState
         function onActiveScreenChanged() {
             if (root.popupVisible && !root.shouldShow) {
-                root.cornerDelay.stop()
                 root.panelSlideUp.start()
             }
         }
     }
 
-    Timer {
-        id: cornerDelay
-        interval: 90
-        onTriggered: panelSlideDown.start()
-    }
-
-    NumberAnimation {
+    ParallelAnimation {
         id: panelSlideDown
-        target: panelOuter; property: "y"
-        to: 0; duration: Theme.durSlide; easing.type: Easing.OutCubic
+        NumberAnimation { target: panelOuter; property: "y"; to: Theme.popupGap; duration: Theme.durNormal; easing.type: Easing.OutCubic }
+        NumberAnimation { target: panelOuter; property: "opacity"; to: 1; duration: Theme.durNormal; easing.type: Easing.OutCubic }
     }
 
     SequentialAnimation {
         id: panelSlideUp
         NumberAnimation {
             target: panelOuter; property: "y"
-            to: -panelOuter.implicitHeight
-            duration: Theme.durNormal; easing.type: Easing.InCubic
+            to: -8
+            duration: Theme.durFast; easing.type: Easing.InCubic
         }
+        NumberAnimation { target: panelOuter; property: "opacity"; to: 0; duration: Theme.durFast }
         ScriptAction { script: root.popupVisible = false }
     }
 
@@ -138,30 +136,14 @@ PopupWindow {
         y: 0
         width: parent.width
         implicitHeight: panelContent.implicitHeight + 2 * Theme.panelPadding
-        topLeftRadius: 0; topRightRadius: 0
-        bottomLeftRadius: Theme.radiusMedium; bottomRightRadius: Theme.radiusMedium
-        color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e2TintAlpha)
-        border.width: 0
+        color: "transparent"
         clip: true
 
-        Rectangle {
-            anchors.left: parent.left; anchors.top: parent.top
-            anchors.bottom: parent.bottom; anchors.bottomMargin: Theme.radiusMedium
-            width: 1
-            color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
-        }
-        Rectangle {
-            anchors.right: parent.right; anchors.top: parent.top
-            anchors.bottom: parent.bottom; anchors.bottomMargin: Theme.radiusMedium
-            width: 1
-            color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
-        }
-        Rectangle {
-            anchors.left: parent.left; anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            anchors.leftMargin: Theme.radiusMedium; anchors.rightMargin: Theme.radiusMedium
-            height: 1
-            color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
+        radius: Theme.radiusXL
+        GlassSurface {
+            anchors.fill: parent
+            level: "e3"
+            radius: Theme.radiusXL
         }
 
         MouseArea { anchors.fill: parent }

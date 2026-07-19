@@ -193,10 +193,20 @@ Singleton {
     Process {
         id: actionProc
         property string verb: ""
+        // Secrets must never be placed in argv, where they are visible via
+        // /proc and process-list tools. The helper reads a "-" value on stdin.
+        property string pendingInput: ""
         property string outBuf: ""
         property string errBuf: ""
+        stdinEnabled: true
         stdout: StdioCollector { onStreamFinished: actionProc.outBuf = text }
         stderr: StdioCollector { onStreamFinished: actionProc.errBuf = text }
+        onStarted: {
+            if (pendingInput.length > 0) {
+                write(pendingInput + "\n")
+                pendingInput = ""
+            }
+        }
         onRunningChanged: {
             if (running) return
             root.busy = false
@@ -220,9 +230,10 @@ Singleton {
         }
     }
 
-    function _runAction(verb, args) {
+    function _runAction(verb, args, input) {
         if (actionProc.running) actionProc.running = false
         actionProc.verb = verb
+        actionProc.pendingInput = input || ""
         actionProc.outBuf = ""
         actionProc.errBuf = ""
         actionProc.command = [helper, verb].concat(args)
@@ -234,7 +245,9 @@ Singleton {
     function disableServer(name)    { _runAction("server-disable", [name]) }
     function connectClient(name)    { _runAction("client-connect",    [name]) }
     function disconnectClient(name) { _runAction("client-disconnect", [name]) }
-    function setSecret(catalogKey, value) { _runAction("secret-set", [catalogKey, value]) }
+    function setSecret(catalogKey, value) {
+        _runAction("secret-set", [catalogKey, "-"], value)
+    }
     function removeSecret(catalogKey)     { _runAction("secret-rm",  [catalogKey]) }
     function ensureGatewayConfig()        { _runAction("ensure-gateway-config", []) }
 

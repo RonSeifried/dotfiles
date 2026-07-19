@@ -1,8 +1,8 @@
 {
     "special": {
         "background": "{{background}}",
-        "foreground": "{{foreground}}",
-        "cursor": "{{cursor}}"
+        "foreground": "#d8dee9",
+        "cursor": "#f2f4f8"
     },
     "colors": {
         "color0": "{{color0}}",
@@ -12,14 +12,14 @@
         "color4": "{{color4}}",
         "color5": "{{color5}}",
         "color6": "{{color6}}",
-        "color7": "{{color7}}",
+        "color7": "#b8c0cc",
         "color8": "{{color8}}",
-        "color9": "{{color9}}",
-        "color10": "{{color10}}",
-        "color11": "{{color11}}",
-        "color12": "{{color12}}",
-        "color13": "{{color13}}",
-        "color14": "{{color14}}",
-        "color15": "{{color15}}"
+        "color9": "{{color9 | lighten(0.15) | saturate(0.15)}}",
+        "color10": "{{color10 | lighten(0.15) | saturate(0.15)}}",
+        "color11": "{{color11 | lighten(0.15) | saturate(0.15)}}",
+        "color12": "{{color12 | lighten(0.15) | saturate(0.15)}}",
+        "color13": "{{color13 | lighten(0.15) | saturate(0.15)}}",
+        "color14": "{{color14 | lighten(0.15) | saturate(0.15)}}",
+        "color15": "#f2f4f8"
     }
 }

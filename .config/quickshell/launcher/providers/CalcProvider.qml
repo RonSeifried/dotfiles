@@ -41,7 +41,34 @@ Item {
         }
     }
 
+    function _conversion(raw) {
+        const m = raw.trim().toLowerCase().match(/^(-?[0-9]+(?:[.,][0-9]+)?)\s*([a-z°]+)\s+(?:in|to)\s+([a-z°]+)$/)
+        if (!m) return null
+        const value = parseFloat(m[1].replace(",", ".")), from = m[2], to = m[3]
+        const aliases = { meters:"m", meter:"m", kilometres:"km", kilometers:"km", feet:"ft", foot:"ft", inches:"in", inch:"in", miles:"mi", grams:"g", gram:"g", kilograms:"kg", pounds:"lb", pound:"lb", ounces:"oz", celsius:"c", fahrenheit:"f", kelvin:"k", bytes:"b", kilobytes:"kb", megabytes:"mb", gigabytes:"gb" }
+        const f = aliases[from] || from, t = aliases[to] || to
+        if (["c","°c","f","°f","k"].includes(f) && ["c","°c","f","°f","k"].includes(t)) {
+            const c = f === "f" || f === "°f" ? (value - 32) * 5/9 : f === "k" ? value - 273.15 : value
+            return _format(t === "f" || t === "°f" ? c * 9/5 + 32 : t === "k" ? c + 273.15 : c) + " " + t.toUpperCase()
+        }
+        const factors = { mm:0.001, cm:0.01, m:1, km:1000, in:0.0254, ft:0.3048, yd:0.9144, mi:1609.344,
+            mg:0.000001, g:0.001, kg:1, oz:0.028349523125, lb:0.45359237,
+            b:1, kb:1024, mb:1048576, gb:1073741824, tb:1099511627776 }
+        if (factors[f] === undefined || factors[t] === undefined) return null
+        // Do not cross dimensions merely because both use numeric factors.
+        const dimension = u => ["mm","cm","m","km","in","ft","yd","mi"].includes(u) ? 1
+            : ["mg","g","kg","oz","lb"].includes(u) ? 2 : 3
+        if (dimension(f) !== dimension(t)) return null
+        return _format(value * factors[f] / factors[t]) + " " + t
+    }
+
     function search(query) {
+        const conversion = _conversion(query)
+        if (conversion !== null) return [{
+            providerId, icon: "", iconText: "󰦨", title: conversion,
+            subtitle: "Converted · Enter to copy", badge: "Convert", score: 980,
+            onActivate: () => _copy(conversion), keepOpen: false
+        }]
         const result = _evalExpr(query)
         if (result === null) return []
         return [{

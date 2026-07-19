@@ -17,7 +17,7 @@ Item {
                 text: "Clients"
                 color: Colors.text
                 font.family: Theme.fontFamily
-                font.pointSize: Theme.fontLarge
+                font.pixelSize: Theme.fontLarge
                 font.bold: true
             }
             Text {
@@ -25,7 +25,7 @@ Item {
                     + " / " + McpState.clients.length + " connected"
                 color: Colors.textMuted
                 font.family: Theme.fontFamily
-                font.pointSize: Theme.fontSmall
+                font.pixelSize: Theme.fontSmall
             }
             Item { Layout.fillWidth: true }
         }
@@ -69,14 +69,14 @@ Item {
                         text: modelData.name
                         color: Colors.text
                         font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontMedium
+                        font.pixelSize: Theme.fontMedium
                         elide: Text.ElideRight
                     }
                     Text {
                         text: modelData.connected ? "connected" : "disconnected"
                         color: modelData.connected ? Colors.success : Colors.textMuted
                         font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontTiny
+                        font.pixelSize: Theme.fontTiny
                     }
 
                     Rectangle {
@@ -101,7 +101,7 @@ Item {
                             text: modelData.connected ? "Disconnect" : "Connect"
                             color: modelData.connected ? Colors.error : Colors.bg
                             font.family: Theme.fontFamily
-                            font.pointSize: Theme.fontSmall
+                            font.pixelSize: Theme.fontSmall
                             font.bold: true
                         }
                         MouseArea {

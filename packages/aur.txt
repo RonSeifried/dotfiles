@@ -3,6 +3,6 @@
 # NOTE: quickshell and awww are in the OFFICIAL repos (see pacman.txt) — they
 # were wrongly listed here as quickshell-git / awww-bin before.
 
+wl-gammarelay-rs    # night-light gamma daemon (D-Bus controlled by quickshell)
 wallust             # wallpaper -> palette generator (resolves to wallust-git)
 oh-my-zsh-git       # zsh framework (sourced by .zshrc)
-zsh-you-should-use  # alias reminder plugin

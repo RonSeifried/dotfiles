@@ -14,7 +14,7 @@ Item {
         text: "󰕮"
         color: ControlState.controlCenterOpen ? Colors.accent : Colors.text
         font.pixelSize: Theme.fontLarge
-        font.family: Theme.fontFamily
+        font.family: Theme.fontIcon
         Behavior on color { ColorAnimation { duration: Theme.durFast } }
     }
 

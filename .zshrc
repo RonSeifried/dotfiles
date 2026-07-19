@@ -1,7 +1,24 @@
 ########## ZSH ##########
 
 # Enable Starship
-export ZSH="$HOME/.oh-my-zsh"
+# The Arch package installs the framework read-only in /usr/share. Personal
+# plugins stay under ~/.config so a fresh install never depends on an old
+# ~/.oh-my-zsh checkout.
+if [[ -r /usr/share/oh-my-zsh/oh-my-zsh.sh ]]; then
+  export ZSH="/usr/share/oh-my-zsh"
+else
+  export ZSH="$HOME/.oh-my-zsh"
+fi
+if [[ -z ${ZSH_CUSTOM:-} ]]; then
+  if [[ -d "$HOME/.config/oh-my-zsh/custom/plugins" ]]; then
+    export ZSH_CUSTOM="$HOME/.config/oh-my-zsh/custom"
+  elif [[ -d "$HOME/.oh-my-zsh/custom/plugins" ]]; then
+    # Seamless migration for machines installed before the XDG layout.
+    export ZSH_CUSTOM="$HOME/.oh-my-zsh/custom"
+  else
+    export ZSH_CUSTOM="$HOME/.config/oh-my-zsh/custom"
+  fi
+fi
 export STARSHIP_CONFIG="$HOME/.config/starship/starship.toml"
 
 # pywal
@@ -21,11 +38,25 @@ plugins=(
     zsh-autosuggestions
     colored-man-pages
     sudo
-    you-should-use
     zsh-bat
     aliases
     zsh-syntax-highlighting
 )
+
+# Completion should remain readable even when Wallust produces very dark ANSI
+# slots. Approximate matching is last so exact/recent names rank first.
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=** r:|=**'
+zstyle ':completion:*' list-colors \
+  'di=1;38;5;81' 'ln=1;38;5;117' 'ex=1;38;5;114' \
+  'fi=38;5;252' 'pi=38;5;215' 'so=38;5;215' 'bd=38;5;215' 'cd=38;5;215'
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*' verbose yes
+
+# Prefer commands used in the same context, then fall back to recent history.
+# Path-only commands are better served by live completion than stale history.
+ZSH_AUTOSUGGEST_STRATEGY=(match_prev_cmd history)
+ZSH_AUTOSUGGEST_HISTORY_IGNORE='(cd|ls|ll|l|pwd) *'
 source "$ZSH/oh-my-zsh.sh"
 
 ########## ZSH PLUGIN COLORS ##########
@@ -36,7 +67,7 @@ source "$ZSH/oh-my-zsh.sh"
 
 # zsh-autosuggest (greyed completion suggestion). color8 is the medium-tint
 # slot — visible but secondary, exactly what we want for ghost text.
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=245'
 
 # zsh-syntax-highlighting: remap every visible style to a readable slot.
 # Semantic intent is preserved via slot choice (warm = command/typo,
@@ -105,6 +136,10 @@ setopt share_history
 setopt hist_ignore_all_dups
 setopt hist_reduce_blanks
 setopt hist_ignore_space
+setopt hist_ignore_dups
+setopt hist_save_no_dups
+setopt hist_find_no_dups
+setopt hist_expire_dups_first
 
 # Ignore trivial commands from history (ZSH-compatible)
 zshaddhistory() {
@@ -177,16 +212,21 @@ alias vc='code'                                                        # gui cod
 setopt interactivecomments
 setopt noclobber
 
-# Enable completion
-autoload -U compinit && compinit
+# Oh My Zsh initialized completion above; running compinit twice slows startup
+# and can reset menu styles.
 
 ########## Startup ##########
 
-# Fastfetch on terminal open (fallback to neofetch)
-if command -v fastfetch &> /dev/null; then
-  "$HOME/.config/scripts/fastfetch-launcher.sh"
-elif command -v neofetch &> /dev/null; then
-  neofetch
+# System summary once per graphical login, rather than making every Kitty
+# window and tmux pane pay for JSON parsing, package enumeration and weather.
+# Run `FASTFETCH_ALWAYS=1 zsh` when a fresh summary is wanted deliberately.
+if command -v fastfetch &> /dev/null && [[ -t 1 ]]; then
+  _fetch_marker="${XDG_RUNTIME_DIR:-/tmp}/dotfiles-fastfetch-${WAYLAND_DISPLAY:-tty}"
+  if [[ ${FASTFETCH_ALWAYS:-0} == 1 || ! -e "$_fetch_marker" ]]; then
+    : >| "$_fetch_marker"
+    "$HOME/.config/scripts/fastfetch-launcher.sh"
+  fi
+  unset _fetch_marker
 fi
 
 ########## END ##########

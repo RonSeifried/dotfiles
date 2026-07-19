@@ -19,6 +19,7 @@ Item {
     property var results: []
     property string mode: "default"   // "default" | "calc" | "system" | "web" | "window" | "files" | "pkg" | "ai"
     property string modeHint: ""
+    property string effectiveFileQuery: ""
 
     readonly property alias ai: aiP
 
@@ -30,18 +31,21 @@ Item {
     FilesProvider      { id: filesP }
     PkgProvider        { id: pkgP }
     AiProvider         { id: aiP }
+    ClipboardProvider  { id: clipP }
 
     // Recompute when pkg lists finish loading mid-session.
     Connections {
         target: pkgP
         function onReadyChanged() { if (root.mode === "pkg") root._recompute() }
     }
+    Connections { target: clipP; function onReadyChanged() { if (root.mode === "default") root._recompute() } }
 
     Connections {
         target: filesP
         function onResultsReady(q, list) {
-            if (root.mode !== "files") return
-            if (q !== root._currentRest()) return
+            if (root.mode !== "files" && root.mode !== "default") return
+            if (q !== root.effectiveFileQuery) return
+            if (root.mode === "default") { root._recompute(); return }
             if (!list.length) {
                 root.results = [{
                     providerId: "files",
@@ -88,6 +92,23 @@ Item {
         }]
     }
 
+    function _take(list, count, boost) {
+        return list.slice(0, count).map(r => {
+            const copy = Object.assign({}, r)
+            copy.score = (copy.score || 0) + boost
+            return copy
+        })
+    }
+
+    function _looksLikeFileIntent(q) {
+        return q.includes("/") || q.includes(".")
+            || /\b(file|folder|document|image|photo|pdf|config|script)\b/i.test(q)
+    }
+
+    function _looksLikeActionIntent(q) {
+        return /^(open|launch|start|stop|toggle|turn|enable|disable|lock|sleep|reboot|shutdown|focus|switch|change)\b/i.test(q)
+    }
+
     function _recompute() {
         const trimmed = (query || "").trim()
         const parsed = _parseMode(trimmed)
@@ -115,11 +136,15 @@ Item {
         } else if (parsed.mode === "window") {
             out = winP.search(parsed.rest)
         } else if (parsed.mode === "pkg") {
-            out = pkgP.search(parsed.rest)
+            out = SettingsState.searchPackages ? pkgP.search(parsed.rest) : [{
+                providerId: "pkg", icon: "", iconText: "󰅖", title: "Package search is disabled",
+                subtitle: "Enable it in Desktop Settings", badge: "Pkg", score: 0, onActivate: () => {}
+            }]
         } else if (parsed.mode === "ai") {
             // AI-mode renders via AiView, not ResultList. Results stay empty.
             out = []
         } else if (parsed.mode === "files") {
+            effectiveFileQuery = parsed.rest
             filesP.query = parsed.rest
             if (!parsed.rest) {
                 out = [{
@@ -137,18 +162,31 @@ Item {
                 out = _searchingPlaceholder(parsed.rest)
             }
         } else {
-            // Default mode — merge.
+            // Unified Spotlight mode: every local provider participates and
+            // prefixes remain optional filters for power users.
             if (!parsed.rest) {
                 out = appsP.search("")
+                effectiveFileQuery = ""
+                filesP.query = ""
             } else {
-                const apps = appsP.search(parsed.rest)
-                const wins = winP.search(parsed.rest)
-                const sys  = sysP.search(parsed.rest)
+                const fileIntent = _looksLikeFileIntent(parsed.rest)
+                const actionIntent = _looksLikeActionIntent(parsed.rest)
+                const subject = parsed.rest.replace(/^(open|launch|start|find|show)\s+/i, "").trim() || parsed.rest
+                effectiveFileQuery = SettingsState.searchFiles && subject.length >= 2 ? subject : ""
+                filesP.query = effectiveFileQuery
+                const apps = _take(appsP.search(subject), 5, fileIntent ? -120 : 180)
+                const wins = SettingsState.searchWindows ? _take(winP.search(subject), 3, 120) : []
+                const sys  = _take(sysP.search(parsed.rest), 3, actionIntent ? 260 : 0)
                 const calc = calcP.search(parsed.rest)
-                out = calc.concat(apps).concat(wins).concat(sys)
+                const files = filesP._lastResolvedQuery === effectiveFileQuery
+                    ? _take(filesP.results, fileIntent ? 8 : 4, fileIntent ? 220 : -80) : []
+                const clips = _take(clipP.search(subject), 3, /\b(copy|clipboard|paste)\b/i.test(parsed.rest) ? 260 : -40)
+                // Packages are an explicit specialist scope (`p query`). They
+                // are not a reasonable default answer to normal app searches.
+                out = calc.concat(apps).concat(wins).concat(sys).concat(files).concat(clips)
                 out.sort((a, b) => b.score - a.score)
                 out = out.slice(0, 12)
-                const web = webP.search(parsed.rest)
+                const web = SettingsState.searchWeb ? webP.search(parsed.rest) : []
                 if (web.length) out = out.concat(web.slice(0, 1))
             }
         }
@@ -158,7 +196,7 @@ Item {
     // ── AI helpers exposed to Launcher ─────────────────────────
     function submitAi() {
         const parsed = _parseMode((query || "").trim())
-        if (parsed.mode !== "ai") return
+        if (parsed.mode !== "ai" || !SettingsState.searchAi) return
         aiP.ask(parsed.rest)
     }
     function resetAi() { aiP.reset() }

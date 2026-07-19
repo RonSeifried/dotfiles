@@ -5,8 +5,12 @@
 // top of these — so this file is never rewritten on a wallpaper change.
 
 layout {
-    gaps 5
-    background-color "#2a2a2a"
+    // Match the Quickshell bar margin (Theme.barMargin = 8) so the gap between
+    // a window and the bar / screen edge is identical on every side.
+    gaps 8
+    // Let the dedicated overview wallpaper show behind and between workspaces.
+    // In normal view the regular wallpaper layer remains the background.
+    background-color "transparent"
 
     center-focused-column "on-overflow"
 
@@ -18,14 +22,20 @@ layout {
 
     default-column-width { proportion 0.5; }
 
-    // Disable focus-ring, use border instead (like Hyprland)
+    // A thin border remains around every window; the focus-only ring adds two
+    // pixels exclusively to the active window, making focus obvious without
+    // making inactive tiles heavy.
     focus-ring {
-        off
+        on
+        width 2
+        active-color "#7e9cd8"
     }
 
+    // Thin border to match the shell's 1px accent hairlines (live color comes
+    // from the generated colors.kdl). 3px read as "heavier" than the shell.
     border {
         on
-        width 3
+        width 1
         active-color "#7e9cd8"
         inactive-color "#444444"
     }
@@ -44,7 +54,8 @@ layout {
 }
 
 overview {
-    backdrop-color "#2a2a2a"
+    // The dedicated blurred wallpaper layer supplies this backdrop.
+    backdrop-color "#00000000"
     workspace-shadow {
         softness 40
         spread 8

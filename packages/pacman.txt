@@ -6,6 +6,8 @@
 niri
 quickshell          # official repo — do NOT use quickshell-git (source build)
 stow                # used by install.sh for linking
+git                 # clone plugins, backups, installer bootstrap
+python              # launcher/settings/agenda helpers
 
 # Wayland session
 kanshi
@@ -15,10 +17,16 @@ wl-clipboard        # wl-copy / wl-paste
 wl-clip-persist
 cliphist
 wireplumber         # wpctl (audio control)
+pipewire            # audio/video session backend
 gnome-keyring
 networkmanager      # nmcli
 bluez
 bluez-utils
+upower              # battery state used by Quickshell
+power-profiles-daemon # power saver/balanced/performance profiles
+polkit              # Quickshell authentication agent backend
+xdg-desktop-portal
+xdg-desktop-portal-gtk
 
 # Hardware / media control
 brightnessctl
@@ -26,6 +34,7 @@ playerctl
 grim
 slurp
 imagemagick         # magick (wallpaper thumbnails)
+gpu-screen-recorder # Shift+Print recording workflow
 
 # Theming / utilities
 # (wallust is AUR-only — see aur.txt)
@@ -33,6 +42,18 @@ jq
 gum
 awww                # wallpaper daemon (official repo, NOT awww-bin)
 plocate             # locate
+fd                  # bounded fallback when the locate index is unavailable
+libnotify           # notify-send + notification actions
+xdg-utils           # xdg-open from Spotlight/capture/yazi
+curl                # streamed AI provider + webapp icon installer
+zstd                # compressed dotfiles backups
+pciutils            # GPU identification in the performance panel
+fontconfig          # Inter/Nerd Font fallback configuration
+
+# Fonts — proportional UI font (Inter) for all shell text; JetBrainsMono Nerd
+# Font supplies the glyph icons (fontconfig appends it as Inter's fallback).
+inter-font
+ttf-jetbrains-mono-nerd
 
 # Terminal + shell environment
 kitty

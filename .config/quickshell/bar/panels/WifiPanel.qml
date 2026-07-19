@@ -2,11 +2,12 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell.Networking
 import "../.."
+import "../../components"
 
 Column {
     id: root
     spacing: Theme.spacingSmall
-    anchors { left: parent?.left; right: parent?.right }
+    anchors { left: parent ? parent.left : undefined; right: parent ? parent.right : undefined }
 
     // ── State machine ────────────────────────────────────────────
     // "idle"          — no in-flight action
@@ -60,20 +61,12 @@ Column {
         return Object.values(seen).sort((a, b) => b.signalStrength - a.signalStrength)
     }
 
-    function _headerText() {
-        if (root.flowState === "connecting" && root.pendingNet) return "󰤨  Connecting to " + root.pendingNet.name + "…"
-        if (NetUtils.activeWifi) return NetUtils.signalIcon(NetUtils.activeWifi.signalStrength) + "  " + NetUtils.activeWifi.name
-        if (NetUtils.wiredConnected) return "󰈀  Ethernet"
-        if (Networking.wifiEnabled) return "󰤭  Not connected"
-        return "󰤯  Wi-Fi off"
-    }
-
     // Listen for connection failures on the pending net.
     Connections {
         target: root.pendingNet
         function onConnectionFailed(reason) {
             root.lastError = ConnectionFailReason.toString(reason)
-            root.flowState = (reason === ConnectionFailReason.NoSecrets && root.pendingNet?.security !== WifiSecurityType.Open)
+            root.flowState = (reason === ConnectionFailReason.NoSecrets && root.pendingNet && root.pendingNet.security !== WifiSecurityType.Open)
                 ? "needsPassword" : "error"
         }
         function onConnectedChanged() {
@@ -81,45 +74,31 @@ Column {
         }
     }
 
-    // Header row
-    Row {
-        width: parent.width; spacing: Theme.spacingSmall
-        Text {
-            text: root._headerText()
-            color: Colors.text; font.pixelSize: Theme.fontNormal; font.bold: true
-            font.family: Theme.fontFamily
-            width: parent.width - toggleBtn.width - 6; elide: Text.ElideRight
-        }
-        Rectangle {
-            id: toggleBtn
-            width: 36; height: 20; radius: 10
-            color: Networking.wifiEnabled
-                ? Qt.rgba(Colors.success.r, Colors.success.g, Colors.success.b, 0.5)
-                : Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, 0.5)
-            border.color: Networking.wifiEnabled ? Colors.success : Colors.textMuted
-            border.width: 1
-            Rectangle {
-                width: 14; height: 14; radius: 7
-                anchors.verticalCenter: parent.verticalCenter
-                x: Networking.wifiEnabled ? parent.width - width - 3 : 3
-                color: Networking.wifiEnabled ? Colors.success : Colors.textMuted
-                Behavior on x { NumberAnimation { duration: 150 } }
-            }
-            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: Networking.wifiEnabled = !Networking.wifiEnabled }
-        }
+    // Status line — transient / non-list states only (the CC header row owns
+    // the "Wi-Fi" title + master toggle; the active network is highlighted
+    // in the list itself).
+    Text {
+        visible: root.flowState === "connecting" || NetUtils.wiredConnected
+        width: parent.width
+        text: root.flowState === "connecting" && root.pendingNet
+            ? "󰤨  Connecting to " + root.pendingNet.name + "…"
+            : "󰈀  Ethernet connected"
+        color: Colors.textMuted; font.pixelSize: Theme.fontSmall
+        font.family: Theme.fontFamily; elide: Text.ElideRight
     }
 
-    // Disconnect + rescan when connected
+    // Disconnect + rescan when connected. Chip buttons — same vocabulary as
+    // the battery panel's profile segments (0.08 idle, white hover).
     Row {
         visible: NetUtils.activeWifi || NetUtils.wiredConnected
         width: parent.width; spacing: Theme.spacingSmall
         Rectangle {
-            width: (parent.width - 6) / 2; height: 26; radius: Theme.radiusTiny
-            color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, 0.5)
-            border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.3); border.width: 1
-            Text { anchors.centerIn: parent; text: "Disconnect"; color: Colors.textMuted; font.pixelSize: Theme.fontSmall; font.family: Theme.fontFamily }
+            width: (parent.width - 6) / 2; height: 32; radius: Theme.radiusSmall
+            color: dcHov.containsMouse ? Qt.rgba(1, 1, 1, Theme.hoverBrightness) : Qt.rgba(1, 1, 1, 0.08)
+            Behavior on color { ColorAnimation { duration: Theme.durFast } }
+            Text { anchors.centerIn: parent; text: "Disconnect"; color: Colors.text; font.pixelSize: Theme.fontSmall; font.family: Theme.fontFamily }
             MouseArea {
-                anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                id: dcHov; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     if (NetUtils.activeWifi) NetUtils.activeWifi.disconnect()
                     else if (NetUtils.wiredDevice && NetUtils.wiredDevice.connected) NetUtils.wiredDevice.disconnect()
@@ -128,25 +107,25 @@ Column {
             }
         }
         Rectangle {
-            width: (parent.width - 6) / 2; height: 26; radius: Theme.radiusTiny
-            color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, 0.5)
-            border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.3); border.width: 1
-            Text { anchors.centerIn: parent; text: "󰑓  Rescan"; color: Colors.textMuted; font.pixelSize: Theme.fontSmall; font.family: Theme.fontFamily }
-            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.rescan() }
+            width: (parent.width - 6) / 2; height: 32; radius: Theme.radiusSmall
+            color: rsHov.containsMouse ? Qt.rgba(1, 1, 1, Theme.hoverBrightness) : Qt.rgba(1, 1, 1, 0.08)
+            Behavior on color { ColorAnimation { duration: Theme.durFast } }
+            Text { anchors.centerIn: parent; text: "󰑓  Rescan"; color: Colors.text; font.pixelSize: Theme.fontSmall; font.family: Theme.fontFamily }
+            MouseArea { id: rsHov; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.rescan() }
         }
     }
 
     // Password input (when needed)
+    // Borderless inset well (design language: no nested outline on the glass).
     Rectangle {
         id: pwBox
         visible: root.flowState === "needsPassword"
-        width: parent.width; height: 32; radius: Theme.radiusTiny
-        color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.6)
-        border.color: Colors.accent; border.width: 1
+        width: parent.width; height: 32; radius: Theme.radiusSmall
+        color: Qt.rgba(Colors.bg.r, Colors.bg.g, Colors.bg.b, 0.28)
         Row {
             anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; margins: 8 }
             spacing: Theme.spacingSmall
-            Text { text: "󰌆"; color: Colors.textMuted; font.pixelSize: Theme.fontMedium; font.family: Theme.fontFamily; anchors.verticalCenter: parent.verticalCenter }
+            Text { text: "󰌆"; color: Colors.textMuted; font.pixelSize: Theme.fontMedium; font.family: Theme.fontIcon; anchors.verticalCenter: parent.verticalCenter }
             Item {
                 width: parent.width - 56; height: pwInput.height
                 anchors.verticalCenter: parent.verticalCenter
@@ -174,8 +153,8 @@ Column {
                 }
             }
             Text {
-                text: "✕"; color: Colors.textMuted; font.pixelSize: Theme.fontMedium
-                font.family: Theme.fontFamily; anchors.verticalCenter: parent.verticalCenter
+                text: "󰅖"; color: Colors.textMuted; font.pixelSize: Theme.fontMedium
+                font.family: Theme.fontIcon; anchors.verticalCenter: parent.verticalCenter
                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root._clearFlow() }
             }
         }
@@ -191,14 +170,20 @@ Column {
     }
 
     // Divider
-    Rectangle { visible: Networking.wifiEnabled; width: parent.width; height: 1; color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.dividerAlpha) }
+    Rectangle { visible: Networking.wifiEnabled; width: parent.width; height: 1; color: Qt.rgba(Colors.text.r, Colors.text.g, Colors.text.b, Colors.dividerAlpha) }
 
     // Network list (scrollable, no cap)
     Item {
         width: parent.width
         visible: Networking.wifiEnabled
         // Cap height so panel doesn't grow unbounded; scroll for the rest.
-        height: Math.min(netList.contentHeight, 8 * 32)
+        height: Math.min(netList.contentHeight, 8 * 40)
+
+        GlassSurface {
+            anchors.fill: parent
+            radius: Theme.radiusMedium
+            level: "e1"; frost: true; frostAlpha: 0.055
+        }
 
         ListView {
             id: netList
@@ -209,31 +194,26 @@ Column {
             boundsBehavior: Flickable.StopAtBounds
             ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
 
-            delegate: Rectangle {
+            delegate: GlassSurface {
                 id: netItem
                 required property var modelData
                 readonly property bool isActive: modelData && modelData.connected
                 readonly property bool isPending: root.pendingNet === modelData
                 readonly property bool isSecure: modelData && modelData.security !== WifiSecurityType.Open
-                width: netList.width; height: 30; radius: Theme.radiusTiny
-                color: isActive
-                    ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.25)
-                    : isPending
-                        ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.18)
-                        : hov.containsMouse
-                            ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.12)
-                            : "transparent"
+                width: netList.width; height: 44; radius: Theme.radiusMedium
+                level: "e1"; frost: true
+                frostAlpha: isActive ? 0.20 : isPending ? 0.16 : 0.055
 
                 Row {
-                    anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 8; rightMargin: 8 }
+                    anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 12; rightMargin: 12 }
                     spacing: Theme.spacingSmall
-                    Text { text: NetUtils.signalIcon(netItem.modelData.signalStrength); color: netItem.isActive ? Colors.success : Colors.textMuted; font.pixelSize: Theme.fontMedium; font.family: Theme.fontFamily }
+                    Text { text: NetUtils.signalIcon(netItem.modelData.signalStrength); color: netItem.isActive ? Colors.accent : Colors.textMuted; font.pixelSize: Theme.fontMedium; font.family: Theme.fontIcon }
                     Text { text: netItem.modelData.name; color: Colors.text; font.pixelSize: Theme.fontNormal; font.family: Theme.fontFamily; width: parent.width - 80; elide: Text.ElideRight }
-                    Text { visible: netItem.isSecure; text: "󰌆"; color: Colors.textMuted; font.pixelSize: Theme.fontSmall; font.family: Theme.fontFamily }
+                    Text { visible: netItem.isSecure; text: "󰌆"; color: Colors.textMuted; font.pixelSize: Theme.fontSmall; font.family: Theme.fontIcon }
                     Text {
                         visible: netItem.modelData.known
-                        text: "★"
-                        color: Colors.textMuted; font.pixelSize: Theme.fontSmall; font.family: Theme.fontFamily
+                        text: "󰓎"
+                        color: Colors.textMuted; font.pixelSize: Theme.fontSmall; font.family: Theme.fontIcon
                     }
                 }
                 MouseArea {
@@ -265,63 +245,5 @@ Column {
         width: parent.width; text: "No networks found"
         color: Colors.textMuted; font.pixelSize: Theme.fontSmall; font.family: Theme.fontFamily
         horizontalAlignment: Text.AlignHCenter
-    }
-
-    // ── VPN section ──────────────────────────────────────────────
-    Rectangle {
-        visible: VpnState.vpns.length > 0
-        width: parent.width; height: 1
-        color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.dividerAlpha)
-    }
-
-    Text {
-        visible: VpnState.vpns.length > 0
-        text: "󰒃  VPN"
-        color: Colors.textMuted; font.pixelSize: Theme.fontSmall; font.bold: true
-        font.family: Theme.fontFamily
-    }
-
-    Column {
-        visible: VpnState.vpns.length > 0
-        width: parent.width; spacing: 2
-
-        Repeater {
-            model: VpnState.vpns
-            delegate: Rectangle {
-                id: vpnItem
-                required property var modelData
-                width: parent.width; height: 30; radius: Theme.radiusTiny
-                color: modelData.active
-                    ? Qt.rgba(Colors.success.r, Colors.success.g, Colors.success.b, 0.18)
-                    : vpnHov.containsMouse ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.12) : "transparent"
-                border.color: modelData.active ? Qt.rgba(Colors.success.r, Colors.success.g, Colors.success.b, 0.4) : "transparent"
-                border.width: 1
-
-                Row {
-                    anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 8; rightMargin: 8 }
-                    spacing: Theme.spacingSmall
-                    Text {
-                        text: vpnItem.modelData.active ? "󰌾" : "󰌿"
-                        color: vpnItem.modelData.active ? Colors.success : Colors.textMuted
-                        font.pixelSize: Theme.fontMedium; font.family: Theme.fontFamily
-                    }
-                    Text {
-                        text: vpnItem.modelData.name
-                        color: Colors.text
-                        font.pixelSize: Theme.fontNormal; font.family: Theme.fontFamily
-                        width: parent.width - 60; elide: Text.ElideRight
-                    }
-                    Text {
-                        text: vpnItem.modelData.type === "wireguard" ? "WG" : "OVPN"
-                        color: Colors.textMuted
-                        font.pixelSize: Theme.fontTiny; font.family: Theme.fontFamily
-                    }
-                }
-                MouseArea {
-                    id: vpnHov; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                    onClicked: VpnState.toggleVpn(vpnItem.modelData.name, !vpnItem.modelData.active)
-                }
-            }
-        }
     }
 }

@@ -1,11 +1,12 @@
 import QtQuick
 import "../.."
+import "../../components"
 import Quickshell.Bluetooth
 
 Column {
     id: root
     spacing: Theme.spacingSmall
-    anchors { left: parent?.left; right: parent?.right }
+    anchors { left: parent ? parent.left : undefined; right: parent ? parent.right : undefined }
 
     property var adapter: Bluetooth.defaultAdapter
 
@@ -71,69 +72,48 @@ Column {
         }
     }
 
-    // Header + toggle
-    Row {
-        width: parent.width; spacing: Theme.spacingSmall
-        Text {
-            text: {
-                if (!root.adapter) return "󰂲  No adapter"
-                const st = root.adapter.state
-                if (st === BluetoothAdapterState.Enabled) return "󰂯  Bluetooth"
-                if (st === BluetoothAdapterState.Enabling) return "󰂯  Enabling…"
-                if (st === BluetoothAdapterState.Disabling) return "󰂲  Disabling…"
-                return "󰂲  Bluetooth off"
-            }
-            color: Colors.text; font.pixelSize: Theme.fontNormal; font.bold: true
-            font.family: Theme.fontFamily
-            width: parent.width - btToggle.width - 6
+    // Status line — transient adapter states only (the CC header row owns the
+    // "Bluetooth" title + master toggle).
+    Text {
+        visible: {
+            if (!root.adapter) return true
+            const st = root.adapter.state
+            return st === BluetoothAdapterState.Enabling || st === BluetoothAdapterState.Disabling
         }
-        Rectangle {
-            id: btToggle
-            width: 36; height: 20; radius: 10
-            property bool on: root.adapter?.enabled ?? false
-            color: on ? Qt.rgba(Colors.success.r, Colors.success.g, Colors.success.b, 0.5) : Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, 0.5)
-            border.color: on ? Colors.success : Colors.textMuted; border.width: 1
-            Rectangle {
-                width: 14; height: 14; radius: 7
-                anchors.verticalCenter: parent.verticalCenter
-                x: btToggle.on ? parent.width - width - 3 : 3
-                color: btToggle.on ? Colors.success : Colors.textMuted
-                Behavior on x { NumberAnimation { duration: 150 } }
-            }
-            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                onClicked: { if (root.adapter) root.adapter.enabled = !root.adapter.enabled }
-            }
+        width: parent.width
+        text: {
+            if (!root.adapter) return "󰂲  No Bluetooth adapter"
+            return root.adapter.state === BluetoothAdapterState.Enabling ? "Enabling…" : "Disabling…"
         }
+        color: Colors.textMuted; font.pixelSize: Theme.fontSmall
+        font.family: Theme.fontFamily
     }
 
-    // Scan button
-    Rectangle {
+    // Scan button — chip vocabulary (0.08 idle, white hover, accent = active).
+    GlassSurface {
         id: scanBtn
-        visible: root.adapter?.enabled ?? false
-        width: parent.width; height: 28; radius: Theme.radiusTiny
-        property bool scanning: root.adapter?.discovering ?? false
-        color: scanning
-            ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.25)
-            : Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, 0.4)
-        border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.3); border.width: 1
+        visible: root.adapter ? root.adapter.enabled : false
+        width: parent.width; height: 32; radius: Theme.radiusSmall
+        property bool scanning: root.adapter ? root.adapter.discovering : false
+        level: "e1"; frost: true; frostAlpha: scanning ? 0.20 : 0.075
         Row { anchors.centerIn: parent; spacing: Theme.spacingSmall
-            Text { text: scanBtn.scanning ? "󰍷" : "󰂍"; color: Colors.text; font.pixelSize: Theme.fontMedium; font.family: Theme.fontFamily }
-            Text { text: scanBtn.scanning ? "Scanning…" : "Scan for devices"; color: Colors.textMuted; font.pixelSize: Theme.fontSmall; font.family: Theme.fontFamily }
+            Text { text: scanBtn.scanning ? "󰍷" : "󰂍"; color: Colors.text; font.pixelSize: Theme.fontMedium; font.family: Theme.fontIcon }
+            Text { text: scanBtn.scanning ? "Scanning…" : "Scan for devices"; color: Colors.text; font.pixelSize: Theme.fontSmall; font.family: Theme.fontFamily }
         }
-        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+        MouseArea { id: scanHov; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
             onClicked: { if (root.adapter) root.adapter.discovering = !root.adapter.discovering }
         }
     }
 
     // ── Paired devices ───────────────────────────────────────────
     Rectangle {
-        visible: (root.adapter?.enabled ?? false) && root.pairedDevices.length > 0
+        visible: !!root.adapter && root.adapter.enabled && root.pairedDevices.length > 0
         width: parent.width; height: 1
-        color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.dividerAlpha)
+        color: Qt.rgba(Colors.text.r, Colors.text.g, Colors.text.b, Colors.dividerAlpha)
     }
 
     Text {
-        visible: (root.adapter?.enabled ?? false) && root.pairedDevices.length > 0
+        visible: !!root.adapter && root.adapter.enabled && root.pairedDevices.length > 0
         text: "Paired"
         color: Colors.textMuted; font.pixelSize: Theme.fontSmall; font.bold: true
         font.family: Theme.fontFamily
@@ -141,30 +121,29 @@ Column {
 
     Repeater {
         model: root.pairedDevices
-        delegate: Rectangle {
+        delegate: GlassSurface {
             id: pairedItem
             required property var modelData
-            width: parent.width; height: 34; radius: Theme.radiusTiny
+            // Connected = accent (state), no border — signal colours stay
+            // reserved for real signals.
+            width: parent.width; height: 46; radius: Theme.radiusMedium
             property bool isConnected: modelData.connected
-            color: isConnected
-                ? Qt.rgba(Colors.success.r, Colors.success.g, Colors.success.b, 0.15)
-                : pHov.containsMouse ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.1) : "transparent"
-            border.color: isConnected ? Qt.rgba(Colors.success.r, Colors.success.g, Colors.success.b, 0.3) : "transparent"; border.width: 1
+            level: "e1"; frost: true; frostAlpha: isConnected ? 0.20 : 0.065
 
             Row {
-                anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 8; rightMargin: 8 }
+                anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 12; rightMargin: 12 }
                 spacing: Theme.spacingNormal
                 Text {
                     text: root._iconFor(pairedItem.modelData)
-                    color: pairedItem.isConnected ? Colors.success : Colors.textMuted
-                    font.pixelSize: 14; font.family: Theme.fontFamily
+                    color: pairedItem.isConnected ? Colors.accent : Colors.textMuted
+                    font.pixelSize: 14; font.family: Theme.fontIcon
                 }
                 Column {
                     spacing: 1; width: parent.width - 92
                     Text { text: pairedItem.modelData.name; color: Colors.text; font.pixelSize: Theme.fontNormal; font.family: Theme.fontFamily; width: parent.width; elide: Text.ElideRight }
                     Text {
                         text: root._statusText(pairedItem.modelData)
-                        color: pairedItem.isConnected ? Colors.success : Colors.textMuted
+                        color: pairedItem.isConnected ? Colors.accent : Colors.textMuted
                         font.pixelSize: Theme.fontTiny; font.family: Theme.fontFamily
                     }
                 }
@@ -175,9 +154,9 @@ Column {
                     anchors.verticalCenter: parent.verticalCenter
                 }
                 Text {
-                    text: "✕"
+                    text: "󰅖"
                     color: forgetHov.containsMouse ? Colors.error : Colors.textMuted
-                    font.pixelSize: Theme.fontSmall; font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSmall; font.family: Theme.fontIcon
                     anchors.verticalCenter: parent.verticalCenter
                     MouseArea {
                         id: forgetHov; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
@@ -195,7 +174,7 @@ Column {
     }
 
     Text {
-        visible: (root.adapter?.enabled ?? false) && root.pairedDevices.length === 0 && root.discoveredDevices.length === 0
+        visible: !!root.adapter && root.adapter.enabled && root.pairedDevices.length === 0 && root.discoveredDevices.length === 0
         width: parent.width; text: "No devices"
         color: Colors.textMuted; font.pixelSize: Theme.fontSmall; font.family: Theme.fontFamily
         horizontalAlignment: Text.AlignHCenter
@@ -203,13 +182,13 @@ Column {
 
     // ── Discovered devices ───────────────────────────────────────
     Rectangle {
-        visible: (root.adapter?.enabled ?? false) && root.discoveredDevices.length > 0
+        visible: !!root.adapter && root.adapter.enabled && root.discoveredDevices.length > 0
         width: parent.width; height: 1
-        color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.dividerAlpha)
+        color: Qt.rgba(Colors.text.r, Colors.text.g, Colors.text.b, Colors.dividerAlpha)
     }
 
     Text {
-        visible: (root.adapter?.enabled ?? false) && root.discoveredDevices.length > 0
+        visible: !!root.adapter && root.adapter.enabled && root.discoveredDevices.length > 0
         text: "Available"
         color: Colors.textMuted; font.pixelSize: Theme.fontSmall; font.bold: true
         font.family: Theme.fontFamily
@@ -217,19 +196,19 @@ Column {
 
     Repeater {
         model: root.discoveredDevices
-        delegate: Rectangle {
+        delegate: GlassSurface {
             id: discItem
             required property var modelData
-            width: parent.width; height: 34; radius: Theme.radiusTiny
-            color: dHov.containsMouse ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.1) : "transparent"
+            width: parent.width; height: 46; radius: Theme.radiusMedium
+            level: "e1"; frost: true; frostAlpha: 0.065
 
             Row {
-                anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 8; rightMargin: 8 }
+                anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 12; rightMargin: 12 }
                 spacing: Theme.spacingNormal
                 Text {
                     text: root._iconFor(discItem.modelData)
                     color: Colors.textMuted
-                    font.pixelSize: 14; font.family: Theme.fontFamily
+                    font.pixelSize: 14; font.family: Theme.fontIcon
                 }
                 Column {
                     spacing: 1; width: parent.width - 60

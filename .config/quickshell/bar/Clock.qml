@@ -10,5 +10,6 @@ Row {
         color: Colors.text
         font.pixelSize: Theme.fontMedium; font.bold: true
         font.family: Theme.fontFamily
+        font.features: { "tnum": 1 }
     }
 }

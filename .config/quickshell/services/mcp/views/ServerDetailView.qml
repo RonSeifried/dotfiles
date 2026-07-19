@@ -34,7 +34,7 @@ Item {
                     anchors.centerIn: parent
                     text: "󰁍"
                     color: Colors.text
-                    font.family: Theme.fontFamily
+                    font.family: Theme.fontIcon
                     font.pixelSize: 14
                 }
                 MouseArea {
@@ -50,7 +50,7 @@ Item {
                 text: view.name
                 color: Colors.text
                 font.family: Theme.fontFamily
-                font.pointSize: Theme.fontLarge
+                font.pixelSize: Theme.fontLarge
                 font.bold: true
             }
             Text {
@@ -58,7 +58,7 @@ Item {
                 text: "● enabled"
                 color: Colors.success
                 font.family: Theme.fontFamily
-                font.pointSize: Theme.fontSmall
+                font.pixelSize: Theme.fontSmall
             }
             Item { Layout.fillWidth: true }
             Rectangle {
@@ -75,7 +75,7 @@ Item {
                     text: McpState.loadingInspect ? "loading…" : "Refresh"
                     color: Colors.text
                     font.family: Theme.fontFamily
-                    font.pointSize: Theme.fontSmall
+                    font.pixelSize: Theme.fontSmall
                 }
                 MouseArea {
                     id: refreshHover
@@ -98,7 +98,7 @@ Item {
                 text: McpState.loadingInspect ? "Loading…" : "—"
                 color: Colors.textMuted
                 font.family: Theme.fontFamily
-                font.pointSize: Theme.fontMedium
+                font.pixelSize: Theme.fontMedium
             }
         }
 
@@ -136,7 +136,7 @@ Item {
                             text: view.detailData ? view.detailData.description : ""
                             color: Colors.text
                             font.family: Theme.fontFamily
-                            font.pointSize: Theme.fontMedium
+                            font.pixelSize: Theme.fontMedium
                             wrapMode: Text.WordWrap
                         }
                         RowLayout {
@@ -149,14 +149,14 @@ Item {
                                 text: "Author: " + (view.detailData ? view.detailData.author : "")
                                 color: Colors.textMuted
                                 font.family: Theme.fontFamily
-                                font.pointSize: Theme.fontTiny
+                                font.pixelSize: Theme.fontTiny
                             }
                             Text {
                                 visible: view.detailData && view.detailData.license
                                 text: "License: " + (view.detailData ? view.detailData.license : "")
                                 color: Colors.textMuted
                                 font.family: Theme.fontFamily
-                                font.pointSize: Theme.fontTiny
+                                font.pixelSize: Theme.fontTiny
                             }
                             Item { Layout.fillWidth: true }
                         }
@@ -166,7 +166,7 @@ Item {
                             text: view.detailData ? view.detailData.repo : ""
                             color: Colors.accent
                             font.family: Theme.fontFamily
-                            font.pointSize: Theme.fontTiny
+                            font.pixelSize: Theme.fontTiny
                             elide: Text.ElideRight
                         }
                     }
@@ -217,7 +217,7 @@ Item {
                                 text: "Tools"
                                 color: Colors.text
                                 font.family: Theme.fontFamily
-                                font.pointSize: Theme.fontMedium
+                                font.pixelSize: Theme.fontMedium
                                 font.bold: true
                             }
                             Text {
@@ -226,7 +226,7 @@ Item {
                                     : ""
                                 color: Colors.textMuted
                                 font.family: Theme.fontFamily
-                                font.pointSize: Theme.fontSmall
+                                font.pixelSize: Theme.fontSmall
                             }
                         }
 
@@ -248,7 +248,7 @@ Item {
                                     text: modelData.name
                                     color: Colors.text
                                     font.family: Theme.fontFamily
-                                    font.pointSize: Theme.fontSmall
+                                    font.pixelSize: Theme.fontSmall
                                     elide: Text.ElideRight
                                 }
                                 Text {
@@ -256,7 +256,7 @@ Item {
                                     text: modelData.description
                                     color: Colors.textMuted
                                     font.family: Theme.fontFamily
-                                    font.pointSize: Theme.fontTiny
+                                    font.pixelSize: Theme.fontTiny
                                     elide: Text.ElideRight
                                 }
                             }

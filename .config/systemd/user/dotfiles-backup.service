@@ -1,0 +1,12 @@
+[Unit]
+Description=Create a recoverable dotfiles snapshot
+
+[Service]
+Type=oneshot
+ExecStart=%h/.config/scripts/dotfiles-backup.sh
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=true

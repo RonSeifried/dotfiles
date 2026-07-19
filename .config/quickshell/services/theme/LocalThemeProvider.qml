@@ -54,32 +54,8 @@ Singleton {
     Behavior on color14 { enabled: root._animate; ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
     Behavior on color15 { enabled: root._animate; ColorAnimation { duration: 180; easing.type: Easing.OutCubic } }
 
-    // ── WCAG contrast helpers (public — used by ThemeClient) ─────
-    function lum(c) {
-        function f(v) { return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4) }
-        return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b)
-    }
-    function ratio(a, b) {
-        const la = lum(a), lb = lum(b)
-        return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05)
-    }
-    function ensureContrast(fg, bg, target) {
-        if (ratio(fg, bg) >= target) return fg
-        const step = lum(bg) < 0.5 ? 0.02 : -0.02
-        let l = fg.hslLightness
-        for (let i = 0; i < 60; ++i) {
-            l += step
-            if (l < 0 || l > 1) break
-            const adj = Qt.hsla(fg.hslHue, fg.hslSaturation, l, fg.a)
-            if (ratio(adj, bg) >= target) return adj
-        }
-        return fg
-    }
-    function mix(a, b, t) {
-        return Qt.rgba(a.r * (1 - t) + b.r * t,
-                       a.g * (1 - t) + b.g * t,
-                       a.b * (1 - t) + b.b * t, 1)
-    }
+    // Colour math (contrast/mix/signal) lives in lib/palette.js — shared
+    // with the lock instance, consumed here by ThemeClient.
 
     FileView {
         id: paletteFile

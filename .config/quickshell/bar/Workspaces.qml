@@ -23,14 +23,16 @@ RowLayout {
             property bool isUrgent: modelData.is_urgent === true
 
             implicitWidth: wsLabel.implicitWidth + 16
-            implicitHeight: 22
-            radius: 999
+            implicitHeight: Theme.pillHeight
+            radius: Theme.radiusSmall
 
             color: isActive
-                ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.55)
-                : (hoverArea.containsMouse
-                    ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillHoverAlpha)
-                    : "transparent")
+                ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.52)
+                : hoverArea.containsMouse
+                    ? Qt.rgba(1, 1, 1, Theme.hoverBrightness * 0.75)
+                : "transparent"
+            border.width: isActive ? 1 : 0
+            border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.82)
 
             Behavior on color {
                 ColorAnimation { duration: 120 }
@@ -44,12 +46,14 @@ RowLayout {
                 id: urgentOverlay
                 anchors.fill: parent
                 radius: parent.radius
-                color: Colors.accent
+                // Urgency is a SIGNAL, not chrome — error, not accent, so a
+                // blinking urgent pill can't be mistaken for the active one.
+                color: Colors.error
                 visible: parent.isUrgent && !parent.isActive
-                opacity: 0
+                opacity: Theme.motionEnabled ? 0 : 0.55
 
                 SequentialAnimation on opacity {
-                    running: urgentOverlay.visible
+                    running: urgentOverlay.visible && Theme.motionEnabled
                     loops: Animation.Infinite
                     NumberAnimation { from: 0; to: 0.55; duration: 600; easing.type: Easing.InOutSine }
                     NumberAnimation { from: 0.55; to: 0; duration: 600; easing.type: Easing.InOutSine }
@@ -86,6 +90,9 @@ RowLayout {
                 cursorShape: Qt.PointingHandCursor
                 onClicked: WMState.focusWorkspace(parent.modelData.id)
             }
+
+            Accessible.role: Accessible.Button
+            Accessible.name: "Workspace " + (modelData.name || String(modelData.idx))
         }
     }
 }

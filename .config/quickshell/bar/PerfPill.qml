@@ -1,27 +1,24 @@
 import QtQuick
 import ".."
+import "../components"
 import "../services/performance"
 
-// Compact CPU% pill with inline sparkline. Click → toggle PerfPanel.
+// Compact CPU% chip with inline sparkline. Click → toggle PerfPanel.
 //
 // Hidden by default; `ControlState.perfPillVisible` toggle (Mod+H) shows it.
-// When the panel is open the pill flattens its bottom corners — but the
-// PerfPanel slides down from the screen top edge, NOT from the bar — so the
-// "seamless join" pattern from right-cluster pills doesn't apply. We keep
-// full rounded pills for the perf cluster.
-Rectangle {
+// Shared glass material, chip radius — matches the bar's flat chip language
+// (no full pills; see design language).
+GlassSurface {
     id: root
 
     required property var bar
 
     readonly property bool show: ControlState.perfPillVisible
 
+    level: "e1"
+    radius: Theme.radiusSmall
     implicitHeight: Theme.pillHeight
     implicitWidth: show ? content.implicitWidth + 18 : 0
-    radius: Theme.radiusPill
-    color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e1TintAlpha)
-    border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
-    border.width: 1
     opacity: show ? 1 : 0
     clip: true
     visible: implicitWidth > 1
@@ -48,7 +45,7 @@ Rectangle {
             text: ""
             color: Colors.accent
             font.pixelSize: Theme.fontMedium
-            font.family: Theme.fontFamily
+            font.family: Theme.fontIcon
         }
 
         // CPU %
@@ -58,6 +55,7 @@ Rectangle {
             color: Colors.text
             font.pixelSize: Theme.fontMedium
             font.family: Theme.fontFamily
+            font.features: { "tnum": 1 }
         }
 
         // Mini sparkline — last 30 samples of CPU history.

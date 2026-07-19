@@ -1,11 +1,21 @@
 import QtQuick
 import "../.."
+import "../../components"
 import Quickshell
+import Quickshell.Io
 
 Column {
     id: root
     spacing: Theme.spacingSmall
     anchors { left: parent?.left; right: parent?.right }
+    property var agenda: ({ items: [], hasCalendar: false, hasTasks: false })
+
+    Process {
+        id: agendaProc
+        command: ["python3", Quickshell.env("HOME") + "/.config/quickshell/bar/panels/agenda.py"]
+        stdout: StdioCollector { onStreamFinished: { try { root.agenda = JSON.parse(text) } catch (e) {} } }
+    }
+    Component.onCompleted: agendaProc.running = true
 
     SystemClock { id: cal; precision: SystemClock.Minutes }
 
@@ -46,6 +56,38 @@ Column {
                 horizontalAlignment: Text.AlignHCenter
             }
         }
+    }
+
+    Text {
+        visible: root.agenda.items.length > 0
+        text: "Up Next"; color: Colors.textMuted; font.pixelSize: Theme.fontTiny; font.bold: true; font.family: Theme.fontFamily
+        topPadding: Theme.spacingSmall
+    }
+    Column {
+        width: parent.width; spacing: Theme.spacingTight
+        Repeater {
+            model: root.agenda.items
+            delegate: GlassSurface {
+                required property var modelData
+                width: parent.width; height: 42; level: "e1"; radius: Theme.radiusMedium
+                Row {
+                    anchors { fill: parent; margins: Theme.spacingNormal }
+                    spacing: Theme.spacingNormal
+                    Text { width: 38; text: modelData.time || ""; color: Colors.accent; font.pixelSize: Theme.fontTiny; font.bold: true; font.family: Theme.fontFamily; elide: Text.ElideRight }
+                    Column {
+                        width: parent.width - 46; anchors.verticalCenter: parent.verticalCenter
+                        Text { width: parent.width; text: modelData.title; color: Colors.text; font.pixelSize: Theme.fontSmall; font.family: Theme.fontFamily; elide: Text.ElideRight }
+                        Text { visible: text.length > 0; width: parent.width; text: modelData.detail || ""; color: Colors.textMuted; font.pixelSize: Theme.fontTiny; font.family: Theme.fontFamily; elide: Text.ElideRight }
+                    }
+                }
+            }
+        }
+    }
+    Text {
+        visible: !root.agenda.hasCalendar && !root.agenda.hasTasks
+        width: parent.width; horizontalAlignment: Text.AlignHCenter
+        text: "Install khal or Taskwarrior to show your agenda"
+        color: Colors.textMuted; font.pixelSize: Theme.fontTiny; font.family: Theme.fontFamily
     }
 
     // Calendar grid

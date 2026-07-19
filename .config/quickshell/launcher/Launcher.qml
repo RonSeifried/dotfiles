@@ -1,5 +1,6 @@
 import QtQuick
 import ".."
+import "../components"
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
@@ -8,6 +9,8 @@ PanelWindow {
     id: root
 
     property bool open: false
+    property var searchHistory: []
+    property int historyIndex: -1
 
     visible: open
     color: "transparent"
@@ -45,6 +48,13 @@ PanelWindow {
         }
     }
 
+    // A restrained scrim separates Spotlight from busy terminal/editor content
+    // without making the desktop feel modal or theatrical.
+    Rectangle {
+        anchors.fill: parent
+        color: Qt.rgba(0, 0, 0, 0.18)
+    }
+
     MouseArea {
         anchors.fill: parent
         onClicked: root.close()
@@ -59,6 +69,10 @@ PanelWindow {
             searchInput.text = "ai "
             searchInput.cursorPosition = searchInput.text.length
         } else {
+            const q = searchInput.text.trim()
+            if (q.length && (searchHistory.length === 0 || searchHistory[0] !== q))
+                searchHistory = [q].concat(searchHistory).slice(0, 30)
+            historyIndex = -1
             resultList.activateCurrent()
         }
     }
@@ -74,8 +88,8 @@ PanelWindow {
     SequentialAnimation {
         id: closeAnim
         ParallelAnimation {
-            NumberAnimation { target: launcherRect; property: "opacity"; to: 0; duration: 150 }
-            NumberAnimation { target: launcherRect; property: "scale"; to: 0.95; duration: 150 }
+            NumberAnimation { target: launcherRect; property: "opacity"; to: 0; duration: Theme.durFast }
+            NumberAnimation { target: launcherRect; property: "scale"; to: 0.95; duration: Theme.durFast }
         }
         ScriptAction { script: { ControlState.launcherOpen = false; launcherRect.opacity = 1; launcherRect.scale = 1 } }
     }
@@ -102,26 +116,46 @@ PanelWindow {
             case "files":  return "Find files…"
             case "pkg":    return "Install package…  pacman + AUR"
             case "ai":     return "Ask AI…  Enter sends, Esc closes"
-            default:       return "Search apps, type =  >  ?  w  f  p  ai …"
+            default:       return "Search apps, files, actions, windows and the web…"
         }
+    }
+    function resultScopes() {
+        const labels = [], seen = ({})
+        for (const r of engine.results) {
+            const label = r.badge || "Result"
+            if (!seen[label]) { seen[label] = true; labels.push(label) }
+        }
+        return labels.join("  ·  ")
     }
 
     Rectangle {
         id: launcherRect
-        width: Theme.launcherWidth
+        width: Math.min(engine.mode === "ai" ? Theme.launcherWidth : 680,
+            Math.max(Theme.launcherMinWidth, root.width - 2 * Theme.spacingXL))
         height: engine.mode === "ai"
             ? Theme.launcherMaxHeight
             : Math.min(
-                searchBar.height + resultList.implicitHeight + hintBar.height
+                searchBar.height
+                    + Math.max(resultList.implicitHeight,
+                        resultList.selectedResult && resultList.selectedResult.path ? 238 : 0)
+                    + hintBar.height
                     + Theme.panelPadding * 2 + Theme.spacingNormal * 2,
                 Theme.launcherMaxHeight
               )
-        anchors { horizontalCenter: parent.horizontalCenter; top: parent.top; topMargin: Theme.launcherTopMargin }
-        radius: Theme.radiusLarge
-        color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e2TintAlpha)
-        border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
-        border.width: 1
+        anchors {
+            horizontalCenter: parent.horizontalCenter; top: parent.top
+            topMargin: Math.max(48, Math.min(Theme.launcherTopMargin, root.height * 0.12))
+        }
+        radius: Theme.radiusXL
+        color: "transparent"
         clip: true
+
+        // Shared glass material (floating modal — all corners, full border).
+        GlassSurface {
+            anchors.fill: parent
+            level: "e3"
+            radius: Theme.radiusXL
+        }
 
         MouseArea { anchors.fill: parent }
 
@@ -138,10 +172,18 @@ PanelWindow {
                 id: searchBar
                 Layout.fillWidth: true
                 height: Theme.searchBarHeight
-                radius: Theme.radiusPill
-                color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.7)
-                border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
-                border.width: 1
+                // No field box at all (macOS Spotlight): the search row sits
+                // directly on the panel glass with a divider below. A nested
+                // rectangle (opaque OR translucent) always showed seams at its
+                // rounded corners — removing it kills the artifact entirely.
+                color: "transparent"
+
+                // Divider under the search row, separating it from the results.
+                Rectangle {
+                    anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+                    height: 1
+                    color: Qt.rgba(Colors.text.r, Colors.text.g, Colors.text.b, Colors.dividerAlpha)
+                }
 
                 RowLayout {
                     anchors {
@@ -156,7 +198,7 @@ PanelWindow {
                         text: root.modeIcon()
                         color: engine.mode === "default" ? Colors.textMuted : Colors.accent
                         font.pixelSize: Theme.fontLarge + 1
-                        font.family: Theme.fontFamily
+                        font.family: Theme.fontIcon
 
                         Behavior on color { ColorAnimation { duration: Theme.durFast } }
                     }
@@ -184,7 +226,14 @@ PanelWindow {
                             clip: true
 
                             Keys.onEscapePressed: root.close()
-                            Keys.onUpPressed: { if (engine.mode !== "ai") resultList.listViewAlias.decrementCurrentIndex() }
+                            Keys.onUpPressed: {
+                                if (engine.mode === "ai") return
+                                if (searchInput.text.length === 0 && root.searchHistory.length) {
+                                    root.historyIndex = Math.min(root.searchHistory.length - 1, root.historyIndex + 1)
+                                    searchInput.text = root.searchHistory[root.historyIndex]
+                                    searchInput.cursorPosition = searchInput.text.length
+                                } else resultList.listViewAlias.decrementCurrentIndex()
+                            }
                             Keys.onDownPressed: { if (engine.mode !== "ai") resultList.listViewAlias.incrementCurrentIndex() }
                             Keys.onReturnPressed: root._submitOrActivate()
                             Keys.onEnterPressed:  root._submitOrActivate()
@@ -196,7 +245,7 @@ PanelWindow {
                         text: ""
                         color: Colors.textMuted
                         font.pixelSize: Theme.fontMedium
-                        font.family: Theme.fontFamily
+                        font.family: Theme.fontIcon
                         visible: searchInput.text.length > 0
 
                         MouseArea {
@@ -209,16 +258,29 @@ PanelWindow {
             }
 
             // ── Results / AI conversation ────────────────────────
-            ResultList {
-                id: resultList
+            RowLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 visible: engine.mode !== "ai"
-                results: engine.results
+                spacing: Theme.spacingNormal
 
-                onActivated: r => {
-                    if (!r) return
-                    if (!r.keepOpen) root.close()
+                ResultList {
+                    id: resultList
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    results: engine.results
+
+                    onActivated: r => {
+                        if (!r) return
+                        if (!r.keepOpen) root.close()
+                    }
+                }
+
+                PreviewPane {
+                    Layout.preferredWidth: 220
+                    Layout.fillHeight: true
+                    visible: !!(resultList.selectedResult && resultList.selectedResult.path)
+                    result: resultList.selectedResult
                 }
             }
 
@@ -240,7 +302,7 @@ PanelWindow {
                 Rectangle {
                     anchors { left: parent.left; right: parent.right; top: parent.top }
                     height: 1
-                    color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.dividerAlpha)
+                    color: Qt.rgba(Colors.text.r, Colors.text.g, Colors.text.b, Colors.dividerAlpha)
                 }
 
                 RowLayout {
@@ -252,7 +314,8 @@ PanelWindow {
                     spacing: Theme.spacingNormal
 
                     Text {
-                        text: engine.results.length + (engine.results.length === 1 ? " result" : " results")
+                        text: engine.mode === "ai" ? "Conversation"
+                            : engine.results.length + (engine.results.length === 1 ? " result" : " results")
                         color: Colors.textMuted
                         font.pixelSize: Theme.fontTiny + 1
                         font.family: Theme.fontFamily
@@ -261,11 +324,19 @@ PanelWindow {
                     Item { Layout.fillWidth: true }
 
                     Text {
-                        text: "= calc · > action · w win · f file · p pkg · ? web · ai chat"
+                        text: root.resultScopes()
                         color: Colors.textMuted
                         font.pixelSize: Theme.fontTiny + 1
                         font.family: Theme.fontFamily
-                        visible: engine.mode === "default"
+                        visible: engine.mode === "default" && searchInput.text.length > 0
+                    }
+
+                    Text {
+                        text: "?  Web   ·   =  Calculate   ·   ai  Chat"
+                        color: Colors.textMuted
+                        font.pixelSize: Theme.fontTiny + 1
+                        font.family: Theme.fontFamily
+                        visible: engine.mode === "default" && searchInput.text.length === 0
                     }
 
                     Text {

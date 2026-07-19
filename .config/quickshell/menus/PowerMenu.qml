@@ -1,5 +1,6 @@
 import QtQuick
 import ".."
+import "../components"
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -10,18 +11,20 @@ PanelWindow {
 
     property bool open: false
 
-    readonly property int panelWidth: 96
-    readonly property int hiddenOffset: panelWidth + 4
+    readonly property int panelWidth: 220
+    readonly property int hiddenOffset: panelWidth + Theme.barMargin + 4
     readonly property int holdDurationMs: 650
-    readonly property int tileHeight: 60
-    readonly property int iconFontSize: 26
+    readonly property int tileHeight: 52
 
+    // `instant`: fires on click/Enter without the hold — locking is harmless
+    // and the most frequent action; the hold gate is for the ones that cost
+    // you your session.
     readonly property var items: [
-        { icon: "󰌾", label: "Lock",     cmd: "qs -p " + (Quickshell.env("HOME") || "") + "/.config/quickshell/lock ipc call lock lock" },
-        { icon: "󰍃", label: "Logout",   cmd: "niri msg action quit --skip-confirmation" },
-        { icon: "󰒲", label: "Suspend",  cmd: "systemctl suspend" },
-        { icon: "󰜉", label: "Reboot",   cmd: "systemctl reboot" },
-        { icon: "󰐥", label: "Shutdown", cmd: "systemctl poweroff" }
+        { icon: "󰌾", label: "Lock",     instant: true, cmd: "qs -p " + (Quickshell.env("HOME") || "") + "/.config/quickshell/lock ipc call lock lock" },
+        { icon: "󰍃", label: "Logout",   instant: false, cmd: "niri msg action quit --skip-confirmation" },
+        { icon: "󰒲", label: "Suspend",  instant: false, cmd: "systemctl suspend" },
+        { icon: "󰜉", label: "Reboot",   instant: false, cmd: "systemctl reboot" },
+        { icon: "󰐥", label: "Shutdown", instant: false, cmd: "systemctl poweroff" }
     ]
 
     property int selectedIndex: 0
@@ -47,7 +50,9 @@ PanelWindow {
         width: menuRect.width
         height: menuRect.height
         topLeftRadius: Theme.radiusLarge
+        topRightRadius: Theme.radiusLarge
         bottomLeftRadius: Theme.radiusLarge
+        bottomRightRadius: Theme.radiusLarge
     }
 
     onOpenChanged: {
@@ -77,6 +82,7 @@ PanelWindow {
     function startHold() {
         const it = items[selectedIndex]
         if (!it) return
+        if (it.instant) { trigger(selectedIndex); return }
         retractAnim.stop()
         holdAnim.stop()
         holdActive = true
@@ -151,11 +157,11 @@ PanelWindow {
         }
     }
 
-    // ── Backdrop (click-outside dismiss, no dim) ────────────────
+    // Destructive/session actions get a stronger modal separation.
     Rectangle {
         id: backdrop
         anchors.fill: parent
-        color: "transparent"
+        color: Qt.rgba(0, 0, 0, 0.34)
         opacity: 0
         MouseArea { anchors.fill: parent; onClicked: root.close() }
     }
@@ -212,21 +218,22 @@ PanelWindow {
         Rectangle {
             id: menuRect
             anchors.right: parent.right
+            anchors.rightMargin: Theme.barMargin
             anchors.verticalCenter: parent.verticalCenter
             width: root.panelWidth
             height: contentColumn.implicitHeight + Theme.panelPadding * 2
 
             transform: Translate { id: slideTransform; x: root.hiddenOffset }
-            color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e2TintAlpha)
-            border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
-            border.width: 1
-
-            // Two rounded corners on left, straight on right (slide-in edge)
-            topLeftRadius: Theme.radiusLarge
-            bottomLeftRadius: Theme.radiusLarge
-            topRightRadius: 0
-            bottomRightRadius: 0
+            color: "transparent"
             clip: true
+
+            // Shared glass material — floats like the Control Center: detached
+            // from the edge, fully rounded, full border on all four corners.
+            GlassSurface {
+                anchors.fill: parent
+                level: "e3"
+                radius: Theme.radiusLarge
+            }
 
             // Consume clicks
             MouseArea { anchors.fill: parent }
@@ -287,12 +294,35 @@ PanelWindow {
                             Behavior on opacity { NumberAnimation { duration: Theme.durFast } }
                         }
 
-                        Text {
-                            anchors.centerIn: parent
-                            text: tile.modelData.icon
-                            color: Colors.accent
-                            font.pixelSize: root.iconFontSize
-                            font.family: Theme.fontFamily
+                        // Icon badge + label (Control-Center vocabulary).
+                        Row {
+                            anchors {
+                                left: parent.left; verticalCenter: parent.verticalCenter
+                                leftMargin: Theme.spacingNormal
+                            }
+                            spacing: Theme.spacingNormal
+
+                            Rectangle {
+                                width: 30; height: 30; radius: Theme.radiusSmall
+                                anchors.verticalCenter: parent.verticalCenter
+                                color: Qt.rgba(Colors.text.r, Colors.text.g, Colors.text.b, 0.12)
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: tile.modelData.icon
+                                    color: tile.selected ? Colors.accent : Colors.text
+                                    Behavior on color { ColorAnimation { duration: Theme.durFast } }
+                                    font.pixelSize: 16
+                                    font.family: Theme.fontIcon
+                                }
+                            }
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: tile.modelData.label
+                                color: Colors.text
+                                font.pixelSize: Theme.fontNormal
+                                font.bold: true
+                                font.family: Theme.fontFamily
+                            }
                         }
 
                         MouseArea {
@@ -313,6 +343,18 @@ PanelWindow {
                             onCanceled: root.cancelHold()
                         }
                     }
+                }
+
+                // Micro-hint: without it the first short click on Shutdown
+                // feels like a bug ("nothing happened").
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.topMargin: 2
+                    text: root.items[root.selectedIndex]?.instant
+                        ? "click to lock" : "hold to confirm"
+                    color: Colors.textMuted
+                    font.pixelSize: Theme.fontTiny
+                    font.family: Theme.fontFamily
                 }
             }
         }

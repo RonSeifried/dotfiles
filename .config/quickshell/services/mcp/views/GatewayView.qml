@@ -36,7 +36,7 @@ Item {
             text: "Gateway"
             color: Colors.text
             font.family: Theme.fontFamily
-            font.pointSize: Theme.fontLarge
+            font.pixelSize: Theme.fontLarge
             font.bold: true
         }
         Text {
@@ -44,7 +44,7 @@ Item {
             text: "Run the MCP gateway in a floating kitty terminal. Reads secrets.env so clients receive env vars when invoking servers."
             color: Colors.textMuted
             font.family: Theme.fontFamily
-            font.pointSize: Theme.fontSmall
+            font.pixelSize: Theme.fontSmall
             wrapMode: Text.WordWrap
         }
 
@@ -66,14 +66,14 @@ Item {
                     Text {
                         text: "󰒋"
                         color: Colors.bg
-                        font.family: Theme.fontFamily
+                        font.family: Theme.fontIcon
                         font.pixelSize: 14
                     }
                     Text {
                         text: "Start Gateway"
                         color: Colors.bg
                         font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontNormal
+                        font.pixelSize: Theme.fontNormal
                         font.bold: true
                     }
                 }
@@ -101,7 +101,7 @@ Item {
                     text: "Patch ~/.claude.json"
                     color: Colors.text
                     font.family: Theme.fontFamily
-                    font.pointSize: Theme.fontNormal
+                    font.pixelSize: Theme.fontNormal
                 }
                 MouseArea {
                     id: ensureHover
@@ -136,7 +136,7 @@ Item {
                     text: "Overview"
                     color: Colors.text
                     font.family: Theme.fontFamily
-                    font.pointSize: Theme.fontMedium
+                    font.pixelSize: Theme.fontMedium
                     font.bold: true
                 }
                 StatRow { label: "Catalog entries"; value: McpState.catalog.length }
@@ -160,13 +160,13 @@ Item {
             text: parent.label
             color: Colors.textMuted
             font.family: Theme.fontFamily
-            font.pointSize: Theme.fontSmall
+            font.pixelSize: Theme.fontSmall
         }
         Text {
             text: parent.value
             color: Colors.text
             font.family: Theme.fontFamily
-            font.pointSize: Theme.fontSmall
+            font.pixelSize: Theme.fontSmall
             font.bold: true
         }
     }

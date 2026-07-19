@@ -8,6 +8,9 @@ palette = "salience"
 salience = { sampling = "balanced", intensity = "normal" }
 style = "dark"
 
+# NB: style = "dark" duplicates slots 9–14 from 1–6, so the templates derive
+# real bright variants via `| lighten(0.15) | saturate(0.15)` — the terminal
+# keeps 16 distinct colors and the shell gains lighter chroma candidates.
 [templates]
 colors_kitty = { template = "colors-kitty.conf", target = "~/.cache/wal/colors-kitty.conf" }
 colors_json = { template = "colors.json", target = "~/.cache/wal/colors.json" }

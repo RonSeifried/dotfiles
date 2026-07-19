@@ -9,6 +9,12 @@ obsidian            # notes (Super+N)
 libreoffice-fresh   # office (Super+Shift+N)
 nautilus            # GUI file manager (Super+Shift+E)
 taskwarrior-tui     # task TUI (Super+Shift+T) — pulls 'task'
+khal                # optional calendar agenda in Control Center
 lazygit             # git TUI
 btop                # system monitor
+satty               # optional screenshot annotation from capture.sh
+tesseract           # optional screenshot OCR / copy text
+kdeconnect          # Nearby Share/device continuity adapter
+orca                # Super+Alt+S screen-reader integration
+docker              # MCP catalog/server/client management backend
 # webcord            # Discord (Super+D) — referenced but uninstalled; uncomment to use

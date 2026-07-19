@@ -2,8 +2,9 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Files provider — fuzzy-finds files via `fd`. Async, debounced.
-// Triggered only via "f " prefix to avoid spawning fd on every default keystroke.
+// Files provider — queries the system's persistent plocate index. The helper
+// falls back to fd when no index is present, but normal queries never traverse
+// HOME on every keystroke.
 Item {
     id: root
     visible: false
@@ -14,28 +15,28 @@ Item {
     property string query: ""
     property var results: []
     property string _lastResolvedQuery: ""
-    property var _lines: []
+    readonly property string helperPath: (Quickshell.env("HOME") || "")
+        + "/.config/quickshell/launcher/providers/content-search.py"
 
     signal resultsReady(string query, var list)
 
     Timer {
         id: debounce
-        interval: 200
+        interval: 110
         repeat: false
         onTriggered: root._run()
     }
 
     Process {
         id: fdProc
-        stdout: SplitParser {
-            onRead: line => { if (line) root._lines.push(line) }
-        }
+        stdout: StdioCollector { id: searchOut }
         onExited: {
-            const lines = root._lines.slice()
-            root._lines = []
             const out = []
-            for (let i = 0; i < lines.length && out.length < 50; i++) {
-                out.push(_toResult(lines[i]))
+            try {
+                const items = JSON.parse(searchOut.text || "[]")
+                for (let i = 0; i < items.length && out.length < 50; i++) out.push(_toResult(items[i]))
+            } catch (e) {
+                console.warn("FilesProvider: invalid index response:", e)
             }
             root.results = out
             root.resultsReady(root._lastResolvedQuery, out)
@@ -46,6 +47,7 @@ Item {
 
     onQueryChanged: {
         const q = (query || "").trim()
+        if (fdProc.running) fdProc.running = false
         if (!q) {
             results = []
             _lastResolvedQuery = ""
@@ -56,11 +58,8 @@ Item {
     }
 
     function _run() {
-        _lines = []
         _lastResolvedQuery = query.trim()
-        const home = Quickshell.env("HOME") || "/home"
-        // Search HOME, files+dirs, smart-case (default), no color codes.
-        fdProc.command = ["fd", "--max-results", "50", "--color", "never", "--", _lastResolvedQuery, home]
+        fdProc.command = ["python3", helperPath, _lastResolvedQuery]
         fdProc.running = true
     }
 
@@ -81,17 +80,21 @@ Item {
         openProc.running = true
     }
 
-    function _toResult(path) {
-        const dir = _looksLikeDir(path)
+    function _toResult(item) {
+        const path = item.path
+        const dir = item.kind === "Folder"
+        const usageKey = "file:" + path
         return {
             providerId: providerId,
             icon: "",
             iconText: dir ? "" : "",
-            title: _basename(path) || path,
+            title: item.title || _basename(path) || path,
             subtitle: _dirname(path),
-            badge: badge,
-            score: 400,
-            onActivate: () => _open(path)
+            badge: item.kind || badge,
+            path: path,
+            score: (item.score || 0) + UsageState.score(usageKey),
+            usageKey: usageKey,
+            onActivate: () => { UsageState.record(usageKey); _open(path) }
         }
     }
 }

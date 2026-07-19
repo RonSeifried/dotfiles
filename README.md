@@ -92,12 +92,56 @@ wallust run wallpaper.jpg
    ├──▶ Quickshell colors    (~/.cache/wal/colors.json → services/theme, live)
    ├──▶ Niri borders         (pywal-niri-colors.sh → niri msg)
    ├──▶ Starship prompt      (starship-color-gen.sh)
-   ├──▶ Yazi theme           (theme.toml)
-   └──▶ Zen Browser          (zen-wal-refresh.sh)
+   ├──▶ Kitty colors         (colors-kitty.conf)
+   └──▶ Firefox / Zen        (pywalfox, when installed)
 ```
 
 Color templates live in `.config/wallust/templates/` — edit them to customize which color roles
 map to which UI elements.
+
+Wallpapers are also sampled at 64×64 to estimate luminance and visual complexity. Quickshell uses
+that cached analysis to make glass denser over bright or busy images, while quiet wallpapers keep
+the lighter material. Wallust is the only palette authority; its pywal-compatible cache format is
+retained for applications that already consume `~/.cache/wal/`.
+
+### Desktop Settings and Health
+
+Control Center → **Desktop Settings** contains persistent appearance, menu-bar, search and
+notification preferences. Settings are versioned in `~/.config/quickshell/settings.json` and are
+safe to remove to restore defaults.
+
+The same page exposes a read-only health check and an on-demand backup. The health check verifies
+runtime dependencies, generated palette/wallpaper state, broken links and repository drift.
+Backups contain both an atomically replaced Git bundle and the current working tree, including
+uncommitted changes. The eight newest dated working-tree snapshots are retained:
+
+```sh
+~/.config/scripts/dotfiles-doctor.sh
+~/.config/scripts/dotfiles-backup.sh
+```
+
+An opt-in `dotfiles-backup.timer` performs the same backup weekly.
+
+Arch installs `plocate-updatedb.timer` as a static daily timer. It is normally
+started automatically and should not be enabled manually. Check it with
+`systemctl status plocate-updatedb.timer`; if inactive, start it once with
+`sudo systemctl start plocate-updatedb.timer`.
+
+### Indexed Spotlight
+
+Normal launcher queries combine applications, open Niri windows, system actions, calculator and
+unit conversions, recent clipboard text, files and a final web fallback. File results use the
+`plocate` index and fall back safely to a bounded `fd` query when the database is unavailable.
+Exact names, recent documents and shallow personal folders rank above build and dependency trees.
+Specialist prefixes remain available (`=`, `>`, `?`, `w`, `f`, `p`, `ai`) but are not required for
+ordinary searches.
+
+### Capture Workflow
+
+`Print` and `Ctrl+Print` save a searchable screenshot history and copy the image immediately.
+Notification actions can open or reveal the result; optional Satty and Tesseract integrations add
+annotation and OCR/copy-text actions. Screen recording reports through the shared live-activity
+pill rather than polling a lock file.
 
 ### AI + MCP Integration
 
@@ -125,7 +169,7 @@ not tracked in this repo.
 | Code Editor (GUI) | [Zed](https://zed.dev/) |
 | Launcher / AI / MCP | Quickshell launcher + MCP Manager (custom QML) |
 | Color Theming | [Wallust](https://codeberg.org/explosion-mental/wallust) (pywal-compatible) |
-| Wallpaper | [awww](https://github.com/LGFae/awww) / swaybg fallback |
+| Wallpaper | [awww](https://github.com/LGFae/awww) + swaybg overview backdrop |
 | Idle daemon | [swayidle](https://github.com/swaywm/swayidle) |
 | Monitor Mgmt | [kanshi](https://sr.ht/~emersion/kanshi/) |
 | Notifications | Quickshell `NotifState` (D-Bus) |
@@ -219,7 +263,8 @@ not tracked in this repo.
 
 ## Installation
 
-> **Prerequisites:** Arch Linux with a working Wayland session.
+> **Prerequisites:** A normal user account on Arch Linux with `sudo` and network access.
+> Running from a TTY is supported; a live Wayland session is not required.
 
 ### 1. Clone & bootstrap
 
@@ -231,33 +276,54 @@ cd ~/dev/dotfiles
 ./install.sh
 ```
 
-`install.sh` installs all dependencies (`packages/{pacman,aur,omz-plugins}.txt`),
-then links every config into `$HOME` via GNU stow (per-file, so the repo can live
-at any path). It is idempotent — safe to re-run. It also seeds the machine-local
-niri monitor file and offers to enable services + set zsh as your shell.
+That single command:
 
-### 2. Set your wallpaper and generate colors
+- verifies the Arch/user environment;
+- installs every core runtime dependency explicitly, plus the AUR helper when needed;
+- optionally installs the personal applications used by keybindings;
+- preserves conflicting pre-existing files in `~/.local/state/dotfiles/` before linking;
+- links configs into `$HOME` with per-file GNU Stow links;
+- creates safe machine-local Niri and Kanshi defaults without copying another computer's outputs;
+- seeds credential-free application settings;
+- selects an existing wallpaper or generates a neutral default;
+- generates Wallust colors, the overview background and adaptive-material metadata;
+- offers hardware services, Docker/MCP, backups and default-shell setup; and
+- validates Niri, dependencies, generated state and—inside Wayland—an actual Quickshell launch.
+
+Useful modes:
 
 ```bash
-wallust run /path/to/wallpaper.jpg
+./install.sh --minimal  # complete desktop core, skip personal GUI/TUI apps
+./install.sh --yes      # unattended defaults; secrets are still never invented
+./install.sh --check    # read-only portability and health verification
 ```
 
-Propagates the palette to niri borders, Quickshell, Kitty, Starship, Yazi and
-Zen — live, no restarts.
+The installer is idempotent and safe to rerun.
 
-### 3. Machine-specific config (not tracked)
+### 2. Change the initial wallpaper later (optional)
 
-- **Monitors (niri):** edit `.config/niri/includes/host.kdl` (seeded from
-  `host.kdl.example` by `install.sh`) with this machine's `output { … }` blocks.
+```bash
+~/.config/scripts/wallpaper_switcher.sh --apply /path/to/wallpaper.jpg
+```
+
+Propagates the palette to Niri borders, Quickshell, Kitty and Starship. If
+`pywalfox` is installed, compatible Firefox/Zen profiles are refreshed too —
+live, no desktop restart.
+
+### 3. Machine-specific monitor refinements (optional, not tracked)
+
+- **Monitors (niri):** automatic compositor defaults work immediately. Add overrides to
+  `.config/niri/includes/host.kdl` only when a display needs custom scale or layout.
 - **Monitors (kanshi):** create `~/.config/kanshi/config` with docked / laptop
-  profiles, e.g.:
+  profiles only for docking automation. The installed fallback profile is safe on any machine.
+  Use the `docked_open`, `docked_closed`, and `laptop_open` names expected by the lid watcher.
 
   ```
-  profile docked {
+  profile docked_closed {
       output eDP-1 disable
       output DP-1 mode 2560x1440@144Hz position 0,0 scale 1
   }
-  profile laptop {
+  profile laptop_open {
       output eDP-1 mode preferred scale 1.333
   }
   ```
@@ -297,7 +363,6 @@ dotfiles/
 │   ├── fastfetch/ · kitty/ · nvim/ · starship/ · tmux/ · yazi/ · zed/
 │   ├── scripts/                     # niri hooks, wallpaper switcher, installer helpers
 │   └── wallust/templates/           # Color templates per component
-├── docs/                            # backend-daemon-inventory.md, …
 ├── .zshrc · .zprofile
 ├── LICENSE · .stow-local-ignore
 ```
@@ -314,5 +379,16 @@ dotfiles/
 - The Tmux prefix is `Ctrl+Space` (not the default `Ctrl+B`).
 - Wallust templates in `.config/wallust/templates/` define which color roles map to which UI
   variables — edit these to customize color behavior without changing any app config.
-- Generated files (Yazi theme, wallust output) are excluded from stow — they are created on first
-  `wallust run`.
+- Generated Wallust output, Starship's live palette, app settings and per-host display files are
+  gitignored and created locally.
+
+### Public-repository safety
+
+- Real application settings that may contain credentials (`zed/settings.json`, `.askai-env`,
+  `.env*`, key/certificate files and common token stores) are ignored; only redacted examples are
+  tracked.
+- Gemini and MCP secret values are passed to helpers over stdin rather than command-line arguments.
+- Dotfile backups use mode `0600` and exclude credential files, agent-local state and caches.
+- Before publishing a branch, review staged content with `git diff --cached` and run
+  `./install.sh --check`. Ignore rules prevent new leaks; they cannot remove a secret that was
+  committed previously.

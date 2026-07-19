@@ -1,72 +1,65 @@
 import QtQuick
 import ".."
 
-// Bar cluster icon button. Centralizes hover/click + pin behavior.
-//
-// Hover  → set rightPanel + activeScreen (no pin change).
-// Click  → if THIS panel is pinned: unpin + close.
-//          else: pin this panel (replaces any prior pin).
-//
-// Pin is scoped per-panel via bar.pinnedPanel (string), so hovering a
-// different pill while another panel is pinned does NOT make the hovered
-// one pinned. closeTimer in popups uses pinnedPanel===rightPanel match.
+// Bar cluster icon button: hover chip + click → activated(). The old
+// hover-opens-panel / pin machinery died with RightPanelPopup — every bar
+// pill now opens the Control Center (or acts directly) on click.
 //
 // Children declared inside default property become the icon content.
 Item {
     id: root
 
-    // Target panel name ("wifi" | "audio" | …) consumed by RightPanelPopup loader.
-    required property string panel
-
-    // The owning Bar PanelWindow — used for screen + pinnedPanel toggling.
-    required property var bar
-
-    // Use `data` (not `children`) so non-visual elements (FileView, Timer, …)
-    // declared inline are routed to resources and don't error.
-    default property alias contentChildren: contentRow.data
-    property real horizontalPadding: 0
-
-    // When true, the pill does NOT drive ControlState.rightPanel on hover/click;
-    // hovering does nothing and clicking emits activated() instead.
-    property bool clickOnly: false
     signal activated()
 
     // Wheel passthrough — connect to handle scroll on the pill (e.g. audio volume).
     signal wheelEvent(var event)
+    property string accessibleName: ""
+
+    // Use `data` (not `children`) so non-visual elements (FileView, Timer, …)
+    // declared inline are routed to resources and don't error.
+    default property alias contentChildren: contentRow.data
+    // Horizontal breathing room around the glyph — also the hover chip's padding.
+    property real horizontalPadding: 7
+
+    readonly property alias hovered: _hover.hovered
 
     implicitWidth: contentRow.implicitWidth + 2 * horizontalPadding
-    implicitHeight: contentRow.implicitHeight
+    implicitHeight: Theme.hitTarget
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Button
+    Accessible.name: accessibleName
+    Keys.onReturnPressed: root.activated()
+    Keys.onEnterPressed: root.activated()
+    Keys.onSpacePressed: root.activated()
+
+    // macOS-style hover chip: a subtle rounded highlight, no permanent chrome.
+    Rectangle {
+        anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter }
+        height: Theme.pillHeight
+        radius: Theme.radiusSmall
+        color: Qt.rgba(1, 1, 1, _hover.hovered ? Theme.hoverBrightness : 0)
+        Behavior on color { ColorAnimation { duration: Theme.durFast } }
+    }
 
     Row {
         id: contentRow
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.left: parent.left
-        anchors.leftMargin: root.horizontalPadding
+        anchors.centerIn: parent
     }
 
-    HoverHandler {
-        onHoveredChanged: if (hovered) {
-            if (!root.clickOnly) {
-                ControlState.activeScreen = root.bar.screen.name
-                ControlState.rightPanel = root.panel
-            }
-        }
-    }
+    HoverHandler { id: _hover }
 
     MouseArea {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
-        onClicked: {
-            if (root.clickOnly) { root.activated(); return }
-            if (root.bar.pinnedPanel === root.panel) {
-                root.bar.pinnedPanel = ""
-                ControlState.rightPanel = "none"
-            } else {
-                ControlState.activeScreen = root.bar.screen.name
-                ControlState.rightPanel = root.panel
-                root.bar.pinnedPanel = root.panel
-            }
-        }
+        onClicked: root.activated()
         onWheel: ev => root.wheelEvent(ev)
+    }
+
+
+    Rectangle {
+        anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter }
+        height: Theme.pillHeight; radius: Theme.radiusSmall; color: "transparent"
+        border.width: root.activeFocus ? 2 : 0
+        border.color: Qt.rgba(1, 1, 1, 0.72)
     }
 }

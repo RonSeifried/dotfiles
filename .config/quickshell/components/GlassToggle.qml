@@ -2,13 +2,25 @@ import QtQuick
 import ".."
 
 // On/off switch. Track recolors to accent when on; knob slides.
+// `checked` is a plain binding — the toggle never self-assigns, it only
+// emits `toggled(value)`; the consumer flips the backend and the binding
+// moves the knob. Keeps external state (CC tile, ipc) in sync.
 Item {
     id: root
     property bool checked: false
+    property string accessibleName: "Toggle"
     signal toggled(bool value)
 
     implicitWidth: 44
     implicitHeight: 24
+    activeFocusOnTab: true
+    Accessible.role: Accessible.CheckBox
+    Accessible.name: accessibleName
+    Accessible.checkable: true
+    Accessible.checked: checked
+    Keys.onReturnPressed: root.toggled(!root.checked)
+    Keys.onEnterPressed: root.toggled(!root.checked)
+    Keys.onSpacePressed: root.toggled(!root.checked)
 
     Rectangle {
         id: track
@@ -39,6 +51,13 @@ Item {
     }
 
     TapHandler {
-        onTapped: { root.checked = !root.checked; root.toggled(root.checked) }
+        onTapped: root.toggled(!root.checked)
+    }
+
+    Rectangle {
+        anchors.fill: parent; anchors.margins: -3
+        radius: height / 2; color: "transparent"
+        border.width: root.activeFocus ? 2 : 0
+        border.color: Qt.rgba(1, 1, 1, 0.72)
     }
 }

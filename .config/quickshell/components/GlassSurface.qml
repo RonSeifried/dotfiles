@@ -1,6 +1,6 @@
 import QtQuick
-import QtQuick.Shapes
 import ".."
+import "../services/theme/lib/palette.js" as Palette
 
 // Liquid-glass base material. Tint over bgVariant + white top-edge highlight
 // + accent hairline border, picked from an elevation tier. Native compositor
@@ -14,9 +14,6 @@ import ".."
 Item {
     id: root
 
-    // tier selects the TINT COLOR: "regular" = neutral bgVariant,
-    // "prominent" = accent-tinted (primary actions / active state).
-    property string tier: "regular"
     // level selects the ELEVATION (alpha intensity): "e1" flush/low (pills),
     // "e2" raised (popups/cards), "e3" floating (launcher/modal).
     property string level: "e2"
@@ -29,12 +26,28 @@ Item {
     property int bottomLeftRadius: radius
     property int bottomRightRadius: radius
     property bool interactive: false
+    property string accessibleName: ""
+    property string accessibleDescription: ""
+    // Frost material (macOS-26): a LIGHT, white-tinted frosted surface instead
+    // of the dark bgVariant glass — for tiles/cards that should read as bright
+    // panes floating on the darker panel. Border becomes a neutral white edge
+    // (no accent outline), matching macOS control tiles.
+    property bool frost: false
+    property real frostAlpha: Palette.frost.fill   // shared with lock (palette.js)
     // Edge control. "top" toggles the white highlight line; "left"/"right"/
     // "bottom" toggle accent hairlines. Popups joined to a pill omit "top".
     property var edges: ["top", "right", "bottom", "left"]
 
     default property alias content: contentHolder.data
     signal clicked()
+
+    activeFocusOnTab: interactive
+    Accessible.role: interactive ? Accessible.Button : Accessible.Pane
+    Accessible.name: accessibleName
+    Accessible.description: accessibleDescription
+    Keys.onReturnPressed: if (interactive) root.clicked()
+    Keys.onEnterPressed: if (interactive) root.clicked()
+    Keys.onSpacePressed: if (interactive) root.clicked()
 
     // ── level → elevation alpha lookup ───────────────────────────
     readonly property real _tintAlpha: level === "e1" ? Theme.elevation.e1TintAlpha
@@ -43,8 +56,17 @@ Item {
         : level === "e3" ? Theme.elevation.e3HighlightAlpha : Theme.elevation.e2HighlightAlpha
     readonly property real _borderAlpha: level === "e1" ? Theme.elevation.e1BorderAlpha
         : level === "e3" ? Theme.elevation.e3BorderAlpha : Theme.elevation.e2BorderAlpha
-    readonly property color _tintColor: tier === "prominent" ? Colors.accent : Colors.bgVariant
-    readonly property color _borderColor: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, _borderAlpha)
+    readonly property color _tintColor: Colors.bgVariant
+    // Fill: frost → white wash; otherwise the tinted glass.
+    // (A former "prominent" accent-tinted tier was never used — state lives
+    // in badges/toggles, never in the surface fill. Removed as dead code.)
+    readonly property color _fillColor: frost
+        ? Qt.rgba(1, 1, 1, frostAlpha)
+        : Qt.rgba(_tintColor.r, _tintColor.g, _tintColor.b, _tintAlpha)
+    // Chrome edges are neutral. Accent belongs to selection and live state,
+    // never to every perimeter on screen.
+    readonly property color _borderColor: Qt.rgba(1, 1, 1,
+        frost ? Palette.frost.border : _borderAlpha)
 
     // Auto-size to content. childrenRect aggregates children placed in
     // contentHolder; consumers that want a fixed size override these (or set
@@ -63,7 +85,11 @@ Item {
         anchors.fill: parent
         topLeftRadius: root.topLeftRadius; topRightRadius: root.topRightRadius
         bottomLeftRadius: root.bottomLeftRadius; bottomRightRadius: root.bottomRightRadius
-        color: Qt.rgba(root._tintColor.r, root._tintColor.g, root._tintColor.b, root._tintAlpha)
+        color: root._fillColor
+        border.width: 1
+        border.color: root._borderColor
+        // Smooth the tier/level transition (e.g. a tile toggling on/off).
+        Behavior on color { ColorAnimation { duration: Theme.durNormal; easing.type: Easing.OutCubic } }
         // Hover-brightness: a white overlay at hoverBrightness alpha.
         Rectangle {
             anchors.fill: parent
@@ -75,49 +101,27 @@ Item {
         }
     }
 
+    // Keyboard focus is deliberately neutral-white: accent remains reserved
+    // for selection/state instead of doing three jobs at once.
+    Rectangle {
+        anchors.fill: parent
+        topLeftRadius: root.topLeftRadius; topRightRadius: root.topRightRadius
+        bottomLeftRadius: root.bottomLeftRadius; bottomRightRadius: root.bottomRightRadius
+        color: "transparent"
+        border.width: root.activeFocus ? 2 : 0
+        border.color: Qt.rgba(1, 1, 1, 0.72)
+        z: 10
+    }
+
     // ── content (middle layer) ───────────────────────────────────
     Item {
         id: contentHolder
         anchors.fill: parent
     }
 
-    // ── edges (top layer — drawn over content so they stay crisp) ─
-    // Accent hairline tracing left side → bottom corners → right side, following
-    // the rounded corners. A Shape stroke is used because straight inset
-    // Rectangles can't trace the corner arc and Rectangle.border does not render
-    // with per-corner radii in this Qt build. The top edge is intentionally not
-    // stroked — it carries the white highlight instead (or is omitted for
-    // pill-joined surfaces). 0.5px inset keeps the 1px stroke inside the bounds.
-    // SVG outline at 0.5px inset (keeps the 1px stroke inside the bounds).
-    // Top present → CLOSED rounded rect tracing all four corners. Top omitted
-    // (pill-join) → OPEN path (left + bottom corners + right), top left bare so
-    // the surface meets the pill. Quadratic corners (Q) avoid arc-direction bugs.
-    readonly property bool _omitTop: edges.indexOf("top") === -1
-    readonly property string _pathData: {
-        const x0 = 0.5, y0 = 0.5, x1 = width - 0.5, y1 = height - 0.5
-        const tl = topLeftRadius, tr = topRightRadius, bl = bottomLeftRadius, br = bottomRightRadius
-        const sides =
-            `L ${x1},${y1 - br} Q ${x1},${y1} ${x1 - br},${y1} ` +   // right + BR
-            `L ${x0 + bl},${y1} Q ${x0},${y1} ${x0},${y1 - bl} `     // bottom + BL
-        if (_omitTop)
-            return `M ${x0},${y0} L ${x0},${y1 - bl} Q ${x0},${y1} ${x0 + bl},${y1} ` +
-                   `L ${x1 - br},${y1} Q ${x1},${y1} ${x1},${y1 - br} L ${x1},${y0}`
-        return `M ${x0 + tl},${y0} L ${x1 - tr},${y0} Q ${x1},${y0} ${x1},${y0 + tr} ` +
-               sides + `L ${x0},${y0 + tl} Q ${x0},${y0} ${x0 + tl},${y0} Z`
-    }
-
-    Shape {
-        anchors.fill: parent
-        preferredRendererType: Shape.CurveRenderer
-        ShapePath {
-            strokeColor: root._borderColor
-            strokeWidth: 1
-            fillColor: "transparent"
-            capStyle: ShapePath.FlatCap
-            joinStyle: ShapePath.RoundJoin
-            PathSvg { path: root._pathData }
-        }
-    }
+    // QtQuick.Shape's curve renderer corrupted shared layer-shell textures on
+    // some GPUs, producing diagonal lines across unrelated windows. The native
+    // rounded Rectangle border is stable and follows all per-corner radii.
 
     // Top-edge white highlight (the "light from above").
     Rectangle {

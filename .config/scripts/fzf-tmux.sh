@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -u
+
 selected=$(find ~ -maxdepth 4 -type d \
     -not -path '*/.git/*' \
     -not -path '*/node_modules/*' \

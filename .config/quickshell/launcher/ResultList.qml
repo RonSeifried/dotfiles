@@ -15,6 +15,12 @@ Item {
 
     property alias listViewAlias: lv
     property alias currentIndex: lv.currentIndex
+    property var selectedResult: null
+
+    function syncSelection() {
+        selectedResult = lv.currentIndex >= 0 && lv.currentIndex < results.length
+            ? results[lv.currentIndex] : null
+    }
 
     implicitHeight: lv.contentHeight
     implicitWidth: 400
@@ -27,7 +33,10 @@ Item {
         }
     }
 
-    onResultsChanged: lv.currentIndex = results.length > 0 ? 0 : -1
+    onResultsChanged: {
+        lv.currentIndex = results.length > 0 ? 0 : -1
+        syncSelection()
+    }
 
     ListView {
         id: lv
@@ -36,6 +45,7 @@ Item {
         spacing: 2
         clip: true
         currentIndex: 0
+        onCurrentIndexChanged: root.syncSelection()
 
         delegate: Rectangle {
             id: row
@@ -43,14 +53,15 @@ Item {
             required property int index
             width: ListView.view.width
             height: Theme.resultItemHeight
-            radius: Theme.radiusSmall
+            radius: Theme.radiusMedium
             color: {
                 if (lv.currentIndex === row.index)
-                    return Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillHoverAlpha + 0.06)
+                    return Qt.rgba(1, 1, 1, 0.14)
                 if (hover.containsMouse)
-                    return Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.pillHoverAlpha)
+                    return Qt.rgba(1, 1, 1, Theme.hoverBrightness)
                 return "transparent"
             }
+            Behavior on color { ColorAnimation { duration: Theme.durFast; easing.type: Easing.OutCubic } }
 
             RowLayout {
                 anchors {
@@ -128,10 +139,9 @@ Item {
                     visible: (row.modelData.badge || "") !== ""
                     Layout.preferredHeight: 18
                     Layout.preferredWidth: badgeText.implicitWidth + 12
-                    radius: Theme.radiusPill
+                    // Chip per design language: accent-tinted fill, no border.
+                    radius: Theme.radiusSmall
                     color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.18)
-                    border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha * 0.7)
-                    border.width: 1
 
                     Text {
                         id: badgeText

@@ -24,16 +24,27 @@ Item {
     property string error: ""
     property bool   streaming: false
     property var    history: []   // [{role: "user"|"model", text: ...}]
+    readonly property string requestHelper: (Quickshell.env("HOME") || "")
+        + "/.config/quickshell/launcher/providers/gemini-request.py"
 
     signal responseUpdated()
     signal responseDone()
     signal responseError(string msg)
 
-    FileView {
-        id: envFile
-        path: (Quickshell.env("HOME") || "") + "/.askai-env"
-        onLoaded: {
-            const txt = envFile.text() || ""
+    Process {
+        id: envLoader
+        command: ["sh", "-c", "test -r \"$1\" && cat \"$1\"", "_",
+            (Quickshell.env("HOME") || "") + "/.askai-env"]
+        stdout: StdioCollector { id: envOut }
+        onExited: code => {
+            if (code !== 0) {
+                root.apiKey = ""
+                root.apiKeyReady = true
+                root.keyMissing = true
+                root.keyError = "Cannot read ~/.askai-env"
+                return
+            }
+            const txt = envOut.text || ""
             const k = txt.match(/^\s*(?:export\s+)?GEMINI_API_KEY\s*=\s*['"]?([^'"\r\n]+)['"]?\s*$/m)
             const m = txt.match(/^\s*(?:export\s+)?GEMINI_MODEL\s*=\s*['"]?([^'"\r\n]+)['"]?\s*$/m)
             root.apiKey = k ? k[1] : ""
@@ -42,20 +53,24 @@ Item {
             root.keyMissing = !root.apiKey
             root.keyError = root.apiKey ? "" : "GEMINI_API_KEY missing in ~/.askai-env"
         }
-        onLoadFailed: {
-            root.apiKey = ""
-            root.apiKeyReady = true
-            root.keyMissing = true
-            root.keyError = "Cannot read ~/.askai-env"
-        }
     }
+
+    Component.onCompleted: envLoader.running = true
 
     Process {
         id: askProc
+        property string pendingInput: ""
+        stdinEnabled: true
         stdout: SplitParser {
             onRead: line => root._handleSseLine(line)
         }
         stderr: StdioCollector { id: errBuf }
+        onStarted: {
+            if (pendingInput.length > 0) {
+                write(pendingInput)
+                pendingInput = ""
+            }
+        }
         onExited: (code, status) => {
             root.streaming = false
             if (code !== 0 && !root.response && !root.error) {
@@ -128,15 +143,14 @@ Item {
         const url = "https://generativelanguage.googleapis.com/v1beta/models/"
             + root.model + ":streamGenerateContent?alt=sse"
 
-        // qs Process spawns via execv — no shell, no escaping of body needed.
-        askProc.command = [
-            "curl", "-sS", "--no-buffer",
-            "-H", "Content-Type: application/json",
-            "-H", "X-goog-api-key: " + root.apiKey,
-            "-X", "POST",
-            "-d", body,
-            url
-        ]
+        // Keep the API key and conversation out of argv/process listings.
+        // The helper receives both over stdin and streams curl's SSE output.
+        askProc.pendingInput = JSON.stringify({
+            apiKey: root.apiKey,
+            body: body,
+            url: url
+        })
+        askProc.command = ["python3", requestHelper]
         askProc.running = true
     }
 

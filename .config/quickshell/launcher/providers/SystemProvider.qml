@@ -30,16 +30,27 @@ Item {
         { title: "Reboot",             subtitle: "Restart system",          glyph: "󰜉", action: () => _run("systemctl reboot") },
         { title: "Shutdown",           subtitle: "Power off",               glyph: "󰐥", action: () => _run("systemctl poweroff") },
         { title: "Logout",             subtitle: "Exit niri session",       glyph: "󰍃", action: () => _run("niri msg action quit --skip-confirmation") },
-        { title: "Power Menu",         subtitle: "Open power overlay",      glyph: "",  action: () => ControlState.powerMenuOpen = true },
-        { title: "Wallpaper Picker",   subtitle: "Change wallpaper",        glyph: "󰸉", action: () => ControlState.wallpaperPickerOpen = true },
-        { title: "Clipboard History",  subtitle: "Past copied items",       glyph: "󰅍", action: () => ControlState.clipboardOpen = true },
+        { title: "Power Menu",         subtitle: "Open power overlay",      glyph: "",  action: () => ControlState.toggleTransient("power") },
+        { title: "Wallpaper Picker",   subtitle: "Change wallpaper",        glyph: "󰸉", action: () => ControlState.toggleTransient("wallpaper") },
+        { title: "Clipboard History",  subtitle: "Past copied items",       glyph: "󰅍", action: () => ControlState.toggleTransient("clipboard") },
         { title: "Toggle Caffeine",    subtitle: "Inhibit idle/sleep",      glyph: "󰛊", action: () => ControlState.idleInhibited = !ControlState.idleInhibited },
-        { title: "Toggle Notifications", subtitle: "Show notification panel", glyph: "󰂚", action: () => ControlState.togglePanel("notif") },
+        { title: "Notifications",      subtitle: "Open Control Center",     glyph: "󰂚", action: () => _run("qs ipc call control toggle") },
         { title: "Niri Overview",      subtitle: "Open workspace overview", glyph: "󰕮", action: () => _run("niri msg action toggle-overview") },
+        { title: "Switch Audio Route", subtitle: "Choose speakers or microphone", glyph: "󰓃", action: () => ControlState.toggleTransient("audio") },
+        { title: "Toggle Screen Recording", subtitle: "Start or stop region recording", glyph: "󰻃", action: () => _run(_scripts + "/screenrecord.sh") },
         { title: "Pick Color",         subtitle: "Sample a pixel → clipboard", glyph: "󰈋", action: () => _run(_scripts + "/pick-color.sh") },
         { title: "Ask AI",             subtitle: "Open Spotlight ai-mode",   glyph: "󰚩", action: () => _run("qs ipc call launcher ai") },
-        { title: "Reload Colors",      subtitle: "Re-run wallust palette",  glyph: "󰏘", action: () => _run("wallust run \"$(cat " + _wallCache + " 2>/dev/null || echo)\" 2>/dev/null") },
+        { title: "Focus: Work",        subtitle: "Quiet, balanced, awake",   glyph: "󰢹", action: () => FocusState.apply("work") },
+        { title: "Focus: Presentation", subtitle: "Bright, quiet, awake",    glyph: "󰐩", action: () => FocusState.apply("presentation") },
+        { title: "Focus: Movie",       subtitle: "Dim, quiet, awake",        glyph: "󰿎", action: () => FocusState.apply("movie") },
+        { title: "Focus: Wind Down",   subtitle: "Warm, dim, efficient",     glyph: "󰖔", action: () => FocusState.apply("winddown") },
+        { title: "Focus: Off",         subtitle: "Restore normal desktop",   glyph: "󰅖", action: () => FocusState.apply("off") },
+        { title: "Reload Colors",      subtitle: "Re-run wallust palette",  glyph: "󰏘", action: () => _run("wall=$(readlink -f \"" + _wallCache + "\" 2>/dev/null) && [ -f \"$wall\" ] && wallust run \"$wall\"") },
         { title: "Update System",      subtitle: "pacman + AUR via yay",    glyph: "󰚰", action: () => _run("kitty --class installer-pkg -e " + _scripts + "/installer/system-update.sh") },
+        { title: "Desktop Settings",   subtitle: "Appearance, search and notifications", glyph: "󰒓", action: () => { ControlState.openControlCenter("settings") } },
+        { title: "Desktop Health",     subtitle: "Check dependencies and generated state", glyph: "󰄬", action: () => _run("kitty --class=floating -e " + _scripts + "/dotfiles-doctor.sh") },
+        { title: "Backup Dotfiles",    subtitle: "Create a recoverable local snapshot", glyph: "󰁯", action: () => _run(_scripts + "/dotfiles-backup.sh") },
+        { title: "Nearby Share",       subtitle: "Send files or clipboard to another device", glyph: "󰒧", action: () => _run(_scripts + "/nearby-share.sh") },
         { title: "Remove Package",     subtitle: "fzf picker, multi-select", glyph: "󰮈", action: () => _run("kitty --class installer-pkg -e " + _scripts + "/installer/pkg-remove.sh") }
     ]
 
@@ -56,6 +67,7 @@ Item {
     }
 
     function _toResult(a, score) {
+        const usageKey = "action:" + a.title
         return {
             providerId: providerId,
             icon: "",
@@ -63,8 +75,9 @@ Item {
             title: a.title,
             subtitle: a.subtitle,
             badge: badge,
-            score: score,
-            onActivate: a.action
+            score: score + UsageState.score(usageKey),
+            usageKey: usageKey,
+            onActivate: () => { UsageState.record(usageKey); a.action() }
         }
     }
 

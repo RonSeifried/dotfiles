@@ -6,6 +6,15 @@ set -eu
 
 ASCII_DIR="$HOME/.config/fastfetch/ascii"
 COLORS_JSON="$HOME/.cache/wal/colors.json"
+SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
+
+# Niri's default column is half the output width. A side-by-side logo and the
+# full module set cannot fit there, so use a deliberately compact vertical
+# layout instead of letting Fastfetch hard-wrap both columns into each other.
+cols=$(tput cols 2>/dev/null || printf '120')
+if [ "$cols" -lt 92 ]; then
+  exec fastfetch --config "$SCRIPT_DIR/../fastfetch/compact.jsonc" "$@"
+fi
 
 # Bail to bare fastfetch if pool empty / missing
 shopt -s nullglob

@@ -25,14 +25,14 @@ Item {
                 text: "Catalog"
                 color: Colors.text
                 font.family: Theme.fontFamily
-                font.pointSize: Theme.fontLarge
+                font.pixelSize: Theme.fontLarge
                 font.bold: true
             }
             Text {
                 text: McpState.catalog.length + " servers"
                 color: Colors.textMuted
                 font.family: Theme.fontFamily
-                font.pointSize: Theme.fontSmall
+                font.pixelSize: Theme.fontSmall
             }
             Item { Layout.fillWidth: true }
             // Filter input
@@ -54,7 +54,7 @@ Item {
                     Text {
                         text: "󰍉"
                         color: Colors.textMuted
-                        font.family: Theme.fontFamily
+                        font.family: Theme.fontIcon
                         font.pixelSize: 13
                     }
                     TextField {
@@ -65,7 +65,7 @@ Item {
                         placeholderTextColor: Qt.rgba(Colors.text.r, Colors.text.g, Colors.text.b, 0.4)
                         color: Colors.text
                         font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontSmall
+                        font.pixelSize: Theme.fontSmall
                         onTextChanged: view.filter = text
                     }
                 }
@@ -83,7 +83,7 @@ Item {
                 text: McpState.loadingCatalog ? "Loading catalog…" : "No catalog entries."
                 color: Colors.textMuted
                 font.family: Theme.fontFamily
-                font.pointSize: Theme.fontMedium
+                font.pixelSize: Theme.fontMedium
             }
         }
 
@@ -119,7 +119,7 @@ Item {
                     Text {
                         text: "󰏗"
                         color: Colors.accent
-                        font.family: Theme.fontFamily
+                        font.family: Theme.fontIcon
                         font.pixelSize: 18
                     }
                     ColumnLayout {
@@ -130,7 +130,7 @@ Item {
                             text: modelData.name
                             color: Colors.text
                             font.family: Theme.fontFamily
-                            font.pointSize: Theme.fontMedium
+                            font.pixelSize: Theme.fontMedium
                             font.bold: true
                             elide: Text.ElideRight
                         }
@@ -140,7 +140,7 @@ Item {
                             text: modelData.description
                             color: Colors.textMuted
                             font.family: Theme.fontFamily
-                            font.pointSize: Theme.fontTiny
+                            font.pixelSize: Theme.fontTiny
                             elide: Text.ElideRight
                             maximumLineCount: 1
                         }
@@ -158,7 +158,7 @@ Item {
                             text: "enabled"
                             color: Colors.success
                             font.family: Theme.fontFamily
-                            font.pointSize: Theme.fontTiny
+                            font.pixelSize: Theme.fontTiny
                             font.bold: true
                         }
                     }
@@ -176,7 +176,7 @@ Item {
                             anchors.centerIn: parent
                             text: "󰋼"
                             color: Colors.text
-                            font.family: Theme.fontFamily
+                            font.family: Theme.fontIcon
                             font.pixelSize: 14
                         }
                         MouseArea {
@@ -203,7 +203,7 @@ Item {
                             text: parent.already ? "Enabled" : "Enable"
                             color: Colors.bg
                             font.family: Theme.fontFamily
-                            font.pointSize: Theme.fontSmall
+                            font.pixelSize: Theme.fontSmall
                             font.bold: true
                         }
                         MouseArea {

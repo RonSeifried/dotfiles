@@ -91,14 +91,12 @@ Item {
                     required property int index
                     Layout.fillWidth: true
                     Layout.preferredHeight: histBody.implicitHeight + 16
+                    // Borderless bubbles: accent tint = user (state), neutral
+                    // surface = assistant. No structural accent outlines.
                     radius: Theme.radiusMedium
                     color: modelData.role === "user"
-                        ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.14)
+                        ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.16)
                         : Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.55)
-                    border.width: 1
-                    border.color: modelData.role === "user"
-                        ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha * 0.5)
-                        : Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha * 0.25)
 
                     Text {
                         id: histBody
@@ -123,8 +121,6 @@ Item {
                 visible: aiProvider && aiProvider.streaming && aiProvider.response.length > 0
                 radius: Theme.radiusMedium
                 color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.55)
-                border.width: 1
-                border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha * 0.4)
 
                 Text {
                     id: streamBody

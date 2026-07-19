@@ -2,6 +2,7 @@ singleton Colors 1.0 Colors.qml
 singleton Theme 1.0 Theme.qml
 singleton LocalThemeProvider 1.0 services/theme/LocalThemeProvider.qml
 singleton ThemeClient 1.0 services/theme/ThemeClient.qml
+singleton WallpaperState 1.0 services/theme/WallpaperState.qml
 singleton WMState 1.0 services/wm/WMState.qml
 singleton ControlState 1.0 services/control/ControlState.qml
 singleton AudioState 1.0 services/audio/AudioState.qml
@@ -10,3 +11,9 @@ singleton VpnState 1.0 services/network/VpnState.qml
 singleton NotifState 1.0 services/notifications/NotifState.qml
 singleton MprisState 1.0 services/mpris/MprisState.qml
 singleton BrightnessState 1.0 services/brightness/BrightnessState.qml
+singleton NightLightState 1.0 services/power/NightLightState.qml
+singleton PowerPolicy 1.0 services/power/PowerPolicy.qml
+singleton UsageState 1.0 services/usage/UsageState.qml
+singleton ActivityState 1.0 services/activity/ActivityState.qml
+singleton FocusState 1.0 services/focus/FocusState.qml
+singleton SettingsState 1.0 services/settings/SettingsState.qml

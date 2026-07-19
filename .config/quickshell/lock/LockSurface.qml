@@ -1,8 +1,6 @@
 import QtQuick
-import QtQuick.Layouts
-import QtQuick.Controls
+import QtQuick.Effects
 import Quickshell
-import Quickshell.Wayland
 import "."
 
 Item {
@@ -16,15 +14,49 @@ Item {
         NumberAnimation { duration: LockTheme.durSlide; easing.type: Easing.OutCubic }
     }
 
-    // Dim/tint overlay on top of compositor-blurred backdrop.
-    // Background blur itself comes from ext-background-effect-v1 set on the
-    // WlSessionLockSurface in shell.qml — niri blurs whatever it renders behind
-    // the lock surface (wallpaper layer / backdrop-color).
+    // ── Backdrop: blurred wallpaper + neutral scrim (macOS lock) ──
+    // The surface is created fresh on every lock, so cache:false picks up
+    // wallpaper changes without a watcher. Falls back to a dark palette
+    // gradient when the symlink is missing/unreadable.
     Rectangle {
         anchors.fill: parent
-        color: LockColors.background
-        opacity: LockColors.overlayAlpha
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: Qt.darker(LockColors.background, 1.1) }
+            GradientStop { position: 1.0; color: Qt.darker(LockColors.background, 1.6) }
+        }
     }
+
+    Image {
+        id: wallpaper
+        anchors.fill: parent
+        visible: false // rendered through the blur effect below
+        source: "file://" + (Quickshell.env("HOME") || "") + "/.cache/current_wallpaper"
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        cache: false
+        // Cap decode size to the surface — wallpapers can be far larger
+        // than the screen and would make the blur needlessly expensive.
+        sourceSize.width: Math.max(64, root.width)
+    }
+
+    MultiEffect {
+        anchors.fill: wallpaper
+        source: wallpaper
+        visible: wallpaper.status === Image.Ready
+        blurEnabled: true
+        blur: LockTheme.blurAmount
+        blurMax: LockTheme.blurMax
+        autoPaddingEnabled: false
+    }
+
+    // Neutral scrim — deliberately black, not a palette colour, so the
+    // wallpaper's own tones stay true (palette tint here read as "dirty").
+    Rectangle {
+        anchors.fill: parent
+        color: Qt.rgba(0, 0, 0, LockTheme.scrimAlpha)
+    }
+
+    // ── Content ──────────────────────────────────────────────────
 
     // Battery — top-right corner, hidden if no battery present
     BatteryWidget {

@@ -188,7 +188,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: root.errored ? "󰀦" : "󰦝"
                             color: root.errored ? Colors.error : Colors.accent
-                            font.family: Theme.fontFamily
+                            font.family: Theme.fontIcon
                             font.pixelSize: 26
                             Behavior on color { ColorAnimation { duration: Theme.durNormal } }
                         }
@@ -204,7 +204,7 @@ PanelWindow {
                             text: "Authentication required"
                             color: Colors.text
                             font.family: Theme.fontFamily
-                            font.pointSize: Theme.fontLarge
+                            font.pixelSize: Theme.fontLarge
                             font.bold: true
                             elide: Text.ElideRight
                         }
@@ -215,7 +215,7 @@ PanelWindow {
                             text: root.hasFlow && root.flow.message ? root.flow.message : ""
                             color: Colors.textMuted
                             font.family: Theme.fontFamily
-                            font.pointSize: Theme.fontSmall
+                            font.pixelSize: Theme.fontSmall
                             wrapMode: Text.WordWrap
                             maximumLineCount: 3
                             elide: Text.ElideRight
@@ -242,7 +242,7 @@ PanelWindow {
                         text: root.hasFlow ? root.flow.actionId : ""
                         color: Colors.textMuted
                         font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontTiny
+                        font.pixelSize: Theme.fontTiny
                         elide: Text.ElideMiddle
                     }
                 }
@@ -254,7 +254,7 @@ PanelWindow {
                     text: root.hasFlow ? root.flow.supplementaryMessage : ""
                     color: root.errored ? Colors.error : Colors.textMuted
                     font.family: Theme.fontFamily
-                    font.pointSize: Theme.fontSmall
+                    font.pixelSize: Theme.fontSmall
                     wrapMode: Text.WordWrap
                     Behavior on color { ColorAnimation { duration: Theme.durNormal } }
                 }
@@ -297,7 +297,7 @@ PanelWindow {
                             : "Password"
                         placeholderTextColor: Qt.rgba(Colors.text.r, Colors.text.g, Colors.text.b, 0.35)
                         font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontMedium
+                        font.pixelSize: Theme.fontMedium
                         verticalAlignment: TextInput.AlignVCenter
                         enabled: root.hasFlow && root.flow.isResponseRequired && !root.flow.isCompleted
                         echoMode: root.hasFlow && root.flow.responseVisible ? TextInput.Normal : TextInput.Password
@@ -330,7 +330,7 @@ PanelWindow {
                             text: "Cancel"
                             color: Colors.text
                             font.family: Theme.fontFamily
-                            font.pointSize: Theme.fontNormal
+                            font.pixelSize: Theme.fontNormal
                         }
 
                         MouseArea {
@@ -362,7 +362,7 @@ PanelWindow {
                                 visible: !root.waiting
                                 text: "󰍂"
                                 color: Colors.bg
-                                font.family: Theme.fontFamily
+                                font.family: Theme.fontIcon
                                 font.pixelSize: 14
                             }
 
@@ -370,7 +370,7 @@ PanelWindow {
                                 text: root.waiting ? "Checking…" : "Authenticate"
                                 color: Colors.bg
                                 font.family: Theme.fontFamily
-                                font.pointSize: Theme.fontNormal
+                                font.pixelSize: Theme.fontNormal
                                 font.bold: true
                             }
                         }

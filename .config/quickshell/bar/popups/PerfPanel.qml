@@ -1,19 +1,20 @@
 import QtQuick
 import QtQuick.Layouts
 import "../.."
+import "../../components"
 import "../../services/performance"
 import Quickshell
 import Quickshell.Wayland
 
-// Top-edge slide-down performance dashboard. ~720px wide, center-anchored.
-// Straight top corners (panel slides down from screen edge), rounded bottom.
+// Slide-down performance dashboard. ~720px wide, center-anchored. Floating
+// glass panel (all corners rounded), slides in from above the bar.
 PanelWindow {
     id: root
 
     property bool open: false
 
-    readonly property int panelWidth: 720
-    readonly property int hiddenOffsetY: -100  // start above the visible area
+    readonly property int panelWidth: 660
+    readonly property int hiddenOffsetY: -10
 
     visible: open || closeAnim.running
     color: "transparent"
@@ -30,6 +31,8 @@ PanelWindow {
         y: panelRect.y + slideTransform.y
         width: panelRect.width
         height: panelRect.height
+        topLeftRadius: Theme.radiusLarge
+        topRightRadius: Theme.radiusLarge
         bottomLeftRadius: Theme.radiusLarge
         bottomRightRadius: Theme.radiusLarge
     }
@@ -37,6 +40,7 @@ PanelWindow {
     onOpenChanged: {
         if (open) {
             backdrop.opacity = 0
+            panelRect.opacity = 0
             slideTransform.y = root.hiddenOffsetY
             openAnim.start()
             Qt.callLater(() => scope.forceActiveFocus())
@@ -53,6 +57,7 @@ PanelWindow {
             target: slideTransform; property: "y"
             to: 0; duration: Theme.durSlide; easing.type: Easing.OutCubic
         }
+        NumberAnimation { target: panelRect; property: "opacity"; to: 1; duration: Theme.durNormal; easing.type: Easing.OutCubic }
         NumberAnimation {
             target: backdrop; property: "opacity"
             from: 0; to: 1; duration: Theme.durNormal; easing.type: Easing.OutCubic
@@ -70,13 +75,14 @@ PanelWindow {
                 target: backdrop; property: "opacity"
                 to: 0; duration: Theme.durNormal; easing.type: Easing.InCubic
             }
+            NumberAnimation { target: panelRect; property: "opacity"; to: 0; duration: Theme.durFast }
         }
     }
 
     Rectangle {
         id: backdrop
         anchors.fill: parent
-        color: "transparent"
+        color: Qt.rgba(0, 0, 0, 0.10)
         opacity: 0
         MouseArea { anchors.fill: parent; onClicked: root.close() }
     }
@@ -97,20 +103,21 @@ PanelWindow {
             id: panelRect
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
-            anchors.topMargin: Theme.barExclusiveZone + 4
+            anchors.topMargin: Theme.barExclusiveZone + Theme.barMargin
             width: root.panelWidth
             implicitHeight: contentCol.implicitHeight + Theme.panelPadding * 2
 
             transform: Translate { id: slideTransform; y: root.hiddenOffsetY }
-            color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e2TintAlpha)
-            border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
-            border.width: 1
-
-            topLeftRadius: 0
-            topRightRadius: 0
-            bottomLeftRadius: Theme.radiusLarge
-            bottomRightRadius: Theme.radiusLarge
+            color: "transparent"
+            radius: Theme.radiusXL
             clip: true
+
+            // Shared glass material — floats like the Control Center.
+            GlassSurface {
+                anchors.fill: parent
+                level: "e3"
+                radius: Theme.radiusXL
+            }
 
             // Consume clicks (don't pass through to backdrop)
             MouseArea { anchors.fill: parent }
@@ -207,14 +214,13 @@ PanelWindow {
                         sparkMax: 1.0
                     }
 
-                    // Temps
-                    Rectangle {
+                    // Temps — frost pane like PerfCard.
+                    GlassSurface {
                         Layout.fillWidth: true
                         Layout.preferredHeight: tempsCol.implicitHeight + Theme.panelPadding * 2
                         radius: Theme.radiusMedium
-                        color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.18)
-                        border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha * 0.6)
-                        border.width: 1
+                        frost: true
+                        frostAlpha: 0.10
 
                         ColumnLayout {
                             id: tempsCol
@@ -230,7 +236,7 @@ PanelWindow {
                                     text: ""
                                     color: Colors.accent
                                     font.pixelSize: Theme.fontMedium
-                                    font.family: Theme.fontFamily
+                                    font.family: Theme.fontIcon
                                 }
                                 Text {
                                     text: "Temps"

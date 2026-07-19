@@ -1,7 +1,7 @@
 import QtQuick
 import ".."
 
-// Action button. Icon and/or text. tier "prominent" = accent-tinted primary.
+// Action button. Icon and/or text.
 GlassSurface {
     id: root
     interactive: true
@@ -11,7 +11,8 @@ GlassSurface {
     property int hPadding: Theme.spacingLarge
     property int vPadding: Theme.spacingSmall
 
-    readonly property color _fg: tier === "prominent" ? Colors.bg : Colors.text
+    readonly property color _fg: Colors.text
+    accessibleName: label.length > 0 ? label : icon
 
     implicitWidth:  row.implicitWidth  + 2 * hPadding
     implicitHeight: row.implicitHeight + 2 * vPadding
@@ -24,7 +25,7 @@ GlassSurface {
             visible: root.icon.length > 0
             text: root.icon
             color: root._fg
-            font.family: Theme.fontFamily
+            font.family: Theme.fontIcon
             font.pixelSize: Theme.fontMedium
             anchors.verticalCenter: parent.verticalCenter
         }

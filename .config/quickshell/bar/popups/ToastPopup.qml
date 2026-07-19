@@ -1,7 +1,14 @@
 import QtQuick
 import "../.."
+import "../../components"
 import Quickshell
+import Quickshell.Services.Notifications
+import Quickshell.Wayland
 
+// On-screen notification toast: a floating glass card that drops in below the
+// bar at the status cluster (top-right), auto-dismisses after 5s. Mirrors the
+// Control Center's float (window touches the bar, the visible gap is an
+// internal transparent strip) so there's no dead zone and the look is uniform.
 PopupWindow {
     id: root
 
@@ -10,16 +17,31 @@ PopupWindow {
 
     property bool toastVisible: false
     property var toastNotif: null
+    // FDO: critical notifications don't expire — they stay until acted on.
+    readonly property bool critical: (toastNotif?.urgency ?? NotificationUrgency.Normal)
+        === NotificationUrgency.Critical
+    readonly property var defaultAction:
+        (toastNotif?.actions ?? []).find(a => a.identifier === "default") || null
+
+    readonly property int toastWidth: 340
+    readonly property int gap: 6
 
     visible: toastVisible
     color: "transparent"
-    implicitWidth: anchorItem ? anchorItem.width : 0
-    implicitHeight: toastOuter.implicitHeight
+    implicitWidth: toastWidth
+    implicitHeight: card.implicitHeight + gap
 
+    BackgroundEffect.blurRegion: Region {
+        x: card.x; y: card.y; width: card.width; height: card.implicitHeight
+        topLeftRadius: Theme.radiusLarge; topRightRadius: Theme.radiusLarge
+        bottomLeftRadius: Theme.radiusLarge; bottomRightRadius: Theme.radiusLarge
+    }
+
+    // Right edge flush with the bar's right edge (matches the Control Center).
     anchor.window: bar
-    anchor.rect.x: anchorItem ? anchorItem.x : 0
-    anchor.rect.y: bar ? bar.implicitHeight - 4 : 0
-    anchor.rect.width: anchorItem ? anchorItem.width : 0
+    anchor.rect.x: bar ? bar.width - toastWidth : 0
+    anchor.rect.y: bar ? bar.implicitHeight : 0
+    anchor.rect.width: toastWidth
     anchor.rect.height: 0
 
     // Multi-monitor: only the focused screen shows the toast.
@@ -36,66 +58,72 @@ PopupWindow {
     Timer {
         id: dismissTimer
         interval: 5000
-        running: root.toastVisible
+        running: root.toastVisible && !cardHover.hovered && !root.critical
         onTriggered: root.hideToast()
     }
 
     function showToast(entry) {
         toastNotif = entry
         toastVisible = true
-        toastOuter.y = -toastOuter.implicitHeight
-        slideDown.start()
+        card.y = root.gap - 8
+        card.opacity = 0
+        appearAnim.start()
         dismissTimer.restart()
     }
+    function hideToast() { disappearAnim.start() }
 
-    function hideToast() { slideUp.start() }
-
-    NumberAnimation {
-        id: slideDown
-        target: toastOuter; property: "y"
-        to: 0; duration: Theme.durSlide; easing.type: Easing.OutCubic
+    ParallelAnimation {
+        id: appearAnim
+        NumberAnimation { target: card; property: "y"; to: root.gap
+            duration: Theme.durNormal; easing.type: Easing.OutCubic }
+        NumberAnimation { target: card; property: "opacity"; to: 1
+            duration: Theme.durNormal; easing.type: Easing.OutCubic }
     }
-
     SequentialAnimation {
-        id: slideUp
-        NumberAnimation {
-            target: toastOuter; property: "y"
-            to: -toastOuter.implicitHeight
-            duration: Theme.durNormal; easing.type: Easing.InCubic
+        id: disappearAnim
+        ParallelAnimation {
+            NumberAnimation { target: card; property: "y"; to: root.gap - 8
+                duration: Theme.durFast; easing.type: Easing.InCubic }
+            NumberAnimation { target: card; property: "opacity"; to: 0
+                duration: Theme.durFast; easing.type: Easing.InCubic }
         }
         ScriptAction { script: root.toastVisible = false }
     }
 
+    HoverHandler { id: cardHover }
+
     Rectangle {
-        id: toastOuter
-        y: 0
-        width: anchorItem ? anchorItem.width : 0
-        implicitHeight: toastCol.implicitHeight + 18
-        topLeftRadius: 0; topRightRadius: 0
-        bottomLeftRadius: Theme.radiusMedium; bottomRightRadius: Theme.radiusMedium
-        color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e2TintAlpha)
-        border.width: 0
+        id: card
+        y: root.gap
+        width: root.toastWidth
+        implicitHeight: toastCol.implicitHeight + 2 * Theme.panelPadding
+        radius: Theme.radiusLarge
+        color: "transparent"
         clip: true
 
-        // Side + bottom borders
+        GlassSurface { anchors.fill: parent; level: "e3"; frost: true; radius: Theme.radiusLarge }
+
+        // Critical urgency: error hairline over the glass border (palette-driven
+        // signal, same vocabulary as the lock's failed state).
         Rectangle {
-            anchors.left: parent.left; anchors.top: parent.top
-            anchors.bottom: parent.bottom; anchors.bottomMargin: 11
-            width: 1
-            color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
+            anchors.fill: parent
+            radius: Theme.radiusLarge
+            color: "transparent"
+            border.width: 1
+            border.color: Qt.rgba(Colors.error.r, Colors.error.g, Colors.error.b, 0.65)
+            visible: root.critical
         }
-        Rectangle {
-            anchors.right: parent.right; anchors.top: parent.top
-            anchors.bottom: parent.bottom; anchors.bottomMargin: 11
-            width: 1
-            color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
-        }
-        Rectangle {
-            anchors.left: parent.left; anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            anchors.leftMargin: 11; anchors.rightMargin: 11
-            height: 1
-            color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
+
+        // Body click = default action (matches NotifCard in the CC deck).
+        // Sits UNDER the text column so the ✕ and action chips still win.
+        MouseArea {
+            anchors.fill: parent
+            enabled: !!root.defaultAction
+            cursorShape: root.defaultAction ? Qt.PointingHandCursor : Qt.ArrowCursor
+            onClicked: {
+                NotifState.invokeAction(root.toastNotif.id, root.defaultAction)
+                root.hideToast()
+            }
         }
 
         Column {
@@ -113,12 +141,12 @@ PopupWindow {
                     }
                     color: Colors.text; font.pixelSize: Theme.fontMedium; font.bold: true
                     font.family: Theme.fontFamily
-                    width: parent.width - 14; elide: Text.ElideRight
+                    width: parent.width - 16; elide: Text.ElideRight
                 }
                 Text {
                     text: "✕"; color: Colors.textMuted; font.pixelSize: Theme.fontSmall
                     font.family: Theme.fontFamily
-                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.hideToast() }
+                    MouseArea { anchors.fill: parent; anchors.margins: -4; cursorShape: Qt.PointingHandCursor; onClicked: root.hideToast() }
                 }
             }
             Text {
@@ -151,17 +179,14 @@ PopupWindow {
                     delegate: Rectangle {
                         id: toastActionBtn
                         required property var modelData
-                        // Hide FDO "default" — that's click-on-notif activation, not a labeled button.
                         visible: modelData.identifier !== "default"
                         implicitWidth: toastActionLabel.implicitWidth + 16
                         implicitHeight: toastActionLabel.implicitHeight + 8
-                        radius: Theme.radiusTiny
+                        // Chip per design language: accent-tinted fill, no border.
+                        radius: Theme.radiusSmall
                         color: toastActionMa.containsMouse
-                            ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.25)
-                            : Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.12)
-                        border.width: 1
-                        border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.3)
-
+                            ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.28)
+                            : Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.18)
                         Behavior on color { ColorAnimation { duration: Theme.durFast } }
 
                         Text {

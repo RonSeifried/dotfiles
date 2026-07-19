@@ -6,6 +6,8 @@
 # only the color keys change — layout structure stays in the tracked layout.kdl.
 # This keeps layout.kdl from being rewritten on every wallpaper change.
 
+set -u
+
 COLORS="$HOME/.cache/wal/colors.json"
 
 # Canonical includes dir — follows the ~/.config/niri -> repo symlink so the
@@ -25,8 +27,8 @@ OVERVIEW_COLOR_KEY="${OVERVIEW_COLOR_KEY:-color8}"
 # pure black, so color8 keeps inactive border + overview bg wallpaper-bound.
 active=$(jq -r '.colors.color6' "$COLORS")
 inactive=$(jq -r '.colors.color8' "$COLORS")
-layout_bg=$(jq -r '.colors.color8' "$COLORS")
-overview_backdrop=$(jq -r ".colors.${OVERVIEW_COLOR_KEY}" "$COLORS")
+layout_bg="transparent"
+overview_backdrop="#00000000"
 # color1 = warm/error slot (mirrors Colors.error in quickshell)
 urgent_base=$(jq -r '.colors.color1' "$COLORS")
 
@@ -50,6 +52,9 @@ cat > "$OUT" <<EOF
 // colors in layout.kdl (niri deep-merges later includes per leaf).
 layout {
     background-color "$layout_bg"
+    focus-ring {
+        active-color "$active"
+    }
     border {
         active-color "$active"
         inactive-color "$inactive"
@@ -68,5 +73,6 @@ recent-windows {
 }
 EOF
 
-# Reload niri config if running
-niri msg action load-config-file 2>/dev/null || true
+# Reload niri config if running. Never let an unhealthy compositor IPC socket
+# hold the entire wallpaper/color pipeline indefinitely.
+timeout 2 niri msg action load-config-file 2>/dev/null || true

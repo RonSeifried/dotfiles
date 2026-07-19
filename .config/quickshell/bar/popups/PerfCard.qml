@@ -1,12 +1,14 @@
 import QtQuick
 import QtQuick.Layouts
 import "../.."
+import "../../components"
 import "../../services/performance"
 
 // A single metric card for PerfPanel. Big value top-left, sub-line below,
 // area-filled sparkline at the bottom. Optional secondary sparkline (e.g.
-// net Tx overlaid on Rx) using accentAlt color.
-Rectangle {
+// net Tx overlaid on Rx) using accentAlt color. Frost pane on the panel
+// glass, like the CC tiles.
+GlassSurface {
     id: card
 
     property string title: ""
@@ -21,11 +23,13 @@ Rectangle {
     property bool sparkAutoScale: false
 
     Layout.preferredHeight: 110
+    // Fixed height: GlassSurface's childrenRect implicit sizing would loop
+    // against the bottom-anchored sparklines.
+    implicitHeight: 110
 
+    frost: true
+    frostAlpha: 0.10
     radius: Theme.radiusMedium
-    color: Qt.rgba(Colors.surface.r, Colors.surface.g, Colors.surface.b, 0.18)
-    border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha * 0.6)
-    border.width: 1
     clip: true
 
     ColumnLayout {
@@ -41,7 +45,7 @@ Rectangle {
                 text: card.icon
                 color: Colors.accent
                 font.pixelSize: Theme.fontMedium
-                font.family: Theme.fontFamily
+                font.family: Theme.fontIcon
                 anchors.verticalCenter: parent.verticalCenter
             }
             Text {

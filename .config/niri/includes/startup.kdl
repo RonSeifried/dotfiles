@@ -3,15 +3,22 @@
 spawn-at-startup "qs"
 spawn-at-startup "kanshi"
 
+// Night-light gamma daemon (controlled by quickshell + Mod+F9/F10 over D-Bus)
+spawn-at-startup "wl-gammarelay-rs"
+
 // Lid-aware kanshi profile switcher (manages systemd-inhibit so logind
 // only suspends when no external monitors are present).
 spawn-sh-at-startup "~/.config/scripts/kanshi-lid-watcher.sh"
 
-// Restore wallust/pywal colors (also regenerates Colors.qml for quickshell)
-spawn-sh-at-startup "wal -R"
+// Palette files are persistent and consumed directly by Quickshell/Kitty.
+// Reapply only the compositor hook; running pywal at login could overwrite the
+// newer Wallust palette and needlessly decode the wallpaper again.
+spawn-sh-at-startup "~/.config/scripts/pywal-niri-colors.sh"
 
-// Restore wallpaper (awww preferred, swaybg fallback)
-spawn-sh-at-startup "WALLPAPER=\"$HOME/.cache/current_wallpaper\"; [ -f \"$WALLPAPER\" ] || exit 0; if command -v awww >/dev/null 2>&1; then pgrep -x awww-daemon >/dev/null || { awww-daemon & sleep 0.3; }; awww img \"$WALLPAPER\" --transition-type grow --transition-duration 2 --transition-pos center; elif command -v swaybg >/dev/null 2>&1; then pkill -x swaybg 2>/dev/null || true; swaybg -m fill -i \"$WALLPAPER\" & fi"
+// Restore wallpaper. swaybg is reserved for the overview-only blurred layer;
+// awww owns the normal desktop wallpaper.
+spawn-sh-at-startup "WALLPAPER=\"$HOME/.cache/current_wallpaper\"; [ -f \"$WALLPAPER\" ] || exit 0; command -v awww >/dev/null 2>&1 || exit 0; pgrep -x awww-daemon >/dev/null || { awww-daemon & sleep 0.3; }; awww img \"$WALLPAPER\" --transition-type grow --transition-duration 2 --transition-pos center"
+spawn-sh-at-startup "~/.config/scripts/wallpaper_switcher.sh --overview"
 
 // Clipboard history
 spawn-at-startup "wl-paste" "--watch" "cliphist" "store"

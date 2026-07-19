@@ -14,7 +14,7 @@ binds {
     Mod+Shift+N hotkey-overlay-title="LibreOffice"          { spawn "libreoffice"; }
     Mod+Shift+E hotkey-overlay-title="Files (Nautilus)"     { spawn "nautilus"; }
     Mod+Space   hotkey-overlay-title="App launcher"         { spawn-sh "qs ipc call launcher toggle"; }
-    Mod+grave   hotkey-overlay-title="Dropdown terminal"    { spawn-sh "ndrop kitty"; }
+    Mod+grave   hotkey-overlay-title="Dropdown terminal"    { spawn-sh "~/.config/scripts/dropdown-terminal.sh"; }
 
     // ── Scripts & tools ──────────────────────────────────────────────────
     Mod+E       hotkey-overlay-title="File manager (yazi)"  { spawn "kitty" "--class=floating" "-e" "yazi"; }
@@ -27,18 +27,21 @@ binds {
     Mod+V       hotkey-overlay-title="Clipboard history"    { spawn-sh "qs ipc call clipboard toggle"; }
     Mod+Y       hotkey-overlay-title="Pick color"           { spawn-sh "~/.config/scripts/pick-color.sh"; }
     Mod+Shift+H hotkey-overlay-title="Performance pill"     { spawn-sh "qs ipc call perf togglePill"; }
+    Mod+Ctrl+A  hotkey-overlay-title="Audio route switcher"  { spawn-sh "qs ipc call audio switcher"; }
 
     // ── Screen capture ───────────────────────────────────────────────────
-    Print            hotkey-overlay-title="Screenshot area"          { screenshot; }
-    Ctrl+Print       hotkey-overlay-title="Screenshot screen"        { screenshot-screen; }
+    Print            hotkey-overlay-title="Screenshot area"          { spawn-sh "~/.config/scripts/capture.sh area"; }
+    Ctrl+Print       hotkey-overlay-title="Screenshot screen"        { spawn-sh "~/.config/scripts/capture.sh screen"; }
     Alt+Print        hotkey-overlay-title="Screenshot window"        { screenshot-window; }
     Shift+Alt+Print  hotkey-overlay-title="Screenshot picked window" { spawn-sh "~/.config/scripts/screenshot-window-pick.sh"; }
     Shift+Print      hotkey-overlay-title="Screen recorder"          { spawn-sh "~/.config/scripts/screenrecord.sh"; }
 
-    // ── Night mode ───────────────────────────────────────────────────────
-    Mod+F9       hotkey-overlay-title="Night mode (4500K)"  { spawn-sh "pkill hyprsunset || hyprsunset -t 4500"; }
-    Mod+Shift+F9 hotkey-overlay-title="Night mode off"      { spawn-sh "pkill hyprsunset"; }
-    Mod+F10      hotkey-overlay-title=null                  { spawn-sh "pkill hyprsunset || hyprsunset -t 3000"; }
+    // ── Night mode (via quickshell IPC → NightLightState → wl-gammarelay) ──
+    // Routed through qs, NOT raw busctl, so the Control-Center tile stays in
+    // sync with the actual temperature.
+    Mod+F9       hotkey-overlay-title="Night mode (4500K)"  { spawn-sh "qs ipc call nightlight toggle"; }
+    Mod+Shift+F9 hotkey-overlay-title="Night mode off"      { spawn-sh "qs ipc call nightlight off"; }
+    Mod+F10      hotkey-overlay-title=null                  { spawn-sh "qs ipc call nightlight set 3000"; }
 
     // ── System ──────────────────────────────────────────────────────────
     Mod+Q        repeat=false hotkey-overlay-title="Close window"       { close-window; }
@@ -48,6 +51,7 @@ binds {
     Mod+Shift+V               hotkey-overlay-title="Toggle float"       { toggle-window-floating; }
     Super+Alt+L               hotkey-overlay-title="Lock screen"        { spawn-sh "qs -p ~/.config/quickshell/lock ipc call lock lock"; }
     Mod+Shift+L               hotkey-overlay-title="Power menu"         { spawn-sh "qs ipc call power toggle"; }
+    Mod+S                     hotkey-overlay-title="Control center"     { spawn-sh "qs ipc call control toggle"; }
     Mod+Shift+P               hotkey-overlay-title="Monitors off"       { power-off-monitors; }
     Mod+O        repeat=false hotkey-overlay-title="Overview"           { toggle-overview; }
     Ctrl+Alt+Delete           hotkey-overlay-title="Quit niri"          { quit; }

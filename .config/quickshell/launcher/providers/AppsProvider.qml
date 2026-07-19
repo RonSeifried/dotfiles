@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import "../.."
 
 // Apps provider — desktop entries.
 // Result: { providerId, icon, title, subtitle, badge, score, onActivate }
@@ -22,6 +23,7 @@ Item {
     }
 
     function _toResult(app, score) {
+        const usageKey = "app:" + (app.id || app.name)
         return {
             providerId: providerId,
             icon: app.icon ? Quickshell.iconPath(app.icon, "application-x-executable") : "",
@@ -29,8 +31,9 @@ Item {
             title: app.name,
             subtitle: app.genericName || app.comment || "",
             badge: badge,
-            score: score,
-            onActivate: () => app.execute()
+            score: score + UsageState.score(usageKey),
+            usageKey: usageKey,
+            onActivate: () => { UsageState.record(usageKey); app.execute() }
         }
     }
 
@@ -54,7 +57,11 @@ Item {
 
     function search(query) {
         const all = _allApps()
-        if (!query) return all.slice(0, defaultLimit).map(a => _toResult(a, 100))
+        if (!query) {
+            const recent = all.map(a => _toResult(a, 100))
+            recent.sort((a, b) => b.score - a.score || a.title.localeCompare(b.title))
+            return recent.slice(0, defaultLimit)
+        }
         const q = query.toLowerCase()
         const scored = []
         for (const app of all) {

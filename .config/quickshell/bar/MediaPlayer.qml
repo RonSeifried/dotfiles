@@ -8,6 +8,8 @@ Item {
     // Owning bar PanelWindow — used so label-click pins the popup to the
     // correct screen (multi-monitor: each bar has its own pill instance).
     property var bar
+    // Exposed so the popup's close-timer knows when the pointer left the label.
+    readonly property alias labelHovered: labelHover.hovered
 
     implicitHeight: row.implicitHeight
     implicitWidth: row.implicitWidth
@@ -21,7 +23,7 @@ Item {
         Text {
             text: "󰒮"
             color: MprisState.active?.canGoPrevious ? Colors.text : Colors.textMuted
-            font.pixelSize: Theme.fontLarge; font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontLarge; font.family: Theme.fontIcon
             Layout.alignment: Qt.AlignVCenter
             MouseArea {
                 anchors.fill: parent; cursorShape: Qt.PointingHandCursor
@@ -32,7 +34,7 @@ Item {
         Text {
             text: MprisState.isPlaying ? "󰏤" : "󰐊"
             color: Colors.accent
-            font.pixelSize: Theme.fontLarge; font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontLarge; font.family: Theme.fontIcon
             Layout.alignment: Qt.AlignVCenter
             MouseArea {
                 anchors.fill: parent; cursorShape: Qt.PointingHandCursor
@@ -43,7 +45,7 @@ Item {
         Text {
             text: "󰒭"
             color: MprisState.active?.canGoNext ? Colors.text : Colors.textMuted
-            font.pixelSize: Theme.fontLarge; font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontLarge; font.family: Theme.fontIcon
             Layout.alignment: Qt.AlignVCenter
             MouseArea {
                 anchors.fill: parent; cursorShape: Qt.PointingHandCursor
@@ -92,11 +94,20 @@ Item {
                 font.family: Theme.fontFamily
             }
 
-            HoverHandler {
-                onHoveredChanged: if (hovered && root.bar) {
+            // Small open-delay so brushing past the label en route to the
+            // status cluster doesn't flash the panel (close grace is 220ms).
+            Timer {
+                id: hoverOpenDelay
+                interval: 150
+                onTriggered: {
+                    if (!labelHover.hovered || !root.bar) return
                     ControlState.activeScreen = root.bar.screen.name
                     ControlState.rightPanel = "mpris"
                 }
+            }
+            HoverHandler {
+                id: labelHover
+                onHoveredChanged: hovered ? hoverOpenDelay.restart() : hoverOpenDelay.stop()
             }
             MouseArea {
                 anchors.fill: parent

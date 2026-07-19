@@ -16,8 +16,10 @@ Item {
     property bool autoScale: false          // if true, maxValue derived from values
     property real minMax: 0.01              // floor on auto-scaled max (avoid div0)
 
-    // Style.
-    property color strokeColor: "#88aaff"
+    // Style. Callers pass palette colors (PerfPill/PerfCard bind Colors.accent*);
+    // the default is neutral white ink, NOT a palette hex — this tier stays
+    // framework-pure and the shell never shows an off-palette colour.
+    property color strokeColor: "white"
     property color fillColor:   Qt.rgba(strokeColor.r, strokeColor.g, strokeColor.b, 0.25)
     property real strokeWidth: 1.5
     property bool showFill: true
@@ -34,7 +36,10 @@ Item {
         id: shape
         anchors.fill: parent
         antialiasing: true
-        preferredRendererType: Shape.CurveRenderer
+        // GeometryRenderer is less fancy but stable across the layer-shell and
+        // popup textures used by this shell; CurveRenderer caused cross-window
+        // path corruption on this GPU.
+        preferredRendererType: Shape.GeometryRenderer
 
         // Fill area.
         ShapePath {

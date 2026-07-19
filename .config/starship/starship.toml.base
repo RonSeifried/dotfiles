@@ -1,14 +1,8 @@
 # ─────────────────────────────────────────────
 # Starship Prompt — Wallust-driven palette
-# Each segment uses a distinct wallust slot as bg; fg is auto-picked by
-# starship-color-gen.sh as ink_colorN (color0 or color15) per bg luminance.
-# Slot mapping rationale:
-#   username  → color6  vibrant readable accent (identity)
-#   directory → color8  medium-tint surface
-#   git_branch→ color5  warm secondary accent
-#   git_status→ color2  dim blue, decorative bg w/ light ink
-#   python    → color3  dim purple
-#   time      → color1  dim brown, subtle right edge
+# Clean text-first prompt. Terminal background blocks looked harsh and cannot
+# inherit the shell's rounded geometry, so hierarchy now comes from weight,
+# spacing and wallpaper-derived foreground accents instead.
 # ─────────────────────────────────────────────
 
 format = """
@@ -21,15 +15,15 @@ palette = "wal"
 
 [username]
 show_always = true
-style_user = "fg:ink_color6 bg:color6"
-style_root = "fg:ink_color5 bg:color5"
-format = "[](fg:color6)[$user]($style)[](fg:color6) "
+style_user = "bold color6"
+style_root = "bold color5"
+format = "[$user]($style) "
 
 [directory]
 truncation_length = 3
 truncate_to_repo = false
-style = "fg:ink_color8 bg:color8"
-format = "[](fg:color8)[󰉋 $path]($style)[](fg:color8) "
+style = "bold color15"
+format = "[󰉋  $path]($style) "
 
 [directory.substitutions]
 "Documents" = "󰈙 "
@@ -39,12 +33,12 @@ format = "[](fg:color8)[󰉋 $path]($style)[](fg:color8) "
 
 [git_branch]
 symbol = ""
-style = "fg:ink_color5 bg:color5"
-format = "[](fg:color5)[$symbol $branch]($style)[](fg:color5) "
+style = "color5"
+format = "[on $symbol $branch]($style) "
 
 [git_status]
-style = "fg:ink_color2 bg:color2"
-format = "[](fg:color2)[$all_status$ahead_behind]($style)[](fg:color2) "
+style = "color6"
+format = "[$all_status$ahead_behind]($style) "
 stashed = " "
 modified = " "
 deleted = " "
@@ -57,28 +51,31 @@ untracked = " "
 
 [python]
 symbol = "󰌠"
-style = "fg:ink_color3 bg:color3"
-format = "[](fg:color3)[$symbol $version]($style)[](fg:color3) "
+style = "color3"
+format = "[$symbol $version]($style) "
 pyenv_prefix = "venv"
 disabled = false
 
 [nodejs]
 symbol = "󰎙"
-style = "fg:ink_color2 bg:color2"
-format = "[](fg:color2)[$symbol $version]($style)[](fg:color2) "
+style = "color2"
+format = "[$symbol $version]($style) "
 disabled = true
 
 [rust]
 symbol = ""
-style = "fg:ink_color5 bg:color5"
-format = "[](fg:color5)[$symbol $version]($style)[](fg:color5) "
+style = "color5"
+format = "[$symbol $version]($style) "
 disabled = true
 
 [time]
 disabled = false
 time_format = "%H:%M"
-style = "fg:ink_color1 bg:color1"
-format = "[](fg:color1)[ $time]($style)[](fg:color1) "
+style = "dimmed color15"
+format = "[$time]($style) "
+
+[fill]
+symbol = " "
 
 # ─────────────────────────────────────────────
 # Prompt symbol

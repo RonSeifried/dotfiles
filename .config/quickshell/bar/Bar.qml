@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import ".."
+import "../components"
 import "popups"
 import Quickshell
 import Quickshell.Io
@@ -21,29 +22,31 @@ PanelWindow {
     anchors { top: true; left: true; right: true }
     exclusiveZone: Theme.barExclusiveZone
 
-    // Corners flat while ANY popup is visible
-    property bool panelOpen: rightPanelPopup.popupVisible || toastPopup.toastVisible || mprisPopup.popupVisible || controlCenter.popupVisible
+    property bool panelOpen: toastPopup.toastVisible || mprisPopup.popupVisible || controlCenter.popupVisible
     // Which panel (if any) is click-pinned. "" = no pin (hover-only).
-    // Scoping by name prevents one pill's pin leaking onto another pill's panel.
     property string pinnedPanel: ""
     readonly property bool isPinned: pinnedPanel.length > 0
 
+    // Native compositor blur behind the whole bar strip so the subtle glass
+    // tint stays legible over any wallpaper (real macOS-menubar glass).
+    BackgroundEffect.blurRegion: Region {
+        x: 0; y: 0; width: root.width; height: root.height
+        topLeftRadius: Theme.radiusMedium; topRightRadius: Theme.radiusMedium
+        bottomLeftRadius: Theme.radiusMedium; bottomRightRadius: Theme.radiusMedium
+    }
+
     // Close on ToplevelManager focus change (click elsewhere).
-    // Skip if user is interacting with the bar's own popups: clicking a pill
-    // or hovering its panel briefly drops the active toplevel (layer-shell
-    // focus grant), which would otherwise race the click handler and cause
-    // pin-on-click to flicker / require multiple attempts.
+    // Skip if the user is interacting with the bar's own popups.
     Connections {
         target: ToplevelManager
         function onActiveToplevelChanged() {
             if (root.isPinned) return
-            if (rightPanelPopup.keyboardActive || mprisPopup.keyboardActive) return
-            if (rightPillHover.hovered || mprisPillHover.hovered) return
-            if (rightPanelPopup.panelHovered || mprisPopup.panelHovered) return
-            if (controlCenter.panelHovered) return
+            if (mprisPopup.keyboardActive) return
+            if (mprisPopup.panelHovered) return
             ControlState.rightPanel = "none"
-            if (ControlState.controlCenterOpen)
-                ControlState.closeControlCenter()
+            // NB: the Control Center intentionally does NOT close on focus change
+            // — you can alt-tab to a password manager, copy, and come back. It
+            // closes only via its button toggle or Escape.
         }
     }
 
@@ -54,35 +57,55 @@ PanelWindow {
         running: ControlState.idleInhibited
     }
 
-    // ── Popups ───────────────────────────────────────────────────
-    RightPanelPopup {
-        id: rightPanelPopup
-        bar: root
-        anchorItem: rightPill
-        pinnedPanel: root.pinnedPanel
-        pillHovered: rightPillHover.hovered
-        onPinnedClosed: root.pinnedPanel = ""
+    // Clicking outside the Control Center dismisses it. This transparent top
+    // layer also owns Escape when no control inside the popup has focus.
+    PanelWindow {
+        id: controlCenterDismissLayer
+        screen: root.screen
+        visible: ControlState.controlCenterOpen
+            && root.screen && root.screen.name === ControlState.activeScreen
+        color: "transparent"
+        exclusiveZone: 0
+        anchors { top: true; bottom: true; left: true; right: true }
+        WlrLayershell.namespace: "qs-control-dismiss"
+        WlrLayershell.layer: WlrLayer.Top
+        WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: ControlState.closeControlCenter()
+        }
+        Item {
+            anchors.fill: parent
+            focus: controlCenterDismissLayer.visible
+            Keys.onEscapePressed: ControlState.closeControlCenter()
+        }
     }
 
+    // ── Popups ───────────────────────────────────────────────────
+    // (Notifications history + calendar now live in the Control Center;
+    // the old RightPanelPopup dropdown is retired.)
     ToastPopup {
         id: toastPopup
         bar: root
-        anchorItem: rightPill
+        anchorItem: rightCluster
     }
 
     MprisPopup {
         id: mprisPopup
         bar: root
-        anchorItem: mprisPill
+        anchorItem: mprisItem
         pinnedPanel: root.pinnedPanel
-        pillHovered: mprisPillHover.hovered
+        // Live label-hover: leaving the label without entering the panel must
+        // arm the close timer (a constant `false` here left the panel stuck open).
+        pillHovered: mediaContent.labelHovered
         onPinnedClosed: root.pinnedPanel = ""
     }
 
     ControlCenter {
         id: controlCenter
         bar: root
-        anchorItem: rightPill
+        anchorItem: rightCluster
     }
 
     // ── Bar content ──────────────────────────────────────────────
@@ -96,311 +119,259 @@ PanelWindow {
             id: startupAnim
             PauseAnimation { duration: 80 }
             ParallelAnimation {
-                NumberAnimation { target: barContent; property: "opacity"; from: 0; to: 1; duration: 350; easing.type: Easing.OutCubic }
-                NumberAnimation { target: barContent; property: "y"; from: -10; to: 0; duration: 350; easing.type: Easing.OutCubic }
+                NumberAnimation { target: barContent; property: "opacity"; from: 0; to: 1; duration: Theme.durEnter; easing.type: Easing.OutCubic }
+                NumberAnimation { target: barContent; property: "y"; from: -10; to: 0; duration: Theme.durEnter; easing.type: Easing.OutCubic }
             }
+        }
+
+        // Full-width bar glass: one flat menubar strip, no per-item chrome.
+        GlassSurface {
+            anchors.fill: parent
+            level: "e1"
+            radius: Theme.radiusMedium
         }
 
         RowLayout {
             anchors { left: parent.left; right: parent.right; top: parent.top; bottom: parent.bottom }
-            spacing: Theme.spacingSmall
+            anchors.leftMargin: Theme.spacingLarge
+            anchors.rightMargin: Theme.spacingSmall
+            spacing: Theme.spacingNormal
 
-            // ── Left pill: workspaces ────────────────────────────
-            Rectangle {
+            // ── Left: workspaces (flat) ──────────────────────────
+            Workspaces {
+                id: workspacesRow
                 Layout.alignment: Qt.AlignVCenter
-                implicitHeight: Theme.pillHeight
-                implicitWidth: workspacesRow.implicitWidth + 18
-                radius: Theme.radiusPill
-                color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e1TintAlpha)
-                border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
-                border.width: 1
-                Behavior on implicitWidth { NumberAnimation { duration: Theme.durFast; easing.type: Easing.OutQuad } }
-                Workspaces { id: workspacesRow; anchors.centerIn: parent; output: root.screen ? root.screen.name : "" }
+                output: root.screen ? root.screen.name : ""
             }
 
-            // ── Center pill: window title ────────────────────────
-            Rectangle {
-                Layout.fillWidth: true; Layout.alignment: Qt.AlignVCenter
-                implicitHeight: Theme.pillHeight; radius: Theme.radiusPill
-                color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e1TintAlpha * 0.6)
-                border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha * 0.7)
-                border.width: 1
-
-                WindowTitle {
-                    anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 12; rightMargin: 12 }
-                }
+            // ── Center: window title (flat, takes the slack) ─────
+            WindowTitle {
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignVCenter
+                Layout.leftMargin: Theme.spacingSmall
+                Layout.rightMargin: Theme.spacingSmall
             }
 
-            // ── MPRIS pill ───────────────────────────────────────
-            // Visible while ANY player exists (not just playing) — pause must
-            // not collapse the pill. Bottom corners flatten only when the
-            // MPRIS popup is open on this screen, mirroring rightPill.
-            // Width grows to a floor when own panel open so the wider panel
-            // body aligns cleanly with the pill edges.
-            Rectangle {
-                id: mprisPill
+            // ── MPRIS (flat) ─────────────────────────────────────
+            // Visible while ANY player exists; pause must not collapse it.
+            Item {
+                id: mprisItem
                 Layout.alignment: Qt.AlignVCenter
-                readonly property bool show: MprisState.hasAny
-                readonly property int panelMinWidth: 240
-                readonly property real targetWidth: ownPanelOpen
-                    ? Math.max(mediaContent.implicitWidth + 24, panelMinWidth)
-                    : mediaContent.implicitWidth + 24
-                readonly property bool ownPanelOpen: mprisPopup.popupVisible
-                    && ControlState.rightPanel === "mpris"
-                    && root.screen && root.screen.name === ControlState.activeScreen
-
+                readonly property bool show: MprisState.hasAny && SettingsState.showMediaInBar
                 implicitHeight: Theme.pillHeight
-                implicitWidth: show ? targetWidth : 0
-                topLeftRadius: Theme.radiusPill; topRightRadius: Theme.radiusPill
-                bottomLeftRadius: ownPanelOpen ? 0 : Theme.radiusPill
-                bottomRightRadius: ownPanelOpen ? 0 : Theme.radiusPill
-                Behavior on bottomLeftRadius  { NumberAnimation { duration: 100; easing.type: Easing.OutQuad } }
-                Behavior on bottomRightRadius { NumberAnimation { duration: 100; easing.type: Easing.OutQuad } }
-                color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e1TintAlpha)
-                border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
-                border.width: 1
+                implicitWidth: show ? mediaContent.implicitWidth + 12 : 0
                 opacity: show ? 1 : 0
                 clip: true
                 visible: implicitWidth > 1
                 Behavior on implicitWidth { NumberAnimation { duration: Theme.durSlide; easing.type: Easing.OutCubic } }
                 Behavior on opacity { NumberAnimation { duration: Theme.durNormal; easing.type: Easing.OutCubic } }
 
-                HoverHandler { id: mprisPillHover }
-
                 MediaPlayer {
                     id: mediaContent
                     bar: root
-                    anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 12; rightMargin: 12 }
+                    anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                 }
             }
 
-            // ── Perf pill: CPU% + sparkline ──────────────────────
-            // Hidden by default. Mod+H toggles ControlState.perfPillVisible.
-            // Click opens PerfPanel (top-edge slide-down).
+            // ── Perf pill: CPU% + sparkline (toggle via Mod+Shift+H) ─
             PerfPill { id: perfPill; bar: root }
 
-            // ── Right pill: status cluster ───────────────────────
-            Rectangle {
-                id: rightPill
+            // Compact Live Activity: persistent recording state + elapsed time.
+            LiveActivityPill { Layout.alignment: Qt.AlignVCenter }
+
+            // ── Right: status cluster (flat glyphs, hover chips) ─
+            Row {
+                id: rightCluster
                 Layout.alignment: Qt.AlignVCenter
-                // Flatten only when the right-cluster popup is what's open
-                // (mpris popup opens elsewhere → don't flatten this pill).
-                readonly property bool ownPanelOpen: rightPanelPopup.popupVisible || toastPopup.toastVisible
-                implicitHeight: Theme.pillHeight
-                implicitWidth: rightRow.implicitWidth + 18
-                topLeftRadius: Theme.radiusPill; topRightRadius: Theme.radiusPill
-                bottomLeftRadius: ownPanelOpen ? 0 : Theme.radiusPill
-                bottomRightRadius: ownPanelOpen ? 0 : Theme.radiusPill
-                Behavior on bottomLeftRadius  { NumberAnimation { duration: 100; easing.type: Easing.OutQuad } }
-                Behavior on bottomRightRadius { NumberAnimation { duration: 100; easing.type: Easing.OutQuad } }
-                color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e1TintAlpha)
-                border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
-                border.width: 1
+                spacing: 2
 
-                HoverHandler { id: rightPillHover }
-
-                RowLayout {
-                    id: rightRow
-                    anchors.centerIn: parent; spacing: 10
-
-                    // System tray
+                // System tray
+                Item {
+                    visible: SettingsState.showTray && SystemTray.items.values.length > 0
+                    width: visible ? tray.implicitWidth + Theme.spacingSmall : 0
+                    height: Theme.hitTarget
                     SystemTrayWidget {
                         id: tray
-                        Layout.alignment: Qt.AlignVCenter
-                        visible: SystemTray.items.values.length > 0
+                        anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                     }
+                }
 
-                    BarDivider { visible: tray.visible }
-
-                    // WiFi
-                    BarPillButton {
-                        panel: "wifi"; bar: root
-                        clickOnly: true
-                        onActivated: { ControlState.activeScreen = root.screen.name; ControlState.openControlCenter("wifi") }
-                        Row {
-                            spacing: Theme.spacingTight
-                            Text {
-                                text: {
-                                    if (NetUtils.wiredConnected) return "󰈀"
-                                    if (!Networking.wifiEnabled) return "󰤯"
-                                    if (NetUtils.activeWifi) return NetUtils.signalIcon(NetUtils.activeWifi.signalStrength)
-                                    return "󰤭"
-                                }
-                                color: (NetUtils.wiredConnected || NetUtils.activeWifi) ? Colors.text : Colors.textMuted
-                                font.pixelSize: Theme.fontLarge; font.family: Theme.fontFamily
-                            }
-                            Text {
-                                visible: VpnState.anyVpnActive
-                                text: "󰦝"
-                                color: Colors.success
-                                font.pixelSize: Theme.fontMedium; font.family: Theme.fontFamily
-                            }
-                        }
+                // Caffeine belongs with connectivity/status controls, not tray apps.
+                BarPillButton {
+                    visible: ControlState.idleInhibited
+                    accessibleName: "Disable caffeine"
+                    onActivated: ControlState.idleInhibited = false
+                    Text {
+                        text: "󰛊"; color: Colors.accent
+                        font.pixelSize: Theme.fontLarge; font.family: Theme.fontIcon
                     }
+                }
 
-                    // Bluetooth
-                    BarPillButton {
-                        panel: "bluetooth"; bar: root
-                        clickOnly: true
-                        onActivated: { ControlState.activeScreen = root.screen.name; ControlState.openControlCenter("bluetooth") }
+                // WiFi / wired
+                BarPillButton {
+                    accessibleName: "Network settings"
+                    onActivated: { ControlState.activeScreen = root.screen.name; ControlState.openControlCenter("wifi") }
+                    Row {
+                        spacing: Theme.spacingTight
                         Text {
                             text: {
-                                const a = Bluetooth.defaultAdapter
-                                if (!a || !a.enabled) return "󰂲"
-                                for (const d of Bluetooth.devices.values) {
-                                    if (d.connected) return "󰂱"
-                                }
-                                return "󰂯"
+                                if (NetUtils.wiredConnected) return "󰈀"
+                                if (!Networking.wifiEnabled) return "󰤯"
+                                if (NetUtils.activeWifi) return NetUtils.signalIcon(NetUtils.activeWifi.signalStrength)
+                                return "󰤭"
                             }
-                            color: {
-                                const a = Bluetooth.defaultAdapter
-                                if (!a || !a.enabled) return Colors.textMuted
-                                for (const d of Bluetooth.devices.values) {
-                                    if (d.connected) return Colors.success
-                                }
-                                return Colors.text
-                            }
-                            font.pixelSize: Theme.fontLarge; font.family: Theme.fontFamily
-                        }
-                    }
-
-                    BarDivider {}
-
-                    // Audio (scroll-wheel adjusts volume)
-                    BarPillButton {
-                        id: audioCluster
-                        panel: "audio"; bar: root
-                        clickOnly: true
-                        onActivated: { ControlState.activeScreen = root.screen.name; ControlState.openControlCenter("") }
-                        onWheelEvent: ev => {
-                            const delta = ev.angleDelta.y > 0 ? 0.05 : -0.05
-                            AudioState.setVolume(AudioState.volume + delta)
-                        }
-
-                        Row {
-                            spacing: Theme.spacingTight
-                            Text {
-                                text: !AudioState.sinkReady ? "󰕿" : AudioState.muted ? "󰖁" : AudioState.volume > 0.5 ? "󰕾" : "󰖀"
-                                color: AudioState.muted ? Colors.textMuted : Colors.text
-                                font.pixelSize: Theme.fontLarge; font.family: Theme.fontFamily
-                            }
-                            Text {
-                                visible: AudioState.sinkReady && !AudioState.muted
-                                text: Math.round(AudioState.volume * 100) + "%"
-                                color: Colors.text
-                                font.pixelSize: Theme.fontMedium; font.family: Theme.fontFamily
-                            }
-                        }
-                    }
-
-                    BarDivider {}
-
-                    // Battery
-                    BarPillButton {
-                        id: batteryCluster
-                        panel: "battery"; bar: root
-                        clickOnly: true
-                        onActivated: { ControlState.activeScreen = root.screen.name; ControlState.openControlCenter("") }
-
-                        property var bat: {
-                            for (const d of UPower.devices.values) {
-                                if (d.isLaptopBattery && d.ready && d.percentage > 0.01) return d
-                            }
-                            const dd = UPower.displayDevice
-                            return (dd && dd.ready && dd.percentage > 0.01) ? dd : null
-                        }
-                        // Bypass = on AC but not charging (battery at threshold, AC powers system directly).
-                        // UPower's state property is unreliable here (reports Charging even when sysfs says Not charging),
-                        // so read sysfs status directly. Path derived from UPower nativePath to support BAT1/etc.
-                        property string batStatus: ""
-                        property bool bypass: batteryCluster.batStatus === "Not charging"
-                        FileView {
-                            path: batteryCluster.bat ? "/sys/class/power_supply/" + batteryCluster.bat.nativePath + "/status" : ""
-                            watchChanges: true
-                            onFileChanged: reload()
-                            onLoaded: batteryCluster.batStatus = text().trim()
-                        }
-                        Row {
-                            spacing: Theme.spacingTight
-                            Text {
-                                visible: batteryCluster.bypass
-                                text: "󰒃"
-                                color: Colors.accent
-                                font.pixelSize: Theme.fontLarge; font.family: Theme.fontFamily
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-                            Text {
-                                text: !batteryCluster.bat ? "󰂑" : batteryCluster.bat.state === 1 ? "󰂋" : batteryCluster.bat.percentage < 0.25 ? "󰁻" : "󰁽"
-                                color: batteryCluster.bat?.state === 1 ? Colors.success : batteryCluster.bat?.percentage < 0.20 ? Colors.error : Colors.text
-                                font.pixelSize: Theme.fontLarge; font.family: Theme.fontFamily
-                            }
-                            Text {
-                                text: batteryCluster.bat ? Math.round(batteryCluster.bat.percentage * 100) + "%" : "--"
-                                color: Colors.textMuted
-                                font.pixelSize: Theme.fontMedium; font.family: Theme.fontFamily
-                            }
-                        }
-                    }
-
-                    BarDivider {}
-
-                    // Clock
-                    BarPillButton {
-                        panel: "clock"; bar: root
-                        Clock {}
-                    }
-
-                    BarDivider {}
-
-                    // Idle inhibitor (caffeine) — toggle, no panel
-                    Item {
-                        implicitWidth: caffeineIcon.implicitWidth
-                        implicitHeight: caffeineIcon.implicitHeight
-                        MouseArea {
-                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                            onClicked: ControlState.idleInhibited = !ControlState.idleInhibited
+                            color: (NetUtils.wiredConnected || NetUtils.activeWifi) ? Colors.text : Colors.textMuted
+                            font.pixelSize: Theme.fontLarge; font.family: Theme.fontIcon
                         }
                         Text {
-                            id: caffeineIcon
-                            text: ControlState.idleInhibited ? "󰛊" : "󰒲"
-                            color: ControlState.idleInhibited ? Colors.accent : Colors.textMuted
-                            font.pixelSize: Theme.fontLarge; font.family: Theme.fontFamily
-                            Behavior on color { ColorAnimation { duration: Theme.durFast } }
+                            visible: VpnState.anyVpnActive
+                            text: "󰦝"
+                            color: Colors.accent
+                            font.pixelSize: Theme.fontMedium; font.family: Theme.fontIcon
                         }
                     }
-
-                    BarDivider {}
-
-                    // Notification bell
-                    BarPillButton {
-                        panel: "notif"; bar: root
-                        horizontalPadding: 2
-                        Row {
-                            spacing: Theme.spacingTight
-                            Text {
-                                text: ControlState.rightPanel === "notif" ? "󰂞" : NotifState.unreadCount > 0 ? "󰂚" : "󰂜"
-                                color: Colors.text
-                                font.pixelSize: Theme.fontLarge; font.family: Theme.fontFamily
-                            }
-                            Rectangle {
-                                visible: NotifState.unreadCount > 0
-                                width: badgeText.width + 6; height: 14; radius: 7
-                                color: Colors.accent
-                                anchors.verticalCenter: parent.verticalCenter
-                                Text {
-                                    id: badgeText
-                                    anchors.centerIn: parent
-                                    text: NotifState.unreadCount > 9 ? "9+" : String(NotifState.unreadCount)
-                                    color: Colors.bg; font.pixelSize: Theme.fontTiny; font.bold: true
-                                    font.family: Theme.fontFamily
-                                }
-                            }
-                        }
-                    }
-
-                    BarDivider {}
-                    ControlCenterButton { bar: root; Layout.alignment: Qt.AlignVCenter }
                 }
+
+                // Bluetooth — adaptive: hidden unless the adapter is on
+                BarPillButton {
+                    visible: !!(Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled)
+                    accessibleName: "Bluetooth settings"
+                    onActivated: { ControlState.activeScreen = root.screen.name; ControlState.openControlCenter("bluetooth") }
+                    Text {
+                        text: {
+                            for (const d of Bluetooth.devices.values)
+                                if (d.connected) return "󰂱"
+                            return "󰂯"
+                        }
+                        color: {
+                            for (const d of Bluetooth.devices.values)
+                                if (d.connected) return Colors.accent
+                            return Colors.text
+                        }
+                        font.pixelSize: Theme.fontLarge; font.family: Theme.fontIcon
+                    }
+                }
+
+                // Audio (scroll adjusts volume) — glyph only, macOS-style
+                BarPillButton {
+                    id: audioCluster
+                    accessibleName: AudioState.muted ? "Audio muted" : "Volume " + Math.round(AudioState.volume * 100) + "%"
+                    onActivated: { ControlState.activeScreen = root.screen.name; ControlState.openControlCenter("") }
+                    onWheelEvent: ev => {
+                        const delta = ev.angleDelta.y > 0 ? 0.05 : -0.05
+                        AudioState.setVolume(AudioState.volume + delta)
+                    }
+                    Text {
+                        text: !AudioState.sinkReady ? "󰕿" : AudioState.muted ? "󰖁" : AudioState.volume > 0.5 ? "󰕾" : "󰖀"
+                        color: AudioState.muted ? Colors.textMuted : Colors.text
+                        font.pixelSize: Theme.fontLarge; font.family: Theme.fontIcon
+                    }
+                }
+
+                // Battery — glyph + %, click opens the CC battery detail
+                // (consistent with the WiFi / Bluetooth pills).
+                BarPillButton {
+                    id: batteryCluster
+                    accessibleName: "Battery settings"
+                    visible: !!bat
+                    onActivated: { ControlState.activeScreen = root.screen.name; ControlState.openControlCenter("battery") }
+
+                    property var bat: {
+                        for (const d of UPower.devices.values) {
+                            if (d.isLaptopBattery && d.ready && d.percentage > 0.01) return d
+                        }
+                        const dd = UPower.displayDevice
+                        return (dd && dd.ready && dd.percentage > 0.01) ? dd : null
+                    }
+                    readonly property int pct: bat ? Math.round(bat.percentage * 100) : 0
+                    readonly property bool charging: !!bat && bat.state === 1
+
+                    Row {
+                        spacing: Theme.spacingTight
+                        // Positioner children can't anchor — center each Text
+                        // inside a fixed pill-height line instead.
+                        Text {
+                            text: batteryCluster.charging ? "󰂄" : Theme.batteryGlyph(batteryCluster.pct)
+                            color: batteryCluster.charging ? Colors.accent
+                                : batteryCluster.pct < 20 ? Colors.error : Colors.text
+                            font.pixelSize: Theme.fontLarge; font.family: Theme.fontIcon
+                            height: Theme.pillHeight; verticalAlignment: Text.AlignVCenter
+                        }
+                        Text {
+                            text: batteryCluster.pct + "%"
+                            color: Colors.textMuted
+                            font.pixelSize: Theme.fontMedium; font.family: Theme.fontFamily
+                            font.features: { "tnum": 1 }
+                            height: Theme.pillHeight; verticalAlignment: Text.AlignVCenter
+                        }
+                    }
+                }
+
+                // Clock + Control Center opener (time + CC icon). While there are
+                // unread notifications, a comet orbits the button (replaces a count).
+                Item {
+                    id: clockBtn
+                    implicitWidth: clockRow.implicitWidth + 14
+                    // Match sibling hit targets so Row does not top-align this
+                    // shorter item inside the status cluster.
+                    implicitHeight: Theme.hitTarget
+
+                    Rectangle {
+                        anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter }
+                        height: Theme.pillHeight
+                        radius: Theme.radiusSmall
+                        color: Qt.rgba(1, 1, 1, clockHover.hovered ? Theme.hoverBrightness : 0)
+                        Behavior on color { ColorAnimation { duration: Theme.durFast } }
+                    }
+
+                    Row {
+                        id: clockRow
+                        anchors.centerIn: parent
+                        spacing: Theme.spacingSmall
+                        Clock { anchors.verticalCenter: parent.verticalCenter }
+                        // DND indicator — without it the "toasts are off" state
+                        // is invisible outside the Control Center.
+                        Text {
+                            visible: NotifState.dnd
+                            text: "󰂛"
+                            color: Colors.textMuted
+                            font.pixelSize: Theme.fontMedium; font.family: Theme.fontIcon
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        Item {
+                            width: 30; height: 25
+                            anchors.verticalCenter: parent.verticalCenter
+                            Text {
+                                anchors.centerIn: parent
+                                text: "󰕮"
+                                color: ControlState.controlCenterOpen ? Colors.accent : Colors.textMuted
+                                font.pixelSize: Theme.fontLarge; font.family: Theme.fontIcon
+                                Behavior on color { ColorAnimation { duration: Theme.durFast } }
+                            }
+                            NotifOrbit {
+                                anchors.fill: parent
+                                visible: NotifState.unreadCount > 0 && !NotifState.dnd
+                                running: visible
+                            }
+                        }
+                    }
+
+                    HoverHandler { id: clockHover }
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (ControlState.controlCenterOpen) {
+                                if (ControlState.ccSection !== "") ControlState.ccSection = ""
+                                else ControlState.closeControlCenter()
+                                return
+                            }
+                            ControlState.activeScreen = root.screen.name
+                            ControlState.openControlCenter("")
+                        }
+                    }
+                }
+
             }
         }
     }

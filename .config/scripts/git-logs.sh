@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Search git log with fzf and preview commits with delta
 
+set -u
+
 # Exit if not in a git repo
 if ! git rev-parse --git-dir >/dev/null 2>&1; then
   echo "fzf-git-log: Not in a git repository." >&2
@@ -25,7 +27,7 @@ selected=$(git log --no-show-signature --color=always \
       --scheme=history \
       --prompt="Git Log> " \
       --preview="$preview_cmd" \
-      $FZF_GIT_LOG_OPTS)
+      ${FZF_GIT_LOG_OPTS:-})
 
 # If something was selected
 if [[ -n "$selected" ]]; then

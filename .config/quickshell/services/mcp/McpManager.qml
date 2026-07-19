@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
 import "../.."
+import "../../components"
 import "./views"
 
 // Floating xdg-toplevel window for managing docker mcp.
@@ -26,19 +27,19 @@ FloatingWindow {
     }
 
     // ── content frame ────────────────────────────────────────────
-    Rectangle {
+    GlassSurface {
         anchors.fill: parent
-        color: Qt.rgba(Colors.bg.r, Colors.bg.g, Colors.bg.b, 0.96)
+        level: "e3"; radius: Theme.radiusXL; frost: true; frostAlpha: 0.10
 
         RowLayout {
             anchors.fill: parent
             spacing: 0
 
             // ── sidebar ──────────────────────────────────────────
-            Rectangle {
+            GlassSurface {
                 Layout.preferredWidth: 180
                 Layout.fillHeight: true
-                color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, 0.55)
+                level: "e1"; radius: 0; frost: true; frostAlpha: 0.075
 
                 ColumnLayout {
                     anchors.fill: parent
@@ -53,7 +54,7 @@ FloatingWindow {
 
                         Text {
                             text: "󰡨"
-                            font.family: Theme.fontFamily
+                            font.family: Theme.fontIcon
                             font.pixelSize: 22
                             color: Colors.accent
                         }
@@ -61,7 +62,7 @@ FloatingWindow {
                             Layout.fillWidth: true
                             text: "Docker MCP"
                             font.family: Theme.fontFamily
-                            font.pointSize: Theme.fontLarge
+                            font.pixelSize: Theme.fontLarge
                             font.bold: true
                             color: Colors.text
                             elide: Text.ElideRight
@@ -125,7 +126,7 @@ FloatingWindow {
                         text: "" + McpState.lastError
                         color: Colors.error
                         font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontTiny
+                        font.pixelSize: Theme.fontTiny
                         wrapMode: Text.WordWrap
                         maximumLineCount: 3
                         elide: Text.ElideRight
@@ -136,7 +137,7 @@ FloatingWindow {
                         text: "…working"
                         color: Colors.textMuted
                         font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontTiny
+                        font.pixelSize: Theme.fontTiny
                     }
                 }
             }
@@ -196,24 +197,16 @@ FloatingWindow {
     }
 
     // ── side button inline component ─────────────────────────────
-    component SideButton: Rectangle {
+    component SideButton: GlassSurface {
         id: btn
         property string icon: ""
         property string label: ""
         property bool active: false
         property int badge: -1
-        signal clicked()
-
         height: 34
         radius: Theme.radiusMedium
-        color: active
-            ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.22)
-            : hoverArea.containsMouse
-                ? Qt.rgba(Colors.text.r, Colors.text.g, Colors.text.b, Colors.pillHoverAlpha * 0.5)
-                : "transparent"
-        border.width: active ? 1 : 0
-        border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.5)
-        Behavior on color { ColorAnimation { duration: Theme.durFast } }
+        level: "e1"; frost: true; frostAlpha: active ? 0.18 : 0.055
+        interactive: true
 
         RowLayout {
             anchors.fill: parent
@@ -231,7 +224,7 @@ FloatingWindow {
                 Layout.fillWidth: true
                 text: btn.label
                 font.family: Theme.fontFamily
-                font.pointSize: Theme.fontNormal
+                font.pixelSize: Theme.fontNormal
                 font.bold: btn.active
                 color: btn.active ? Colors.text : Colors.textMuted
                 elide: Text.ElideRight
@@ -248,19 +241,12 @@ FloatingWindow {
                     text: btn.badge
                     color: Colors.text
                     font.family: Theme.fontFamily
-                    font.pointSize: Theme.fontTiny
+                    font.pixelSize: Theme.fontTiny
                     font.bold: true
                 }
             }
         }
 
-        MouseArea {
-            id: hoverArea
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: btn.clicked()
-        }
     }
 
     // ── keyboard ─────────────────────────────────────────────────

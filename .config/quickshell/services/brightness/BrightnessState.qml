@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "lib/brightnessMath.js" as Calc
+import "../control"
 
 // Backlight brightness via brightnessctl (same tool scripts/qs-osd.sh uses).
 // `available` is false on machines with no backlight (the CC hides the slider).
@@ -46,6 +47,8 @@ Singleton {
 
     Component.onCompleted: _refresh()
 
-    // Light poll so external changes (keybinds via qs-osd.sh) stay reflected.
-    Timer { interval: 1000; running: true; repeat: true; onTriggered: root._refresh() }
+    // External changes matter while the slider is visible. Keyboard changes
+    // already report their value through the OSD IPC, so an always-on poll was
+    // just waking the shell once per second on an untouched desktop.
+    Timer { interval: 1500; running: ControlState.controlCenterOpen; repeat: true; onTriggered: root._refresh() }
 }

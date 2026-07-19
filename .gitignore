@@ -4,9 +4,18 @@
 *.gpg
 *.secret
 *.age
+*.p12
+*.pfx
+.env
+.env.*
+!.env.example
+.netrc
+.npmrc
 
 # avoid caches
 .cache/
+__pycache__/
+*.py[cod]
 .local/share/
 .mozilla/
 .pki/
@@ -31,8 +40,13 @@ Obsidian/
 tmp/
 tmp/**
 
-# temporary backup files
-*-[0-9]*
+# editor and temporary backup files
+*~
+*.bak
+*.orig
+*.swp
+*.swo
+.#*
 
 # do NOT track OS-generated stuff
 .DS_Store
@@ -53,5 +67,8 @@ docs/
 
 # Per-host niri override (optional include, kept out of VCS)
 .config/niri/includes/host.kdl
+# Per-host kanshi monitor profiles (seeded from config.example by install.sh)
+.config/kanshi/config
 # Generated wallpaper colors (scripts/pywal-niri-colors.sh) — machine-local
 .config/niri/includes/colors.kdl
+.config/quickshell/settings.json

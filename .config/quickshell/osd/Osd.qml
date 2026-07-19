@@ -1,5 +1,6 @@
 import QtQuick
 import ".."
+import "../components"
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
@@ -15,7 +16,7 @@ PanelWindow {
 
     readonly property int panelWidth: 64
     readonly property int panelHeight: 220
-    readonly property int hiddenOffset: panelWidth + 4
+    readonly property int hiddenOffset: panelWidth + Theme.barMargin + 4
 
     visible: showing || hideAnim.running
     color: "transparent"
@@ -35,7 +36,9 @@ PanelWindow {
         width: osdRect.width
         height: osdRect.height
         topLeftRadius: Theme.radiusLarge
+        topRightRadius: Theme.radiusLarge
         bottomLeftRadius: Theme.radiusLarge
+        bottomRightRadius: Theme.radiusLarge
     }
 
     Connections {
@@ -60,19 +63,23 @@ PanelWindow {
         onTriggered: hideAnim.start()
     }
 
-    NumberAnimation {
+    ParallelAnimation {
         id: showAnim
-        target: slideTransform; property: "x"
-        to: 0
-        duration: Theme.durSlide; easing.type: Easing.OutCubic
+        NumberAnimation { target: slideTransform; property: "x"; to: 0
+            duration: Theme.durSlide; easing.type: Easing.OutCubic }
+        NumberAnimation { target: osdRect; property: "opacity"; to: 1
+            duration: Theme.durNormal; easing.type: Easing.OutCubic }
     }
 
     SequentialAnimation {
         id: hideAnim
-        NumberAnimation {
-            target: slideTransform; property: "x"
-            to: root.hiddenOffset
-            duration: Theme.durNormal; easing.type: Easing.InCubic
+        ParallelAnimation {
+            NumberAnimation {
+                target: slideTransform; property: "x"; to: root.hiddenOffset
+                duration: Theme.durNormal; easing.type: Easing.InCubic
+            }
+            NumberAnimation { target: osdRect; property: "opacity"; to: 0
+                duration: Theme.durFast; easing.type: Easing.InCubic }
         }
         ScriptAction { script: root.showing = false }
     }
@@ -80,22 +87,23 @@ PanelWindow {
     Rectangle {
         id: osdRect
         anchors.right: parent.right
+        anchors.rightMargin: Theme.barMargin
         anchors.verticalCenter: parent.verticalCenter
         width: root.panelWidth
         height: root.panelHeight
-        color: Qt.rgba(Colors.bgVariant.r, Colors.bgVariant.g, Colors.bgVariant.b, Theme.elevation.e2TintAlpha)
-        border.color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Theme.elevation.e1BorderAlpha)
-        border.width: 1
-
-        // Two rounded corners on left, straight on right (slide-in edge)
-        topLeftRadius: Theme.radiusLarge
-        bottomLeftRadius: Theme.radiusLarge
-        topRightRadius: 0
-        bottomRightRadius: 0
-
+        color: "transparent"
+        opacity: 0
         clip: true
 
         transform: Translate { id: slideTransform; x: root.hiddenOffset }
+
+        // Shared glass material — floats like the Control Center (detached,
+        // fully rounded, full border).
+        GlassSurface {
+            anchors.fill: parent
+            level: "e3"
+            radius: Theme.radiusLarge
+        }
 
         ColumnLayout {
             anchors {
@@ -112,9 +120,10 @@ PanelWindow {
                 text: root.type === "volume"
                     ? (root.muted ? "󰝟" : root.value <= 0 ? "󰖁" : root.value < 0.34 ? "󰕿" : root.value < 0.67 ? "󰖀" : "󰕾")
                     : "󰃠"
-                color: root.muted ? Colors.warning : Colors.accent
+                // Mute is a state, not a signal — muted → muted grey, not warning.
+                color: root.muted ? Colors.textMuted : Colors.accent
                 font.pixelSize: 22
-                font.family: Theme.fontFamily
+                font.family: Theme.fontIcon
                 Behavior on color { ColorAnimation { duration: Theme.durFast } }
             }
 
@@ -123,9 +132,9 @@ PanelWindow {
                 id: barTrack
                 Layout.alignment: Qt.AlignHCenter
                 Layout.fillHeight: true
-                width: 8
-                radius: 4
-                color: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, Colors.sliderTrackAlpha)
+                width: 11
+                radius: width / 2
+                color: Qt.rgba(1, 1, 1, Theme.ink.track)
 
                 Rectangle {
                     id: barFill
@@ -134,7 +143,7 @@ PanelWindow {
                     anchors.bottom: parent.bottom
                     height: parent.height * Math.min(1, Math.max(0, root.value))
                     radius: parent.radius
-                    color: root.muted ? Colors.textMuted : Colors.accent
+                    color: root.muted ? Qt.rgba(1, 1, 1, Theme.ink.veil) : "white"
 
                     Behavior on height {
                         NumberAnimation { duration: Theme.durFast; easing.type: Easing.OutQuad }
@@ -150,6 +159,7 @@ PanelWindow {
                 color: root.muted ? Colors.textMuted : Colors.text
                 font.pixelSize: Theme.fontSmall; font.bold: true
                 font.family: Theme.fontFamily
+                font.features: { "tnum": 1 }
             }
         }
     }

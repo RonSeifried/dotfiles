@@ -1,12 +1,21 @@
 // Window rules: corner radius, blur, floating apps, dialogs.
 
-// Rounded corners + blur on all windows
+// Rounded corners on all windows. Blurring every application is one of the
+// largest avoidable GPU costs; opaque apps gain nothing from sampling the
+// wallpaper behind them.
 window-rule {
     geometry-corner-radius 12
     clip-to-geometry true
+}
+
+// Kitty is deliberately translucent, so it is the one normal application
+// that benefits from compositor blur. Quickshell declares precise blur regions
+// for its own surfaces separately.
+window-rule {
+    match app-id=r#"^kitty$"#
     background-effect {
         blur true
-        noise 0.05
+        noise 0.025
     }
 }
 
@@ -35,6 +44,13 @@ window-rule {
 window-rule {
     match app-id=r#"^floating$"#
     open-floating true
+}
+
+window-rule {
+    match app-id=r#"^dropdown-terminal$"#
+    open-floating true
+    default-column-width { proportion 0.78; }
+    default-window-height { proportion 0.46; }
 }
 
 // Installer terminal (yay-in-kitty spawned from launcher p-mode)

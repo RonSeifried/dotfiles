@@ -4,6 +4,8 @@
 # references these so segment text stays readable across palette swaps —
 # avoids hard-coded "fg:black" failing on dark wallust palettes.
 
+set -u
+
 WAL_COLORS="$HOME/.cache/wal/colors.json"
 STARSHIP_BASE="$HOME/.config/starship/starship.toml.base"
 STARSHIP_TOML="$HOME/.config/starship/starship.toml"

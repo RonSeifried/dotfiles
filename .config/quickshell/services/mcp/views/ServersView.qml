@@ -19,14 +19,14 @@ Item {
                 text: "Enabled Servers"
                 color: Colors.text
                 font.family: Theme.fontFamily
-                font.pointSize: Theme.fontLarge
+                font.pixelSize: Theme.fontLarge
                 font.bold: true
             }
             Text {
                 text: McpState.servers.length + " enabled"
                 color: Colors.textMuted
                 font.family: Theme.fontFamily
-                font.pointSize: Theme.fontSmall
+                font.pixelSize: Theme.fontSmall
             }
             Item { Layout.fillWidth: true }
         }
@@ -44,7 +44,7 @@ Item {
                     text: McpState.loadingServers ? "Loading…" : "No servers enabled."
                     color: Colors.textMuted
                     font.family: Theme.fontFamily
-                    font.pointSize: Theme.fontMedium
+                    font.pixelSize: Theme.fontMedium
                 }
                 Text {
                     Layout.alignment: Qt.AlignHCenter
@@ -52,7 +52,7 @@ Item {
                     text: "Browse the catalog to enable one."
                     color: Colors.textMuted
                     font.family: Theme.fontFamily
-                    font.pointSize: Theme.fontSmall
+                    font.pixelSize: Theme.fontSmall
                 }
             }
         }
@@ -94,7 +94,7 @@ Item {
                         text: modelData.name
                         color: Colors.text
                         font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontMedium
+                        font.pixelSize: Theme.fontMedium
                         font.bold: true
                         elide: Text.ElideRight
                     }
@@ -115,14 +115,14 @@ Item {
                             Text {
                                 text: "󰋼"
                                 color: Colors.text
-                                font.family: Theme.fontFamily
+                                font.family: Theme.fontIcon
                                 font.pixelSize: 13
                             }
                             Text {
                                 text: "Inspect"
                                 color: Colors.text
                                 font.family: Theme.fontFamily
-                                font.pointSize: Theme.fontSmall
+                                font.pixelSize: Theme.fontSmall
                             }
                         }
                         MouseArea {
@@ -152,14 +152,14 @@ Item {
                             Text {
                                 text: "󰓛"
                                 color: Colors.error
-                                font.family: Theme.fontFamily
+                                font.family: Theme.fontIcon
                                 font.pixelSize: 13
                             }
                             Text {
                                 text: "Disable"
                                 color: Colors.error
                                 font.family: Theme.fontFamily
-                                font.pointSize: Theme.fontSmall
+                                font.pixelSize: Theme.fontSmall
                                 font.bold: true
                             }
                         }

@@ -49,14 +49,14 @@ Item {
                 text: "Tools"
                 color: Colors.text
                 font.family: Theme.fontFamily
-                font.pointSize: Theme.fontLarge
+                font.pixelSize: Theme.fontLarge
                 font.bold: true
             }
             Text {
                 text: McpState.tools.length + " available"
                 color: Colors.textMuted
                 font.family: Theme.fontFamily
-                font.pointSize: Theme.fontSmall
+                font.pixelSize: Theme.fontSmall
             }
             Item { Layout.fillWidth: true }
             Rectangle {
@@ -76,7 +76,7 @@ Item {
                     Text {
                         text: "󰍉"
                         color: Colors.textMuted
-                        font.family: Theme.fontFamily
+                        font.family: Theme.fontIcon
                         font.pixelSize: 13
                     }
                     TextField {
@@ -87,7 +87,7 @@ Item {
                         placeholderTextColor: Qt.rgba(Colors.text.r, Colors.text.g, Colors.text.b, 0.4)
                         color: Colors.text
                         font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontSmall
+                        font.pixelSize: Theme.fontSmall
                         onTextChanged: view.filter = text
                     }
                 }
@@ -124,7 +124,7 @@ Item {
                     Text {
                         text: "󰒓"
                         color: Colors.accent
-                        font.family: Theme.fontFamily
+                        font.family: Theme.fontIcon
                         font.pixelSize: 13
                     }
                     Text {
@@ -132,7 +132,7 @@ Item {
                         text: modelData.name
                         color: Colors.text
                         font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontSmall
+                        font.pixelSize: Theme.fontSmall
                         elide: Text.ElideRight
                     }
                     Text {
@@ -140,7 +140,7 @@ Item {
                         text: modelData.description
                         color: Colors.textMuted
                         font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontTiny
+                        font.pixelSize: Theme.fontTiny
                         elide: Text.ElideRight
                     }
                 }
@@ -176,7 +176,7 @@ Item {
                         text: view.inspectName
                         color: Colors.text
                         font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontMedium
+                        font.pixelSize: Theme.fontMedium
                         font.bold: true
                     }
                     Item { Layout.fillWidth: true }
@@ -215,7 +215,7 @@ Item {
                         wrapMode: TextEdit.Wrap
                         color: Colors.text
                         font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontTiny
+                        font.pixelSize: Theme.fontTiny
                         text: view.inspectText
                     }
                 }

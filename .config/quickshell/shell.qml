@@ -15,6 +15,9 @@ import "services/polkit"
 
 ShellRoot {
     id: shellRoot
+    readonly property bool _powerPolicyActive: PowerPolicy.autoPerformance
+
+    // Transient surfaces and state services are composed here for atomic reloads.
 
     // Effective screen for popups (launcher, menus, OSD).
     // Bar-set override > niri keyboard/mouse focused output > first screen (boot fallback).
@@ -28,6 +31,15 @@ ShellRoot {
         delegate: Bar {
             required property var modelData
             screen: modelData
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+        delegate: AudioSwitcher {
+            required property var modelData
+            screen: modelData
+            open: ControlState.audioSwitcherOpen && modelData.name === shellRoot.targetScreen
         }
     }
 
@@ -92,9 +104,13 @@ ShellRoot {
     }
 
     // ── MCP Manager (single floating window, not per-screen) ────
-    McpManager {
-        id: mcpManager
-        visible: false
+    // The Docker manager is the largest optional shell feature. Keep its QML
+    // and Docker queries out of the always-on bar process until explicitly
+    // requested.
+    Loader {
+        id: mcpLoader
+        active: false
+        sourceComponent: Component { McpManager { visible: true } }
     }
 
     // ── Performance Panel ───────────────────────────────────────
@@ -115,31 +131,45 @@ ShellRoot {
         function onPerfPillVisibleChanged() { PerfState.active = ControlState.perfPillVisible || ControlState.perfPanelOpen }
         function onPerfPanelOpenChanged()   { PerfState.active = ControlState.perfPillVisible || ControlState.perfPanelOpen }
     }
-    Component.onCompleted: PerfState.active = ControlState.perfPillVisible || ControlState.perfPanelOpen
+    Connections {
+        target: SettingsState
+        function onLoadedChanged() {
+            if (SettingsState.loaded) ControlState.perfPillVisible = SettingsState.showPerformancePill
+        }
+    }
+    Component.onCompleted: {
+        ControlState.perfPillVisible = SettingsState.showPerformancePill
+        PerfState.active = ControlState.perfPillVisible || ControlState.perfPanelOpen
+    }
 
     // ── IPC ─────────────────────────────────────────────────────
     IpcHandler {
         target: "launcher"
-        function toggle() { ControlState.launcherOpen = !ControlState.launcherOpen }
+        function toggle() {
+            ControlState.activeScreen = WMState.focusedOutput
+            ControlState.toggleTransient("launcher")
+        }
         function ai() {
+            ControlState.activeScreen = WMState.focusedOutput
             ControlState.launcherPrefill = "ai "
+            ControlState.closeTransientOverlays("launcher")
             ControlState.launcherOpen = true
         }
     }
 
     IpcHandler {
         target: "power"
-        function toggle() { ControlState.powerMenuOpen = !ControlState.powerMenuOpen }
+        function toggle() { ControlState.activeScreen = WMState.focusedOutput; ControlState.toggleTransient("power") }
     }
 
     IpcHandler {
         target: "clipboard"
-        function toggle() { ControlState.clipboardOpen = !ControlState.clipboardOpen }
+        function toggle() { ControlState.activeScreen = WMState.focusedOutput; ControlState.toggleTransient("clipboard") }
     }
 
     IpcHandler {
         target: "wallpaper"
-        function toggle() { ControlState.wallpaperPickerOpen = !ControlState.wallpaperPickerOpen }
+        function toggle() { ControlState.activeScreen = WMState.focusedOutput; ControlState.toggleTransient("wallpaper") }
     }
 
     IpcHandler {
@@ -148,39 +178,83 @@ ShellRoot {
     }
 
     IpcHandler {
-        target: "notifications"
-        function toggle() { ControlState.togglePanel("notif") }
-    }
-
-    IpcHandler {
         target: "panel"
         function close() { ControlState.rightPanel = "none" }
     }
 
+    // Night light — the keybinds route through here (NOT raw busctl) so the
+    // Control Center tile and the actual gamma state can never diverge.
+    IpcHandler {
+        target: "nightlight"
+        function toggle()  { NightLightState.toggle() }
+        function off()     { NightLightState.disable() }
+        function set(temp: string) { NightLightState.setTemp(parseInt(temp)) }
+    }
+
+    IpcHandler {
+        target: "control"
+        // Open on the FOCUSED output (like every other popup via targetScreen),
+        // not screens[0] — multi-monitor: the CC must follow the keyboard.
+        function toggle() {
+            if (ControlState.controlCenterOpen) { ControlState.closeControlCenter(); return }
+            ControlState.activeScreen = WMState.focusedOutput
+                || (Quickshell.screens.length > 0 ? Quickshell.screens[0].name : "")
+            ControlState.openControlCenter("")
+        }
+        // Open straight into a detail section ("wifi" | "bluetooth" | "vpn" | "battery").
+        function open(section: string) {
+            ControlState.activeScreen = WMState.focusedOutput
+                || (Quickshell.screens.length > 0 ? Quickshell.screens[0].name : "")
+            ControlState.openControlCenter(section)
+        }
+    }
+
     IpcHandler {
         target: "mcp"
-        function toggle() { mcpManager.visible = !mcpManager.visible }
-        function open()   { mcpManager.visible = true }
-        function close()  { mcpManager.visible = false }
+        function toggle() {
+            if (!mcpLoader.active) { mcpLoader.active = true; return }
+            if (mcpLoader.item) mcpLoader.item.visible = !mcpLoader.item.visible
+        }
+        function open()   { mcpLoader.active = true; Qt.callLater(() => { if (mcpLoader.item) mcpLoader.item.visible = true }) }
+        function close()  { if (mcpLoader.item) mcpLoader.item.visible = false }
     }
 
     IpcHandler {
         target: "perf"
-        function togglePill()  { ControlState.perfPillVisible = !ControlState.perfPillVisible }
-        function togglePanel() { ControlState.perfPanelOpen = !ControlState.perfPanelOpen }
+        function togglePill()  {
+            ControlState.perfPillVisible = !ControlState.perfPillVisible
+            SettingsState.showPerformancePill = ControlState.perfPillVisible
+            SettingsState.save()
+        }
+        function togglePanel() { ControlState.activeScreen = WMState.focusedOutput; ControlState.toggleTransient("performance") }
         function close()       { ControlState.perfPanelOpen = false }
+    }
+
+    // Generic hook for scripts with long-running work (downloads, renders,
+    // timers). Screen recording is detected automatically via its lock file.
+    IpcHandler {
+        target: "activity"
+        function begin(id: string, label: string, icon: string) { ActivityState.begin(id, label, icon) }
+        function end(id: string) { ActivityState.end(id) }
     }
 
     IpcHandler {
         target: "osd"
         function volume(v: string, muted: string) {
+            ControlState.activeScreen = WMState.focusedOutput
             ControlState.osdVolume = parseFloat(v)
             ControlState.osdMuted = (muted === "1" || muted === "true" || muted === "yes")
             ControlState.osdVolumeRequested(ControlState.osdVolume, ControlState.osdMuted)
         }
         function brightness(v: string) {
+            ControlState.activeScreen = WMState.focusedOutput
             ControlState.osdBrightness = parseFloat(v)
             ControlState.osdBrightnessRequested(ControlState.osdBrightness)
         }
+    }
+
+    IpcHandler {
+        target: "audio"
+        function switcher() { ControlState.activeScreen = WMState.focusedOutput; ControlState.toggleTransient("audio") }
     }
 }

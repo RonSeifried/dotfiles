@@ -16,14 +16,14 @@ ColumnLayout {
             text: "Secrets"
             color: Colors.text
             font.family: Theme.fontFamily
-            font.pointSize: Theme.fontMedium
+            font.pixelSize: Theme.fontMedium
             font.bold: true
         }
         Text {
             text: editor.secrets.length + " required"
             color: Colors.textMuted
             font.family: Theme.fontFamily
-            font.pointSize: Theme.fontSmall
+            font.pixelSize: Theme.fontSmall
         }
         Item { Layout.fillWidth: true }
     }
@@ -57,7 +57,7 @@ ColumnLayout {
                 Text {
                     text: row.isSet ? "✓" : "󰌆"
                     color: row.isSet ? Colors.success : Colors.warning
-                    font.family: Theme.fontFamily
+                    font.family: Theme.fontIcon
                     font.pixelSize: 14
                 }
                 ColumnLayout {
@@ -67,7 +67,7 @@ ColumnLayout {
                         text: row.envName
                         color: Colors.text
                         font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontSmall
+                        font.pixelSize: Theme.fontSmall
                         font.bold: true
                         elide: Text.ElideRight
                     }
@@ -76,7 +76,7 @@ ColumnLayout {
                         text: row.catalogKey
                         color: Colors.textMuted
                         font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontTiny
+                        font.pixelSize: Theme.fontTiny
                         elide: Text.ElideMiddle
                     }
                 }
@@ -102,7 +102,7 @@ ColumnLayout {
                         placeholderTextColor: Qt.rgba(Colors.text.r, Colors.text.g, Colors.text.b, 0.35)
                         color: Colors.text
                         font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontSmall
+                        font.pixelSize: Theme.fontSmall
                         verticalAlignment: TextInput.AlignVCenter
                         inputMethodHints: Qt.ImhSensitiveData
                         onAccepted: {
@@ -128,7 +128,7 @@ ColumnLayout {
                         anchors.centerIn: parent
                         text: "󰆓"
                         color: Colors.bg
-                        font.family: Theme.fontFamily
+                        font.family: Theme.fontIcon
                         font.pixelSize: 14
                     }
                     MouseArea {
@@ -161,7 +161,7 @@ ColumnLayout {
                         anchors.centerIn: parent
                         text: "󰆴"
                         color: Colors.error
-                        font.family: Theme.fontFamily
+                        font.family: Theme.fontIcon
                         font.pixelSize: 13
                     }
                     MouseArea {

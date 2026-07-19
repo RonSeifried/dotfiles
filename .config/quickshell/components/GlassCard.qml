@@ -5,7 +5,6 @@ import ".."
 // padding; children laid out by the consumer.
 GlassSurface {
     id: root
-    tier: "regular"
     radius: Theme.radiusLarge
     property int padding: Theme.panelPadding
     default property alias cardContent: holder.data

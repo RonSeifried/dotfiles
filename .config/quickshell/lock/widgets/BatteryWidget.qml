@@ -21,7 +21,10 @@ Rectangle {
     width: pillRow.implicitWidth + 24
     height: LockTheme.batteryPillHeight
     radius: LockTheme.radiusPill
-    color: Qt.rgba(0, 0, 0, 0.35)
+    // Frost chip (mirrors GlassSurface.frost, lighter pill variant)
+    color: Qt.rgba(1, 1, 1, LockTheme.frostPillFillAlpha)
+    border.width: 1
+    border.color: Qt.rgba(1, 1, 1, LockTheme.frostBorderAlpha)
 
     function iconForPct(p, isCharging) {
         if (isCharging) return "󰂄"
@@ -48,7 +51,7 @@ Rectangle {
             color: root.charging
                 ? LockColors.accentAlt
                 : (root.pct <= 20 ? LockColors.error : LockColors.text)
-            font.family: LockTheme.fontFamily
+            font.family: LockTheme.fontIcon
             font.pointSize: LockTheme.fontPercent + 2
         }
 

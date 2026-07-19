@@ -24,8 +24,46 @@ Singleton {
     property real micVolume: sourceReady ? source.audio.volume : 0
     property bool micMuted: sourceReady ? source.audio.muted : false
 
-    property string sinkName: sink?.description || sink?.name || "Audio"
-    property string sourceName: source?.description || source?.name || "Microphone"
+    property string sinkName: sink ? (sink.description || sink.name || "Audio") : "Audio"
+    property string sourceName: source ? (source.description || source.name || "Microphone") : "Microphone"
+
+    // ── Output device switching ──────────────────────────────────
+    // All real output devices (hardware sinks, not per-app streams).
+    readonly property var sinks: {
+        const out = []
+        for (const n of Pipewire.nodes.values)
+            if (n && n.isSink && !n.isStream) out.push(n)
+        return out
+    }
+    readonly property var sources: {
+        const out = []
+        for (const n of Pipewire.nodes.values)
+            if (n && n.isSource && !n.isStream) out.push(n)
+        return out
+    }
+    // Track them so .description / .ready populate for the picker.
+    PwObjectTracker { objects: root.sinks.concat(root.sources) }
+
+    // Short human label for a sink. One ALSA card can expose several nodes
+    // whose `description` all start with the same chipset blurb ("500 Series
+    // Chipset Family …") — node.nick ("Speaker", "HDMI 3") is the part that
+    // actually distinguishes them.
+    function sinkLabel(n) {
+        if (!n) return "Output"
+        return n.nickname || n.description || n.name || "Output"
+    }
+
+    function setSink(node) {
+        if (node) Pipewire.preferredDefaultAudioSink = node
+    }
+
+    function sourceLabel(n) {
+        if (!n) return "Input"
+        return n.nickname || n.description || n.name || "Input"
+    }
+    function setSource(node) {
+        if (node) Pipewire.preferredDefaultAudioSource = node
+    }
 
     function setVolume(v) {
         if (!sinkReady) return
